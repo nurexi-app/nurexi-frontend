@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/helpers/theme-provider";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,10 +31,23 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem
-          // disableTransitionOnChange
+          disableTransitionOnChange
         >
-          <h1 className="text-4xl font-outf">Ochife ogechukwu</h1>
-          <p>igeksbdjdjkbs</p>
+          <Toaster
+            richColors
+            closeButton
+            toastOptions={{
+              classNames: {
+                toast: "border bg-background text-foreground shadow-lg",
+                success: "border-green-500/30 bg-green-500/10 text-green-600",
+                error: "border-red-500/30 bg-red-500/10 text-red-600",
+                warning:
+                  "border-yellow-500/30 bg-yellow-500/10 text-yellow-600",
+                info: "border-blue-500/30 bg-blue-500/10 text-blue-600",
+              },
+            }}
+          />
+
           {children}
         </ThemeProvider>
       </body>
