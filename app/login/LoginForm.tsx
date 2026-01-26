@@ -22,6 +22,7 @@ import { FaXTwitter } from "react-icons/fa6";
 import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type loginFormValues = z.infer<typeof loginSchema>;
 
@@ -36,15 +37,12 @@ export function LoginForm() {
     },
   });
 
+  const router = useRouter();
   function onSubmit(data: loginFormValues) {
-    console.log(data);
     toast.success("success", {
-      description: (
-        <pre className="mt-2 rounded-md bg-muted p-4 text-sm">
-          {JSON.stringify(data, null, 2)}
-        </pre>
-      ),
+      description: <p className="bodyText">Welcome</p>,
     });
+    router.push("/welcome");
   }
 
   const [showPassword, setShowPassword] = useState(false);
