@@ -1,6 +1,5 @@
+import SelectExamType from "@/components/user/learner/exam/SelectExamType";
 import DashboardCaption from "@/components/web/DashboardCaption";
-import ExamTypeCard from "@/components/web/ExamTypeCard";
-import { examTypes } from "@/lib/types/mock-exam";
 
 export default function MockExamPage() {
   return (
@@ -15,11 +14,7 @@ export default function MockExamPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {examTypes.map((exam) => (
-            <ExamTypeCard key={exam.id} {...exam} />
-          ))}
-        </div>
+        <SelectExamType />
       </section>
     </>
   );

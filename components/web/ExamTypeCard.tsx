@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
 import Image from "next/image";
+import { useAppContext } from "@/context/AppProvider";
 
 interface Props {
   name: string;
@@ -19,6 +20,7 @@ export default function ExamTypeCard({
   examsCount,
   image,
 }: Props) {
+  const { setExamType } = useAppContext();
   return (
     <Card
       className={clsx(
@@ -50,7 +52,9 @@ export default function ExamTypeCard({
               {examsCount} full mock exams
             </p>
 
-            <Button className="w-full mt-2">Start mock exam</Button>
+            <Button className="w-full mt-2" onClick={() => setExamType(name)}>
+              Start mock exam
+            </Button>
           </>
         ) : (
           <div className="text-xs text-muted-foreground flex items-center gap-2 mt-2">
