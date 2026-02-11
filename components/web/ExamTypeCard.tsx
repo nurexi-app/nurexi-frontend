@@ -3,6 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
 import Image from "next/image";
+import { useAppDispatch } from "@/hooks/StoreHooks";
+import { setExamType } from "@/lib/features/exam/examSlice";
 
 interface Props {
   name: string;
@@ -19,6 +21,7 @@ export default function ExamTypeCard({
   examsCount,
   image,
 }: Props) {
+  const dispatch = useAppDispatch();
   return (
     <Card
       className={clsx(
@@ -50,7 +53,12 @@ export default function ExamTypeCard({
               {examsCount} full mock exams
             </p>
 
-            <Button className="w-full mt-2">Start mock exam</Button>
+            <Button
+              className="w-full mt-2"
+              onClick={() => dispatch(setExamType(name))}
+            >
+              Start mock exam
+            </Button>
           </>
         ) : (
           <div className="text-xs text-muted-foreground flex items-center gap-2 mt-2">
