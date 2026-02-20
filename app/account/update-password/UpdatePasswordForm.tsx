@@ -55,7 +55,6 @@ export default function UpdatePasswordForm() {
         });
       } catch (error) {
         if (error instanceof Error) {
-          console.log(error);
           toast.error(error.message);
         } else {
           toast.error("Something went wrong");

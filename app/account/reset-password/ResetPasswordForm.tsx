@@ -41,7 +41,6 @@ export default function ResetPasswordForm() {
         });
       } catch (error) {
         if (error instanceof Error) {
-          console.log(error);
           toast.error(error.message);
         } else {
           toast.error("Something went wrong");

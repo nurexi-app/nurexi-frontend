@@ -39,7 +39,6 @@ const CreateOrManage = () => {
   // Get current 'section' from URL, defaulting to 'course-overview'
   const currentSection = searchParams.get("section") || "course-overview";
 
-  console.log(currentType);
   const tabs = [
     { label: "Create new course", value: "create" },
     { label: "Manage courses", value: "manage" },

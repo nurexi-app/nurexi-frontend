@@ -103,7 +103,6 @@ export async function InitializeResetPassword(payload: ResetPasswordSchema) {
   if (error) {
     throw new Error(error.message);
   }
-  console.log(data);
 }
 
 export async function UpdatePassword(confirmedPassword: string) {

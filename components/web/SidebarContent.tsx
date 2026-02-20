@@ -12,7 +12,6 @@ import {
 
 export function SidebarContent({ onClick }: { onClick: () => void }) {
   const pathname = usePathname();
-  console.log(pathname);
 
   const linkToUse = pathname.includes("/educator")
     ? EducatorsLinks

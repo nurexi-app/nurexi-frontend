@@ -54,7 +54,6 @@ export function LoginForm() {
           description: <p className="bodyText">Welcome back</p>,
         });
       } catch (error) {
-        console.log(error);
         if (error instanceof Error) {
           if (error.message.includes("NEXT_REDIRECT")) {
             return;

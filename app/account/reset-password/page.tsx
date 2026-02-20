@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import Logo from "@/components/web/Logo";
 import Link from "next/link";
 import ResetPasswordForm from "./ResetPasswordForm";

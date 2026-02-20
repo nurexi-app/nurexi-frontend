@@ -65,7 +65,7 @@ export function RegisterForm() {
           if (error.message.includes("NEXT_REDIRECT")) {
             return;
           }
-          console.log(error);
+
           toast.error(error.message);
         } else {
           toast.error("Something went wrong");

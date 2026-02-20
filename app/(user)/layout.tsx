@@ -2,14 +2,17 @@ import { Asidebar } from "@/components/web/asidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Bell } from "lucide-react";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import { MobileSidebar } from "@/components/web/MobileSidebar";
 import { ModeToggle } from "@/components/web/ThemeSwitcher";
 import Link from "next/link";
 import AppProvider from "@/context/AppProvider";
 import StoreProvider from "@/context/StoreProvider";
+import { GetUserProfile } from "@/lib/actions/auth";
+import AvatarSkeleton from "@/components/web/AvatarSkeleton";
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default async function Layout({ children }: { children: ReactNode }) {
+  const profile = await GetUserProfile();
   return (
     <AppProvider>
       <StoreProvider>
@@ -41,10 +44,14 @@ export default function Layout({ children }: { children: ReactNode }) {
               <Link href={"/learner/notification"}>
                 <Bell size={18} />
               </Link>
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="https://i.pravatar.cc/100" />
-                <AvatarFallback>OC</AvatarFallback>
-              </Avatar>
+              <Suspense fallback={<AvatarSkeleton />}>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={profile?.avatar_url} />
+                  <AvatarFallback className="uppercase">
+                    {profile?.full_name?.slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+              </Suspense>
               <ModeToggle />
             </div>
           </header>
