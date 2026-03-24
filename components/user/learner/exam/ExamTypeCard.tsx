@@ -2,44 +2,49 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
-import Image from "next/image";
-import { useAppDispatch } from "@/hooks/StoreHooks";
-import { setExamType } from "@/lib/features/exam/examSlice";
+import Link from "next/link";
 
-interface Props {
+interface ExamTypeCardProps {
+  id: number;
   name: string;
+  code: string;
+  icon: string;
+  is_active: boolean;
   description: string;
-  available: boolean;
-  examsCount?: number;
-  image: string;
+  exam_session: Array<{ id: number; session_name: string; year: number }>;
 }
 
 export default function ExamTypeCard({
+  id,
   name,
+  code,
+  icon,
   description,
-  available,
-  examsCount,
-  image,
-}: Props) {
-  const dispatch = useAppDispatch();
+  is_active,
+  exam_session,
+}: ExamTypeCardProps) {
+  // Get latest session (most recent year)
+  const latestSession = exam_session?.sort((a, b) => b.year - a.year)[0];
+  console.log(exam_session);
   return (
     <Card
       className={clsx(
         "relative transition-all",
-        available
+        is_active
           ? "hover:-translate-y-1 hover:shadow-lg cursor-pointer"
           : "opacity-50 cursor-not-allowed",
       )}
     >
       <CardContent className="p-5 space-y-3">
         <div className="flex items-center gap-2">
-          <Image
+          {/* <Image
             alt={name}
             src={image}
             width={20}
             height={20}
             className="text-primary"
-          />
+          /> */}
+          <p>{icon}</p>
           <h3 className="font-semibold text-lg">{name}</h3>
         </div>
 
@@ -47,18 +52,19 @@ export default function ExamTypeCard({
           {description}
         </p>
 
-        {available ? (
+        {is_active ? (
           <>
             <p className="text-xs text-muted-foreground">
-              {examsCount} full mock exams
+              {exam_session?.length} sessions available
             </p>
-
-            <Button
-              className="w-full mt-2"
-              onClick={() => dispatch(setExamType(name))}
-            >
-              Start mock exam
-            </Button>
+            <Link href={`/learner/exam/${code || name.toLowerCase()}`}>
+              <Button
+                className="w-full mt-2"
+                //   onClick={() => dispatch(setExamType(name))}
+              >
+                View
+              </Button>
+            </Link>
           </>
         ) : (
           <div className="text-xs text-muted-foreground flex items-center gap-2 mt-2">

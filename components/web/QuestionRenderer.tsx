@@ -16,9 +16,9 @@ export default function QuestionRenderer({ question }: { question: Question }) {
   const dispatch = useDispatch();
   const { answers, questions, status } = useAppSelector((state) => state.exam);
 
-  const selectedAnswer = answers.find(
-    (a) => a.questionId === question.id,
-  )?.selected;
+  const selectedAnswer = answers
+    .find((a) => a.questionId === question.id)
+    ?.selected.trim();
 
   const handleAnswerChange = (value: string) => {
     if (status === "review") return;
@@ -39,7 +39,7 @@ export default function QuestionRenderer({ question }: { question: Question }) {
       }),
     );
 
-    // More accurate progress calculation
+    //progress calculation
     const uniqueAnswered = new Set([
       ...answers.map((a) => a.questionId),
       question.id,
@@ -56,7 +56,8 @@ export default function QuestionRenderer({ question }: { question: Question }) {
       <p className="space-y-2 mt-2">{question?.question_text}</p>
 
       {/* MULTIPLE CHOICE */}
-      {(question?.question_type === "multiple_choice" ||
+      {(question?.question_type === "mcq" ||
+        question?.question_type === "multiple_choice" ||
         question?.question_type === "true_false") && (
         <RadioGroup
           value={selectedAnswerForCurrent}
@@ -115,12 +116,14 @@ export default function QuestionRenderer({ question }: { question: Question }) {
           <div className="flex items-center flex-wrap gap-2">
             <Badge
               variant={
-                selectedAnswer === question.correct_answer
+                selectedAnswer?.trim().toLocaleLowerCase() ===
+                question.correct_answer?.trim().toLocaleLowerCase()
                   ? "default"
                   : "destructive"
               }
             >
-              {selectedAnswer === question.correct_answer
+              {selectedAnswer?.trim().toLocaleLowerCase() ===
+              question.correct_answer?.trim().toLocaleLowerCase()
                 ? "Correct"
                 : "Incorrect"}
             </Badge>

@@ -4,6 +4,7 @@ import { createSlice } from "@reduxjs/toolkit";
 interface ExamState {
   examType: string;
   mode: "exam" | "learning";
+  session: number | string;
   status: "idle" | "in-progress" | "review" | "completed";
   showResult: boolean;
   score?: {
@@ -27,6 +28,7 @@ interface ExamState {
 const initialState: ExamState = {
   examType: "all",
   mode: "exam",
+  session: "",
   status: "idle",
   score: {
     correct: 0,
@@ -58,6 +60,9 @@ const examSlice = createSlice({
       state.answers = [];
       state.startedAt = Date.now();
     },
+    setExamSession: (state, action) => {
+      state.session = action.payload;
+    },
     submitExam: (state) => {
       state.status = "completed";
 
@@ -75,7 +80,10 @@ const examSlice = createSlice({
           );
         }
 
-        return answer.selected === question.correct_answer;
+        return (
+          answer.selected.trim().toLowerCase() ===
+          question.correct_answer.trim().toLowerCase()
+        );
       }).length;
 
       state.score = {
@@ -158,6 +166,7 @@ const examSlice = createSlice({
       state.showExplanation = false;
       state.progress = 0;
       state.currentQuestionIndex = 0;
+      state.questions = [];
       state.answers = [];
       state.startedAt = null;
       state.score = {
@@ -172,6 +181,7 @@ const examSlice = createSlice({
 export const {
   startExam,
   setExamType,
+  setExamSession,
   setShowResult,
   setShowExplanation,
   setExamDuration,

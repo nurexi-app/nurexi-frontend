@@ -1,5 +1,6 @@
 export type QuestionType =
   | "multiple_choice"
+  | "mcq"
   | "select_all"
   | "true_false"
   | "scenario"

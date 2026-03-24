@@ -32,7 +32,9 @@ export const selectPerformanceBySubject = (state: RootState) => {
         userAnswer.selected.trim().toLowerCase() ===
         question.correct_answer.trim().toLowerCase();
     } else {
-      isCorrect = userAnswer.selected === question.correct_answer;
+      isCorrect =
+        userAnswer.selected.trim().toLocaleLowerCase() ===
+        question.correct_answer.trim().toLocaleLowerCase();
     }
 
     if (isCorrect) {

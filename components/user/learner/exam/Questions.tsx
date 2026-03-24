@@ -18,9 +18,15 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
 import EndExamDialog from "./EndExamDialog";
-import { createClient } from "@/lib/supabase/client";
+import { Question } from "@/lib/types/questions";
 
-const NMCNQuestions = () => {
+const Questions = ({
+  fetchedQuestions,
+  examCode,
+}: {
+  fetchedQuestions: Question[];
+  examCode: string;
+}) => {
   const {
     progress,
     currentQuestionIndex,
@@ -33,62 +39,17 @@ const NMCNQuestions = () => {
   const router = useRouter();
 
   // question fetching
-  const [loading, setLoading] = useState(false);
   useEffect(() => {
-    async function getqestions() {
-      setLoading(true);
-      const res = await fetch("/data/questions/medical_surgical.json");
-      const ques = await res.json();
-      console.log("session: ", session);
-      console.log("Type of session:", typeof session);
-      const supabase = createClient();
+    function getqestions() {
+      console.log("fetchedQuestions: ", fetchedQuestions);
+      console.log("questions: ", questions);
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.push("/login");
-        return;
-      }
-
-      const { data: hasAccess, error: accessError } = await supabase.rpc(
-        "check_exam_access",
-        {
-          p_user_id: user.id,
-          p_exam_session_id: session, // your session variable
-        },
-      );
-
-      console.log("hasAccess: ", hasAccess);
-      console.log("accessError: ", accessError);
-      // STEP 3: If no access, redirect to purchase
-      // if (!hasAccess) {
-      //   router.push("/login");
-      //   return;
-      // }
-
-      const { data, error } = await supabase
-        .from("questions")
-        .select("*")
-        .eq("exam_session_id", session);
-      console.log(data);
-
-      if (error) console.log(error);
-      dispatch(setQuestions(ques));
-      setLoading(false);
+      dispatch(setQuestions(fetchedQuestions));
     }
     getqestions();
-  }, []);
+  }, [fetchedQuestions, dispatch, questions.length]);
 
   const currentQuestion = questions[currentQuestionIndex];
-
-  if (loading)
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader />
-      </div>
-    );
 
   return (
     <div className="bg-white  mt-4 min-h-[528px] rounded-xl">
@@ -107,7 +68,7 @@ const NMCNQuestions = () => {
       </div>
       <Progress value={progress} className="my-4" />
       <div className="flex items-center justify-between">
-        <Badge>NMCN</Badge>
+        <Badge>{examCode.toUpperCase()}</Badge>
         <div className="flex items-center gap-2">
           {currentQuestion?.topics?.map((topic, index) => (
             <Badge variant={"outline"} key={index}>
@@ -169,4 +130,4 @@ const NMCNQuestions = () => {
   );
 };
 
-export default NMCNQuestions;
+export default Questions;
