@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import Logo from "./Logo";
-import { ModeToggle } from "./ThemeSwitcher";
 
 const navlinks = [
   { link: "#key", name: "Key features" },
@@ -44,7 +43,6 @@ export default function Navbar() {
         <Button asChild>
           <Link href="/signup">Sign up</Link>
         </Button>
-        <ModeToggle />
       </div>
 
       {/* Mobile Menu */}
@@ -79,8 +77,6 @@ export default function Navbar() {
             <Button asChild>
               <Link href="/signup">Sign up</Link>
             </Button>
-
-            <ModeToggle />
           </div>
         </SheetContent>
       </Sheet>

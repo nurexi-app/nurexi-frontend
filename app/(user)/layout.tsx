@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Bell } from "lucide-react";
 import { ReactNode, Suspense } from "react";
 import { MobileSidebar } from "@/components/web/MobileSidebar";
-import { ModeToggle } from "@/components/web/ThemeSwitcher";
 import Link from "next/link";
 import AppProvider from "@/context/AppProvider";
 import StoreProvider from "@/context/StoreProvider";
@@ -52,7 +51,6 @@ export default async function Layout({ children }: { children: ReactNode }) {
                   </AvatarFallback>
                 </Avatar>
               </Suspense>
-              <ModeToggle />
             </div>
           </header>
 
