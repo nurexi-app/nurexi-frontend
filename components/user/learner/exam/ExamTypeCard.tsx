@@ -25,7 +25,7 @@ export default function ExamTypeCard({
 }: ExamTypeCardProps) {
   // Get latest session (most recent year)
   const latestSession = exam_session?.sort((a, b) => b.year - a.year)[0];
-  console.log(exam_session);
+
   return (
     <Card
       className={clsx(

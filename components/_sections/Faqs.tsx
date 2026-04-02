@@ -6,11 +6,11 @@ const faqs = [
     text: "Nurexi is a learning and exam prep platform designed to help nursing students pass the NMCN exam with confidence. It offers practice questions, mock exams, educator-led classes, and performance tracking tools.",
   },
   {
-    heading: "How does Nursify work?",
-    text: "You sign up, set your study goals, and start learning through question banks, mock exams, and classes. Nursify tracks your progress and provides personalized feedback to help you improve.",
+    heading: "How does Nurexi work?",
+    text: "You sign up, set your study goals, and start learning through question banks, mock exams, and classes. Nurexi tracks your progress and provides personalized feedback to help you improve.",
   },
   {
-    heading: "Who creates the content on Nursify?",
+    heading: "Who creates the content on Nurexi?",
     text: "Our questions and study materials are developed by experienced nurses and certified educators who understand the NMCN exam structure and what students need to succeed.",
   },
 ];

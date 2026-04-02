@@ -54,8 +54,6 @@ const EndExamDialog = ({
       sessionId: session?.toString() || "",
     };
 
-    console.log("Submitting exam:", { examType, session, score });
-
     const response = await saveExamResult(payload);
 
     if (response.success && response.streakIncreased) {
