@@ -55,6 +55,9 @@ export default function UpdatePasswordForm() {
         });
       } catch (error) {
         if (error instanceof Error) {
+          if (error.message.includes("NEXT_REDIRECT")) {
+            return;
+          }
           toast.error(error.message);
         } else {
           toast.error("Something went wrong");

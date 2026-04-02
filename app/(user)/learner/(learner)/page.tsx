@@ -7,7 +7,9 @@ import DashboardCaption from "@/components/web/DashboardCaption";
 import { GetUserProfile } from "@/lib/actions/auth";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { dashboardMetadata } from "@/lib/exports/metadata";
 
+export const metadata = dashboardMetadata;
 export default async function Page() {
   const supabase = await createClient();
   const user = await GetUserProfile();

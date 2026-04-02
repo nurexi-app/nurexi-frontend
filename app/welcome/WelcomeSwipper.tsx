@@ -11,6 +11,9 @@ import {
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
 import GoalCard from "./GoalCard";
+import { useRouter } from "next/navigation";
+import { Welcome } from "@/lib/actions/auth";
+import { toast } from "sonner";
 
 export default function WelcomeSwipper() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -25,6 +28,7 @@ export default function WelcomeSwipper() {
     );
   };
 
+  const router = useRouter();
   return (
     <section className="relative max-w-203 w-full  bg-background min-h-102.5 p-6 lg:p-16 flex flex-col">
       {/* Skip */}
@@ -33,7 +37,7 @@ export default function WelcomeSwipper() {
           variant={"link"}
           className="absolute right-6 top-6 text-sm text-muted-foreground hover:text-primary"
           onClick={() => {
-            // navigate to dashboard
+            router.push(`${process.env.NEXT_PUBLIC_APP_URL}/learner`);
           }}
         >
           Skip
@@ -46,7 +50,7 @@ export default function WelcomeSwipper() {
           className="flex h-full  max-w-full transition-transform duration-500"
           style={{
             transform: `translateX(-${activeIndex * 100}%)`,
-            width: `${3 * 100}%`,
+            width: `${2 * 100}%`,
           }}
         >
           {/* Slide 0 */}
@@ -68,7 +72,7 @@ export default function WelcomeSwipper() {
           </div>
 
           {/* Slide 1 */}
-          <div className="w-full shrink-0 h-full flex flex-col justify-center gap-4">
+          {/* <div className="w-full shrink-0 h-full flex flex-col justify-center gap-4">
             <h2 className="text-xl font-semibold text-center">
               What’s your learning goal?
             </h2>
@@ -101,7 +105,7 @@ export default function WelcomeSwipper() {
                 />
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Slide 2 */}
           <div className="w-full shrink-0 h-full  flex flex-col items-center justify-center gap-4 text-center">
@@ -119,7 +123,7 @@ export default function WelcomeSwipper() {
 
       {/* Indicators */}
       <div className="flex justify-center items-center gap-2 mt-6">
-        {[0, 1, 2].map((i) => (
+        {[0, 1].map((i) => (
           <span
             key={i}
             className={clsx(
@@ -145,15 +149,28 @@ export default function WelcomeSwipper() {
 
         <Button
           className="self-end"
-          onClick={() => {
-            if (activeIndex === 2) {
-              // navigate to dashboard
+          onClick={async () => {
+            if (activeIndex === 1) {
+              try {
+                const res = await Welcome();
+                if (res.success) {
+                  if (!res.complete) {
+                    toast.success("Welcome to Nurexi");
+                  }
+                  router.push(`${process.env.NEXT_PUBLIC_APP_URL}/learner`);
+                }
+              } catch (error) {
+                if (error instanceof Error) {
+                  toast.error(error.message);
+                }
+                toast.error("Something went wrong");
+              }
             } else {
-              setActiveIndex((v) => Math.min(2, v + 1));
+              setActiveIndex((v) => Math.min(1, v + 1));
             }
           }}
         >
-          {activeIndex === 2 ? "Get started" : "Next"}
+          {activeIndex === 1 ? "Get started" : "Next"}
         </Button>
       </div>
     </section>

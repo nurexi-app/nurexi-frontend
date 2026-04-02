@@ -12,6 +12,9 @@ export default function LogoutButton() {
       toast.success("Logout successful");
     } catch (error) {
       if (error instanceof Error) {
+        if (error.message.includes("NEXT_REDIRECT")) {
+          return;
+        }
         toast.error(error.message);
       } else {
         toast.error("Something went wrong");

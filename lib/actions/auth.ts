@@ -164,3 +164,25 @@ export async function GetUserProfile() {
 
   return existingProfile;
 }
+
+export async function Welcome() {
+  const user = await GetUserProfile();
+  const supabase = await createClient();
+  if (user?.onboarding_completed) {
+    return { success: true, complete: true };
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      onboarding_completed: true,
+    })
+    .eq("id", user.id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/learner", "layout");
+  return { success: true };
+}
