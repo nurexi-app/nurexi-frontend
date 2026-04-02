@@ -164,7 +164,6 @@ export default function WelcomeSwipper() {
                   toast.error(error.message);
                 }
                 toast.error("Something went wrong");
-                console.log(error);
               }
             } else {
               setActiveIndex((v) => Math.min(1, v + 1));

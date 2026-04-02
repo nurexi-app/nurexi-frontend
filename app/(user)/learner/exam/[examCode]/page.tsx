@@ -16,8 +16,6 @@ export default async function ExamSessionPage({ params }: ExamPageProps) {
   const { examCode } = await params;
   const supabase = await createClient();
 
-  console.log("Looking for exam with code:", examCode); // Debug log
-
   // Step 1: Get the exam details with sessions (NO question count)
   const { data: exam, error: examError } = await supabase
     .from("exams")
@@ -35,11 +33,8 @@ export default async function ExamSessionPage({ params }: ExamPageProps) {
     .single();
 
   if (examError || !exam) {
-    console.log("Exam not found:", examError); // Debug log
     notFound();
   }
-
-  console.log("Found exam:", exam); // Debug log
 
   // Step 2: Get current user for access checks
   const {

@@ -127,7 +127,7 @@
 }
 @utility container {
   margin-inline: auto;
-  padding-inline: 2rem;
+  padding-inline: 1rem;
   max-width: 1152px;
 }
 
@@ -167,7 +167,7 @@
 }
 
 .heroText {
-  @apply text-4xl leading-[130%];
+  @apply text-2xl md:text-4xl leading-[130%];
 }
 .bodyText {
   @apply text-[14px] leading-[130%];
@@ -177,4 +177,24 @@
 }
 .mobileSub {
   @apply text-[10px] leading-[130%];
+}
+
+.shiny-pill {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(59, 130, 246, 0.3) 50%,
+    rgba(59, 130, 246, 0.1) 100%
+  );
+  background-size: 200% 100%;
+  animation: shine 5s infinite;
+}
+
+@keyframes shine {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
