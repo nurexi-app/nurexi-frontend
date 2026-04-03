@@ -6,7 +6,7 @@ const DashboardCaption = ({
   text: string;
 }) => {
   return (
-    <div className="h-29.25 px-4 bg-linear-to-r text-white/82 overflow-hidden from-[#0C3A5F] to-[#6CB4EE] flex flex-col justify-center relative gap-2">
+    <div className="h-29.25 rounded-[10px] px-4 bg-linear-to-r text-white/82 overflow-hidden from-[#0C3A5F] to-[#6CB4EE] flex flex-col justify-center relative gap-2">
       <h2 className="max-sm:text-lg">{heading}</h2>
       <p>{text}</p>
 

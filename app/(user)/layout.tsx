@@ -12,39 +12,39 @@ import AvatarSkeleton from "@/components/web/AvatarSkeleton";
 
 export default async function Layout({ children }: { children: ReactNode }) {
   const profile = await GetUserProfile();
+
   return (
     <AppProvider>
       <StoreProvider>
         <main className="min-h-dvh bg-muted">
           <Asidebar />
 
-          {/* Header */}
+          {/* Header - margin adjusts based on sidebar state */}
           <header
             className="
-          fixed top-0 right-0 z-60
-          bg-background
-          h-12
-          w-full md:w-[calc(100%-2.75rem)]
-          md:ml-11
-          flex items-center justify-between
-          border-b  px-4
-        "
+              fixed top-0  right-0 z-30 bg-background
+              h-16 flex items-center justify-between
+              border-b px-4
+              transition-all duration-300 ease-in-out
+              left-0 md:left-14
+              md:group-hover/sidebar:left-64
+            "
           >
-            <div className="flex items-center basis-1/2 gap-3">
+            <div className="flex items-center w-[80%] gap-3">
               <MobileSidebar />
               <Input
                 type="search"
                 placeholder="Search for topics"
-                className="h-9 md:w-2/3 bg-primary-light"
+                className="h-10 hidden md:block bg-background"
               />
             </div>
 
             <div className="flex items-center gap-3">
               <Link href={"/learner/notification"}>
-                <Bell size={18} />
+                <Bell size={24} />
               </Link>
               <Suspense fallback={<AvatarSkeleton />}>
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-8 w-8 md:w-10 md:h-10">
                   <AvatarImage src={profile?.avatar_url} />
                   <AvatarFallback className="uppercase">
                     {profile?.full_name?.slice(0, 2)}
@@ -54,14 +54,13 @@ export default async function Layout({ children }: { children: ReactNode }) {
             </div>
           </header>
 
-          {/* Content */}
+          {/* Content - margin adjusts with sidebar */}
           <section
             className="
-        px-1
-          pt-12
-          md:ml-11
-          md:px-4
-        "
+              pt-16 px-1 md:px-4
+              transition-all duration-300 ease-in-out
+              md:ml-14
+            "
           >
             {children}
           </section>

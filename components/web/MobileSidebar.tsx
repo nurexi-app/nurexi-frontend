@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Logo from "./Logo";
 import { SidebarContent } from "./SidebarContent";
 import { useState } from "react";
+import LogoutButton from "./LogoutButton";
 
 export function MobileSidebar() {
   const [open, setOpen] = useState(false);
@@ -22,7 +23,9 @@ export function MobileSidebar() {
           <Logo />
         </div>
 
-        <SidebarContent onClick={closeMobileSidebar} />
+        <SidebarContent onClick={closeMobileSidebar} isHovered={true} />
+
+        <LogoutButton />
       </SheetContent>
     </Sheet>
   );
