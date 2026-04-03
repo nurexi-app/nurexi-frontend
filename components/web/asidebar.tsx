@@ -17,7 +17,7 @@ export function Asidebar() {
         h-dvh 
         mr-2
          hover:w-60  
-        bg-background border-r
+        bg-white border-r
         
         hover:shadow-xl
         transition-all duration-300 ease-in-out

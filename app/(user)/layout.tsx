@@ -22,7 +22,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
           {/* Header - margin adjusts based on sidebar state */}
           <header
             className="
-              fixed top-0  right-0 z-30 bg-background
+              fixed top-0 bg-white  right-0 z-30 
               h-16 flex items-center justify-between
               border-b px-4
               transition-all duration-300 ease-in-out
@@ -35,7 +35,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
               <Input
                 type="search"
                 placeholder="Search for topics"
-                className="h-10 hidden md:block bg-background"
+                className="h-10 hidden md:block bg-custom-background"
               />
             </div>
 

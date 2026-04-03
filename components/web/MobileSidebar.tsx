@@ -1,7 +1,15 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import Logo from "./Logo";
 import { SidebarContent } from "./SidebarContent";
 import { useState } from "react";
@@ -12,21 +20,23 @@ export function MobileSidebar() {
   function closeMobileSidebar() {
     setOpen(false);
   }
+
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger className="md:hidden">
+    <Drawer direction="left" open={open} onOpenChange={setOpen}>
+      <DrawerTrigger className="md:hidden">
         <Menu size={22} />
-      </SheetTrigger>
-
-      <SheetContent side="left" className="w-64 p-0">
-        <div className="h-12 flex items-center px-4 border-b">
+      </DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader className="h-12 mb-6  flex! flex-row justify-between items-center px-4 border-b">
           <Logo />
-        </div>
 
+          <DrawerClose>
+            <X size={22} />
+          </DrawerClose>
+        </DrawerHeader>
         <SidebarContent onClick={closeMobileSidebar} isHovered={true} />
-
         <LogoutButton />
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   );
 }

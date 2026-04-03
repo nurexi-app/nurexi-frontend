@@ -32,7 +32,7 @@ export default function StatsGrid({ stats }: { stats: any }) {
     },
     {
       label: "Current Streak",
-      value: stats.current_streak || 0,
+      value: `${stats.current_streak || 0} days 🔥`,
       icon: Flame,
       color: "text-orange-500",
     },
@@ -45,8 +45,10 @@ export default function StatsGrid({ stats }: { stats: any }) {
           <CardDescription className="h-25 flex items-center justify-between rounded-xl p-4">
             {/* LEFT: Text */}
             <div className="flex flex-col gap-2">
-              <span className="text-sm text-muted-foreground">{label}</span>
-              <span className="text-lg font-semibold">{value}</span>
+              <span className="text-sm text-[#78767D]">{label}</span>
+              <span className="md:text-lg lg:text-2xl font-medium text-black">
+                {value}
+              </span>
             </div>
 
             {/* RIGHT: Icon */}
