@@ -26,14 +26,9 @@ export default function LogoutButton() {
     <Button
       onClick={handleLogout}
       variant={"ghost"}
-      className={`group/item flex items-center gap-3 rounded-xl ml-3   px-3 py-2
-                       transition-all
-                      bg-muted!`}
+      className={`group/item flex items-center gap-3 rounded-xl md:ml-3   px-3 py-2  transition-all bg-destructive/20!`}
     >
-      <LogOut
-        size={24}
-        className="transition-transform text-destructive hover:text-white! group-hover:text-white! group-hover/item:scale-110"
-      />
+      <LogOut size={24} className="transition-transform text-destructive " />
 
       <span
         className="

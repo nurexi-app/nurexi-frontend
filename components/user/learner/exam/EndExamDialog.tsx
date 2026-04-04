@@ -9,8 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
-} from "@/components/ui/dialog";
+} from "@/components/animate-ui/components/radix/dialog";
 import { useAppDispatch, useAppSelector } from "@/hooks/StoreHooks";
 import { endExam, submitExam } from "@/lib/features/exam/examSlice";
 import { selectPerformanceBySubject } from "@/lib/features/exam/customSelector";

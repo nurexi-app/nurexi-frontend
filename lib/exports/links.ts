@@ -1,29 +1,28 @@
-import {
-  LayoutDashboard,
-  Compass,
-  BookOpen,
-  ClipboardList,
-  TrendingUp,
-  Library,
-  User,
-  Bell,
-} from "lucide-react";
-import { GiHypodermicTest, GiTeacher } from "react-icons/gi";
+import { GiTeacher } from "react-icons/gi";
 import { MdVerified } from "react-icons/md";
 import { PiCurrencyNgn } from "react-icons/pi";
-import { IconType } from "react-icons/lib";
 import type { LucideIcon } from "lucide-react";
+import { LayoutDashboard } from "@/components/animate-ui/icons/layout-dashboard";
+import { Compass } from "@/components/animate-ui/icons/compass";
+import { Airplay } from "@/components/animate-ui/icons/airplay";
+import { ChartSpline } from "@/components/animate-ui/icons/chart-spline";
+import { PinOff } from "@/components/animate-ui/icons/pin-off";
+import { Binary } from "@/components/animate-ui/icons/binary";
+import { MessageSquarePlus } from "@/components/animate-ui/icons/message-square-plus";
+import { ComponentType } from "react";
+import { User } from "@/components/animate-ui/icons/user";
+import { Bell } from "@/components/animate-ui/icons/bell";
 
 export interface SidebarLink {
   name: string;
   link: string;
-  icon: LucideIcon | IconType;
+  icon: LucideIcon | ComponentType<any>;
 }
 
 export interface SidebarAccountLink {
   name: string;
   link: string;
-  icon: LucideIcon | IconType;
+  icon: LucideIcon | ComponentType<any>;
 }
 
 export type SidebarItem = SidebarLink;
@@ -42,27 +41,27 @@ export const sidebarLinks: SidebarItem[] = [
   {
     name: "Courses",
     link: "/learner/courses",
-    icon: BookOpen,
+    icon: MessageSquarePlus,
   },
   {
     name: "Practice Questions",
     link: "/learner/practice",
-    icon: ClipboardList,
+    icon: Binary,
   },
   {
     name: "Mock Exams",
     link: "/learner/exam",
-    icon: GiHypodermicTest,
+    icon: Airplay,
   },
   {
     name: "Progress",
     link: "/learner/analytics",
-    icon: TrendingUp,
+    icon: ChartSpline,
   },
   {
     name: "Library",
     link: "/learner/library",
-    icon: Library,
+    icon: PinOff,
   },
 ];
 

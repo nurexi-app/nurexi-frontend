@@ -8,6 +8,8 @@ import { GetUserProfile } from "@/lib/actions/auth";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { dashboardMetadata } from "@/lib/exports/metadata";
+import { AnimateIcon } from "@/components/animate-ui/icons/icon";
+import QuickLinks from "@/components/web/QuickLinks";
 
 export const metadata = dashboardMetadata;
 export default async function Page() {
@@ -43,32 +45,19 @@ export default async function Page() {
 
       <StatsGrid stats={stats} />
 
-      <div className="my-4 ">
-        <div className="flex flex-col gap-0.5 mb-2 ">
-          <span className="text-lg font-medium">Weekly practice</span>
-          <span className=" text-sm text-muted-foreground">
+      <div className="my-4 py-4 md:bg-white px-2 rounded-lg">
+        <div className="flex flex-col gap-0.5 mb-4 md:mb-7.5 ">
+          <span className="text-sm font-outfit  font-semibold leading-[130%]">
+            Weekly practice
+          </span>
+          <span className=" text-sm font-outfit text-[#78767D] leading-[130%]">
             Jump right into your study session
           </span>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="max-sm:bg-white grid grid-cols-3 gap-2 md:gap-4">
           {weeklyPracticeStats.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <Card
-                className={`${index === 0 ? "bg-card-foreground shadow-xs" : "bg-card"} border hover:-translate-y-0.5 transition-all duration-300 cursor-pointer h-23`}
-                key={index}
-              >
-                <Link href={item.href}>
-                  <CardDescription
-                    className={` ${index === 0 ? "text-background" : "text-card-foreground"}  flex items-center flex-col  justify-center gap-2`}
-                  >
-                    <span className="text-sm ">{item.label}</span>
-                    <Icon className="text-primary" />
-                  </CardDescription>
-                </Link>
-              </Card>
-            );
+            return <QuickLinks key={index} item={item} index={index} />;
           })}
         </div>
       </div>
