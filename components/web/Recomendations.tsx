@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { recommendedItems } from "@/lib/exports/recommendations";
+import { Inbox } from "lucide-react";
 
 export function Recommended() {
   return (
@@ -10,30 +11,39 @@ export function Recommended() {
 
       <CardContent>
         <div className="grid grid-cols-1  gap-4">
-          {recommendedItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={item.title}
-                className="
+          {recommendedItems.length > 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
+              <Inbox className="text-muted-foreground" size={32} />
+              <p className="text-sm text-muted-foreground max-w-xs">
+                Comming soon
+              </p>
+            </div>
+          ) : (
+            recommendedItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.title}
+                  className="
                   flex items-start gap-3
                   rounded-xl border p-4
                   hover:bg-muted/40 transition cursor-pointer
                 "
-              >
-                <div className="rounded-lg bg-primary/10 p-2 text-primary">
-                  <Icon size={18} />
-                </div>
+                >
+                  <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                    <Icon size={18} />
+                  </div>
 
-                <div className="flex flex-col">
-                  <span className="font-medium text-sm">{item.title}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {item.description}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-sm">{item.title}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {item.description}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </CardContent>
     </Card>

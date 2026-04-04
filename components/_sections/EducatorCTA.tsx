@@ -2,6 +2,11 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -9,11 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { toast } from "sonner";
+} from "@/components/animate-ui/components/radix/dialog";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -78,11 +79,11 @@ export default function EducatorCTA() {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Join the Educator Waitlist</DialogTitle>
-              <DialogDescription>
-                We&apos;re currently onboarding our first cohort of mentors.
-                Leave your email to get early access.
-              </DialogDescription>
             </DialogHeader>
+            <DialogDescription>
+              We&apos;re currently onboarding our first cohort of mentors. Leave
+              your email to get early access.
+            </DialogDescription>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-4">
               <Input
                 type="email"

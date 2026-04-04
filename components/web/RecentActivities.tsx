@@ -72,7 +72,7 @@ export function RecentActivities({
               You haven't started any activities yet. Once you begin practicing,
               they'll appear here.
             </p>
-            <Button size="sm">Start Practice</Button>
+            {/* <Button size="sm">Start Practice</Button> */}
           </div>
         ) : (
           <div className="space-y-4">
@@ -81,7 +81,7 @@ export function RecentActivities({
               const iconColor = getIconColor(activity.type);
 
               return (
-                <div className="h-full max-h-[50dvh] overflow-y-auto">
+                <div className="h-fit! max-h-[50dvh] overflow-y-auto">
                   <div
                     key={activity.id}
                     className="flex items-start gap-3 pb-3 border-b last:border-0"

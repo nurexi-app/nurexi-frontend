@@ -1,12 +1,7 @@
-import {
-  CalendarCheck,
-  Target,
-  BarChart3,
-  Trophy,
-  BookOpen,
-  FileQuestionMark,
-  TrendingUp,
-} from "lucide-react";
+import { Airplay } from "@/components/animate-ui/icons/airplay";
+import { Binary } from "@/components/animate-ui/icons/binary";
+import { ChartSpline } from "@/components/animate-ui/icons/chart-spline";
+import { CalendarCheck, Target, BarChart3, Trophy } from "lucide-react";
 
 export const stats = [
   {
@@ -35,17 +30,17 @@ export const weeklyPracticeStats = [
   {
     label: "Take Mock Exam",
     href: "/learner/exam",
-    icon: BookOpen,
+    icon: Airplay,
   },
   {
     label: "Practice Questions",
     href: "/learner/practice",
-    icon: FileQuestionMark,
+    icon: Binary,
   },
   {
     label: "View Progress",
     href: "/learner/analytics",
 
-    icon: TrendingUp,
+    icon: ChartSpline,
   },
 ];

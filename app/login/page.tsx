@@ -3,7 +3,11 @@ import Image from "next/image";
 import QuoteSwiper from "../signup/QuoteSwipper";
 import { LoginForm } from "./LoginForm";
 import Link from "next/link";
+import { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "Login",
+};
 export default function Register() {
   return (
     <main className="flex h-screen max-h-screen lg:gap-4 overflow-hidden ">
