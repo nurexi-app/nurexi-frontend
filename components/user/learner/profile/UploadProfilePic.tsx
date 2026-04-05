@@ -28,6 +28,8 @@ const UploadProfilePic = ({ userId }: { userId: string }) => {
     allowedMimeTypes: ["image/*"],
     maxFiles: 1,
     maxFileSize: 1000 * 1000 * 2, // 2MB,
+    upsert: true,
+    clearExisting: true,
   });
 
   const getPublicUrl = (fileName: string) => {

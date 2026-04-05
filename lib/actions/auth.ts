@@ -96,9 +96,6 @@ export async function InitializeResetPassword(payload: ResetPasswordSchema) {
 
   const { data, error } = await supabase.auth.resetPasswordForEmail(
     payload.email,
-    {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm?type=recovery&next=/account/update-password`,
-    },
   );
   if (error) {
     throw new Error(error.message);

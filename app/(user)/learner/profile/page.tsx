@@ -47,7 +47,9 @@ export default async function ProfilePage() {
           <div className="flex items-center gap-1 md:gap-2.5">
             <Avatar className="size-11.5 md:size-15">
               <AvatarImage src={user?.avatar_url || ""} />
-              <AvatarFallback>OC</AvatarFallback>
+              <AvatarFallback>
+                {user?.full_name.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
 
             <div className="space-y-px ">
