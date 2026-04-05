@@ -3,7 +3,6 @@
 import { IoMailOutline } from "react-icons/io5";
 import { useState } from "react";
 import { Toggle } from "../helpers/Toggle";
-import { useRouter } from "next/navigation";
 
 export default function NotificationSection() {
   const [enabled, setEnabled] = useState({
@@ -11,7 +10,6 @@ export default function NotificationSection() {
     push: false,
   });
 
-  const router = useRouter();
   return (
     <div className="space-y-4">
       {/* Email */}
@@ -52,15 +50,6 @@ export default function NotificationSection() {
           onChange={(value) => setEnabled((prev) => ({ ...prev, push: value }))}
           label="Toggle push notifications"
         />
-      </div>
-
-      <div className="mt-6">
-        <button
-          className="text-sm font-medium text-primary hover:underline"
-          onClick={() => router.push("/reset-password")}
-        >
-          Change password
-        </button>
       </div>
     </div>
   );

@@ -55,7 +55,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
               </Suspense>
 
               <MobileCaptionHeaderCaption
-                title={`Welcome back, ${profile?.full_name.split(" ")[0]}!👋🏾`}
+                title={`Welcome back, ${profile?.full_name.split(" ")[0] || "User"}!👋🏾`}
                 text="Ready to ace your next exam?"
               />
             </div>

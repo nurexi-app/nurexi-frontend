@@ -3,6 +3,12 @@ import Header from "@/components/user/learner/exam/Header";
 import SelectExamType from "@/components/user/learner/exam/SelectExamType";
 import DashboardCaption from "@/components/web/DashboardCaption";
 import { createClient } from "@/lib/supabase/server";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Exam",
+  description: "Write your preferred mock exam",
+};
 
 export default async function MockExamPage() {
   const supabase = await createClient();
