@@ -1,13 +1,30 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import DashboardCaption from "@/components/web/DashboardCaption";
-import { Save } from "lucide-react";
-import NotificationSection from "@/components/web/Notification";
+// import NotificationSection from "@/components/web/Notification";
+import ChangePassword from "@/components/user/learner/profile/ChangePassword";
+import { GetUserProfile } from "@/lib/actions/auth";
+import { toast } from "sonner";
+import DisplayName from "@/components/user/learner/profile/DisplayName";
+import UploadProfilePic from "@/components/user/learner/profile/UploadProfilePic";
+import { Metadata } from "next";
 
-export default function ProfilePage() {
+export const metadata: Metadata = {
+  title: "Profile",
+  description: "Manage your account preferences",
+};
+
+export default async function ProfilePage() {
+  let user;
+  try {
+    user = await GetUserProfile();
+  } catch (error) {
+    if (error instanceof Error) {
+      toast.error(error.message);
+    } else {
+      toast.error("Something went wrong");
+    }
+  }
   return (
     <>
       <DashboardCaption
@@ -15,61 +32,55 @@ export default function ProfilePage() {
         text="Manage your account preferences"
       />
 
-      <div className="p-5">
-        <div className="mb-5 space-y-px">
+      <div className="p-2 md:p-5 bg-custom-background md:bg-background rounded-xl mt-2 md:mt-4 ">
+        <div className="mb-5 space-y-px max-sm:hidden ">
           <h4>Profile Information</h4>
           <p className="bodyText text-muted-foreground">
             Update your personal details
           </p>
         </div>
+        <p className="font-extralight -mt-5 mb-4 max-sm:block hidden">
+          manage your profile settings
+        </p>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Avatar className="size-15">
-              <AvatarImage src="https://i.pravatar.cc/100" />
-              <AvatarFallback>OC</AvatarFallback>
+        <div className="flex items-center justify-between max-sm:flex-wrap">
+          <div className="flex items-center gap-1 md:gap-2.5">
+            <Avatar className="size-11.5 md:size-15">
+              <AvatarImage src={user?.avatar_url || ""} />
+              <AvatarFallback>
+                {user?.full_name.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
 
             <div className="space-y-px ">
-              <p className="bodyText font-semibold">Tee</p>
-              <p className="bodyText text-muted-foreground">ddk@gmail.com</p>
-              <Badge variant="outline" className="-ml-2">
-                Student
-              </Badge>
+              <p className="bodyText font-semibold">{user?.full_name}</p>
+              <p className="bodyText text-muted-foreground">{user?.email}</p>
+              {user?.roles.includes("learner") && (
+                <Badge variant="outline" className="-ml-2">
+                  Learner
+                </Badge>
+              )}
             </div>
           </div>
 
-          <Button
-            variant={"outline"}
-            size={"lg"}
-            className="rounded-2xl py-2.5! px-4!"
-          >
-            Upload Profile Picture
-          </Button>
+          <UploadProfilePic userId={user?.id} />
         </div>
 
-        <div className="flex mt-4 items-center gap-2">
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="displayName">Display Name</Label>
-            <Input defaultValue={"Tee Moses"} />
-          </div>
-          <Button className="" size={"sm"}>
-            Save <Save />
-          </Button>
-        </div>
+        <DisplayName name={user?.full_name} />
       </div>
 
       {/* notification */}
 
-      <div className="p-5">
-        <div className="mb-5 space-y-px">
+      <div className="p-2 md:p-5 bg-custom-background md:bg-background rounded-xl mt-2 md:mt-4 ">
+        {/* <div className="mb-5 space-y-px">
           <h4>Notification</h4>
           <p className="bodyText text-muted-foreground">
             Choose how you want to be notified
           </p>
-        </div>
+        </div> */}
 
-        <NotificationSection />
+        {/* <NotificationSection /> */}
+        <ChangePassword />
       </div>
     </>
   );
