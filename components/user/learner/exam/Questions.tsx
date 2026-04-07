@@ -2,7 +2,6 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import QuestionRenderer from "@/components/web/QuestionRenderer";
 import Timer from "@/components/web/Timer";
 import { useAppDispatch, useAppSelector } from "@/hooks/StoreHooks";
@@ -18,6 +17,7 @@ import { useEffect, useState } from "react";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
 import EndExamDialog from "./EndExamDialog";
 import { Question } from "@/lib/types/questions";
+import { Progress } from "@/components/animate-ui/components/radix/progress";
 
 const Questions = ({
   fetchedQuestions,
