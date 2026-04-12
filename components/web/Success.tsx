@@ -4,7 +4,7 @@ const Award = () => {
   return (
     <DotLottieReact
       src="/assets/animations/award.json"
-      className="w-50 md:w-100 mx-auto"
+      className="w-50 h-fit md:w-100 mx-auto"
       loop
       autoplay
     />

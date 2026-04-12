@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Link from "next/link";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -48,7 +49,9 @@ export default function HelporQuestions() {
         </p>
 
         <div className="animate-reveal">
-          <Button>Get in touch</Button>
+          <Button asChild>
+            <Link href={`mailto:nurexi.team@gmail.com`}>Get in touch</Link>
+          </Button>
         </div>
       </div>
     </section>

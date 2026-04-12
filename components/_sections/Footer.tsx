@@ -45,7 +45,7 @@ const footerMenu: FooterColumn[] = [
     isSocial: true,
     links: [
       { url: "#", icon: <FaLinkedin size={24} /> },
-      { url: "#", icon: <FaXTwitter size={24} /> },
+      { url: "https://x.com/nurexiForNurses", icon: <FaXTwitter size={24} /> },
       { url: "#", icon: <FaInstagram size={24} /> },
       { url: "#", icon: <FaFacebook size={24} /> },
     ],
@@ -119,6 +119,7 @@ export default function Footer() {
                       <li key={idx}>
                         <Link
                           href={link.url}
+                          target="_blank"
                           className="text-gray-600 hover:text-black transition-transform hover:scale-110 block"
                         >
                           <span>{link.icon}</span>

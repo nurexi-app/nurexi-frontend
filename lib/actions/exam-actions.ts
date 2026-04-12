@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { calculateNewStreak } from "../utils";
 import { addExamActivity } from "./activity-actions";
+import { uploadLearnerAnalytics } from "./learnerAnalytic-action";
 
 interface ExamResult {
   correctCount: number;
@@ -15,92 +16,83 @@ interface ExamResult {
 }
 
 export async function saveExamResult(result: ExamResult) {
-  try {
-    const supabase = await createClient();
-    const today = new Date();
+  const supabase = await createClient();
+  const today = new Date();
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-    if (userError || !user) {
-      throw new Error("User not authenticated");
-    }
+  if (userError || !user) {
+    throw new Error("User not authenticated");
+  }
 
-    // Get current stats from database
-    const { data: stats, error: fetchError } = await supabase
-      .from("learner_stats")
-      .select(
-        "current_streak, longest_streak, last_activity_date, total_exam_attempts, total_questions_answered, total_correct_answers",
-      )
-      .eq("user_id", user.id)
-      .single();
+  const { data: stats, error: fetchError } = await supabase
+    .from("learner_stats")
+    .select(
+      "current_streak, longest_streak, last_activity_date, total_exam_attempts, total_questions_answered, total_correct_answers",
+    )
+    .eq("user_id", user.id)
+    .single();
 
-    if (fetchError) {
-      throw new Error("Failed to fetch user stats");
-    }
+  if (fetchError) {
+    throw new Error("Failed to fetch user stats");
+  }
 
-    // Calculate new streak
-    const newStreak = calculateNewStreak(
-      stats.current_streak,
-      stats.last_activity_date,
-      today,
-    );
+  const newStreak = calculateNewStreak(
+    stats.current_streak,
+    stats.last_activity_date,
+    today,
+  );
 
-    // Calculate score percentage
-    const score = Math.round(
-      (result.correctCount / result.totalQuestions) * 100,
-    );
+  const score = Math.round((result.correctCount / result.totalQuestions) * 100);
 
-    const newTotalAttempts = stats.total_exam_attempts + 1;
-    const newTotalQuestions =
-      stats.total_questions_answered + result.totalQuestions;
-    const newTotalCorrect = stats.total_correct_answers + result.correctCount;
+  const newTotalAttempts = stats.total_exam_attempts + 1;
+  const newTotalQuestions =
+    stats.total_questions_answered + result.totalQuestions;
+  const newTotalCorrect = stats.total_correct_answers + result.correctCount;
 
-    // Update database
-    const { error: updateError } = await supabase
-      .from("learner_stats")
-      .update({
-        total_exam_attempts: newTotalAttempts,
-        total_questions_answered: newTotalQuestions,
-        total_correct_answers: newTotalCorrect,
-        current_streak: newStreak,
-        longest_streak: Math.max(newStreak, stats.longest_streak),
-        last_activity_date: today.toISOString(),
-        updated_at: today.toISOString(),
-      })
-      .eq("user_id", user.id);
+  const { error: updateError } = await supabase
+    .from("learner_stats")
+    .update({
+      total_exam_attempts: newTotalAttempts,
+      total_questions_answered: newTotalQuestions,
+      total_correct_answers: newTotalCorrect,
+      current_streak: newStreak,
+      longest_streak: Math.max(newStreak, stats.longest_streak),
+      last_activity_date: today.toISOString(),
+      updated_at: today.toISOString(),
+    })
+    .eq("user_id", user.id);
 
-    if (updateError) {
-      throw new Error("Failed to update stats");
-    }
+  if (updateError) {
+    throw new Error("Failed to update stats");
+  }
 
-    // Add activity record
-    const activityResult = await addExamActivity({
+  // Run independent operations - if they fail, throw
+  const [activityResult, analyticsResult] = await Promise.all([
+    addExamActivity({
       userId: user.id,
       sessionId: result.sessionId,
       score: score,
       correctCount: result.correctCount,
       totalQuestions: result.totalQuestions,
-    });
+    }),
+    uploadLearnerAnalytics(result, score),
+  ]);
 
-    if (!activityResult.success) {
-      console.error("Failed to add activity:", activityResult.error);
-      // Don't throw error - stats already saved
-    }
-
-    return {
-      success: true,
-      newStreak: newStreak,
-      streakIncreased: newStreak > stats.current_streak,
-    };
-  } catch (error) {
-    console.error("Error saving exam result:", error);
-    return {
-      success: false,
-      error:
-        error instanceof Error ? error.message : "Failed to save exam results",
-    };
+  if (!activityResult.success) {
+    throw new Error(activityResult.error || "Failed to save activity");
   }
+
+  if (!analyticsResult.success) {
+    throw new Error(analyticsResult.error || "Failed to save analytics");
+  }
+
+  return {
+    success: true,
+    newStreak: newStreak,
+    streakIncreased: newStreak > stats.current_streak,
+  };
 }

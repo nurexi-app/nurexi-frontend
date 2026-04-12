@@ -53,23 +53,26 @@ const EndExamDialog = ({
       sessionId: session?.toString() || "",
     };
 
-    const response = await saveExamResult(payload);
+    try {
+      const response = await saveExamResult(payload);
 
-    if (response.success && response.streakIncreased) {
-      toast.success(`🔥 ${response.newStreak} day streak!`, {
-        duration: 5000,
-      });
-    } else if (response.success) {
-      toast.success("Results saved successfully!");
-    } else if (!response.success) {
-      toast.error(response.error || "Failed to save results");
+      if (response.streakIncreased) {
+        toast.success(`🔥 ${response.newStreak} day streak!`, {
+          duration: 5000,
+        });
+      } else {
+        toast.success("Results saved successfully!");
+      }
+
       setIsSaving(false);
-      return;
+      setOpen(false);
+      dispatch(submitExam());
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save results",
+      );
+      setIsSaving(false);
     }
-
-    setIsSaving(false);
-    setOpen(false);
-    dispatch(submitExam());
   };
 
   const handleQuit = () => {

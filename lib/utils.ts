@@ -46,3 +46,13 @@ export function calculateNewStreak(
 
   return 1;
 }
+
+export function handleSearchParamsChange(
+  searchParams: URLSearchParams,
+  key: string,
+  value: string,
+) {
+  const params = new URLSearchParams(searchParams);
+  params.set(key, value);
+  return params.toString();
+}

@@ -53,7 +53,6 @@ export async function addExamActivity(params: ExamActivityParams) {
 
     return { success: true, data };
   } catch (error) {
-    console.error("Unexpected error adding exam activity:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to add activity",

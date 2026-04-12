@@ -69,7 +69,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
               md:ml-14
             "
           >
-            <ShowPageName />
+            <ShowPageName userId={profile?.id} />
             {children}
           </section>
         </main>
