@@ -55,7 +55,7 @@ const Timer = () => {
           if (response.success && response.streakIncreased) {
             toast.success(`🔥 ${response.newStreak} day streak!`);
           } else if (!response.success) {
-            toast.error(response.error);
+            toast.error("Failed to save exam result");
           }
 
           dispatch(submitExam());
