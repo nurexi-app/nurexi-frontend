@@ -74,7 +74,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section ref={containerRef} className="container mt-22 mb-6 lg:my-12.5 ">
+    <section ref={containerRef} className="container mt-22 mb-6 lg:my-22.5 ">
       <div className="flex items-center flex-col md:flex-row gap-4 justify-between">
         {/* Hero Text */}
         <div ref={textRef} className="md:basis-[48%]    tex-left">
