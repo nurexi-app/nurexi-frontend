@@ -87,6 +87,7 @@ export default function UpdatePasswordForm() {
                   {...field}
                   type={showPassword ? "text" : "password"}
                   className="pl-8 py-2.5  h-9.5 rounded-lg bg-primary-light pr-10"
+                  autoComplete="new-password"
                 />
 
                 <button
