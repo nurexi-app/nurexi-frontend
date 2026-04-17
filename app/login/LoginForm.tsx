@@ -112,6 +112,7 @@ export function LoginForm() {
                       {...field}
                       type={showPassword ? "text" : "password"}
                       className="pl-8 py-2.5  h-9.5 rounded-lg bg-primary-light pr-10"
+                      autoComplete="new-password"
                     />
 
                     <button
@@ -182,7 +183,10 @@ export function LoginForm() {
               onClick={async () => await AuthenticateWithGoogle()}
             >
               <FcGoogle className="mr-2 h-4 w-4" />
-              Continue with Google
+              <span className="hidden md:inline-block">
+                Continue with Google
+              </span>
+              <span className="md:hidden">Google</span>
             </Button>
 
             <Button
