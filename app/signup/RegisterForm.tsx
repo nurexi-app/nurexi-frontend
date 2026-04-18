@@ -233,7 +233,10 @@ export function RegisterForm() {
               onClick={async () => await AuthenticateWithGoogle()}
             >
               <FcGoogle className="mr-2 h-4 w-4" />
-              Continue with Google
+              <span className="hidden md:inline-block">
+                Continue with Google
+              </span>
+              <span className="md:hidden">Google</span>
             </Button>
 
             <Button
