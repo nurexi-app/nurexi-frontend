@@ -18,11 +18,11 @@ export default function Register() {
         <QuoteSwiper />
       </section>
 
-      <section className=" p-4 lg:p-16 basis-full md:basis-1/2 overflow-auto ">
-        <div className="text-center flex flex-col mb-4 items-center gap-2 ">
+      <section className=" p-4 flex flex-col justify-center lg:p-16 basis-full md:basis-1/2 overflow-auto ">
+        <div className="text-center  flex flex-col mb-4 items-center gap-2 ">
           <Logo />
           <p className="bodyText">
-            Sign up to join thousands preparing for NMCN exams
+            Sign up to join thousands preparing for Nursing exams
           </p>
         </div>
         <RegisterForm />

@@ -1,10 +1,13 @@
 import Logo from "@/components/web/Logo";
 import Link from "next/link";
 import ResetPasswordForm from "./ResetPasswordForm";
-import { resend } from "@/lib/email/resend";
+import { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "Reset Password",
+  description: "Enter Your Mail to get OTP",
+};
 export default function ResetPassword() {
-  console.log(resend);
   return (
     <>
       <div className="text-center flex flex-col mb-4 items-center gap-2 ">

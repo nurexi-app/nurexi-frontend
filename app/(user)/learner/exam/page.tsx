@@ -7,7 +7,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Exam",
-  description: "Write your preferred mock exam",
+  description: "Simulate your preferred mock exam",
 };
 
 export default async function MockExamPage() {

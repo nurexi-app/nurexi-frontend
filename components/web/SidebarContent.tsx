@@ -81,7 +81,10 @@ export function SidebarContent({
 function SidebarItem({ item, pathname, onClick, isSidebarExpanded }: any) {
   const [isHovered, setIsHovered] = useState(false);
   const Icon = item.icon;
-  const active = pathname === item.link;
+  const active =
+    item.link === "/learner" || item.link === "/educator"
+      ? pathname === item.link
+      : pathname.startsWith(item.link);
 
   return (
     <li

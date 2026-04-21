@@ -49,7 +49,28 @@ const examSlice = createSlice({
   name: "exam",
   initialState,
   reducers: {
+    setMode: (state, action) => {
+      state.mode = action.payload;
+    },
+    startPractice: (state, action) => {
+      state.mode = "learning";
+      state.examType = action.payload.examType || "practice";
+      state.status = "in-progress";
+      state.showResult = false;
+      state.showExplanation = false;
+      state.progress = 0;
+      state.questions = action.payload.questions;
+      state.currentQuestionIndex = 0;
+      state.answers = [];
+      state.startedAt = Date.now();
+      state.score = {
+        correct: 0,
+        total: action.payload.questions.length,
+        percentage: 0,
+      };
+    },
     startExam: (state, action) => {
+      state.mode = "exam";
       state.examType = action.payload;
       state.status = "in-progress";
       state.showResult = false;
@@ -129,6 +150,7 @@ const examSlice = createSlice({
         return;
       }
       state.currentQuestionIndex += 1;
+      state.showExplanation = false;
     },
     setAnswers: (state, action) => {
       const existingAnswer = state.answers.find(
@@ -179,6 +201,8 @@ const examSlice = createSlice({
 });
 
 export const {
+  startPractice,
+  setMode,
   startExam,
   setExamType,
   setExamSession,

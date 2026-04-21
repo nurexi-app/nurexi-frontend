@@ -22,10 +22,10 @@ export default function Register() {
         <QuoteSwiper />
       </section>
 
-      <section className=" p-4 lg:p-16 basis-full md:basis-1/2 overflow-auto ">
+      <section className="flex flex-col justify-center p-4 lg:p-16 basis-full md:basis-1/2 overflow-auto ">
         <div className="text-center flex flex-col mb-4 items-center gap-2 ">
           <Logo />
-          <p className="bodyText">Welcome back</p>
+          <p className="bodyText text-center">Welcome back</p>
         </div>
         <LoginForm />
 

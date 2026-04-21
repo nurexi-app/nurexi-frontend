@@ -26,7 +26,7 @@ const EndExamDialog = ({
   children: React.ReactNode;
 }) => {
   const dispatch = useAppDispatch();
-  const { answers, questions, score, examType, session } = useAppSelector(
+  const { answers, questions, score, examType, session, mode } = useAppSelector(
     (store) => store.exam,
   );
   const performanceBySubject = useAppSelector(selectPerformanceBySubject);
@@ -35,6 +35,10 @@ const EndExamDialog = ({
   const [open, setOpen] = useState(false);
 
   const handleSubmit = async () => {
+    if (mode === "learning") {
+      dispatch(submitExam());
+      return;
+    }
     setIsSaving(true);
 
     // Calculate totals from performanceBySubject
@@ -77,7 +81,7 @@ const EndExamDialog = ({
 
   const handleQuit = () => {
     dispatch(endExam());
-    router.push("/learner/exam");
+    router.push(mode === "learning" ? "/learner/practice" : "/learner/exam");
   };
 
   return (
