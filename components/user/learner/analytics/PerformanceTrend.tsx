@@ -140,15 +140,15 @@ const PerformanceTrend = ({ userId }: PerformanceTrendProps) => {
   const tickInterval = getTickInterval(data.length);
 
   return (
-    <div className="bg-white p-4 mb-6 rounded-2xl md:h-[60dvh] min-h-79.5">
-      <div className="flex justify-between items-center mb-4">
+    <div className="bg-white p-4 mb-6 rounded-2xl md:min-h-[400px]">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
         <h2 className="text-sm font-medium">Performance trend</h2>
-        <div className="flex gap-1">
+        <div className="flex gap-1 flex-wrap">
           {timeRanges.map((range) => (
             <button
               key={range.days}
               onClick={() => setSelectedRange(range)}
-              className={`px-3 py-1 text-xs rounded-md transition ${
+              className={`px-2 sm:px-3 py-1 text-xs rounded-md transition ${
                 selectedRange.days === range.days
                   ? "bg-primary text-white"
                   : "bg-gray-100 hover:bg-gray-200"
@@ -160,44 +160,60 @@ const PerformanceTrend = ({ userId }: PerformanceTrendProps) => {
         </div>
       </div>
 
-      <ChartContainer
-        config={chartConfig}
-        className="h-full min-h-[35dvh] md:px-2 px-0 lg:w-[98%] aspect-[1.618]"
-      >
-        <LineChart data={data} className="">
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="#e5e7eb"
-            vertical={true}
-          />
-          <XAxis
-            dataKey="date"
-            tickLine={true}
-            tickMargin={10}
-            axisLine={true}
-            interval={tickInterval}
-          />
-          <YAxis
-            tickLine={true}
-            tickMargin={10}
-            axisLine={false}
-            label={{ value: "Scores", position: "insideLeft", angle: -90 }}
-            domain={[0, 100]}
-          />
-          <Tooltip
-            content={<ChartTooltipContent indicator="dot" />}
-            cursor={false}
-          />
-          <Line
-            dataKey="score"
-            type="monotone"
-            stroke="var(--color-score)"
-            strokeWidth={2}
-            dot={{ r: 4, fill: "var(--color-score)" }}
-            activeDot={{ r: 6 }}
-          />
-        </LineChart>
-      </ChartContainer>
+      <div className="w-full overflow-x-auto">
+        <div className="min-w-[300px] w-full">
+          <ChartContainer
+            config={chartConfig}
+            className="w-full h-[300px] sm:h-[350px] md:h-[400px]"
+          >
+            <LineChart
+              data={data}
+              margin={{ top: 20, right: 30, left: 10, bottom: 20 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#e5e7eb"
+                vertical={true}
+              />
+              <XAxis
+                dataKey="date"
+                tickLine={true}
+                tickMargin={10}
+                axisLine={true}
+                interval={tickInterval}
+                angle={data.length > 7 ? -45 : 0}
+                textAnchor={data.length > 7 ? "end" : "middle"}
+                height={data.length > 7 ? 60 : 30}
+              />
+              <YAxis
+                tickLine={true}
+                tickMargin={10}
+                axisLine={false}
+                label={{
+                  value: "Scores",
+                  position: "insideLeft",
+                  angle: -90,
+                  style: { textAnchor: "middle" },
+                }}
+                domain={[0, 100]}
+                width={40}
+              />
+              <Tooltip
+                content={<ChartTooltipContent indicator="dot" />}
+                cursor={false}
+              />
+              <Line
+                dataKey="score"
+                type="monotone"
+                stroke="var(--color-score)"
+                strokeWidth={2}
+                dot={{ r: 4, fill: "var(--color-score)" }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ChartContainer>
+        </div>
+      </div>
     </div>
   );
 };

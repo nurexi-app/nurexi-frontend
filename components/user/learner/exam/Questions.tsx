@@ -13,7 +13,7 @@ import {
   setQuestions,
 } from "@/lib/features/exam/examSlice";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
 import EndExamDialog from "./EndExamDialog";
 import { Question } from "@/lib/types/questions";
@@ -26,7 +26,7 @@ const Questions = ({
   fetchedQuestions: Question[];
   examCode: string;
 }) => {
-  const { progress, currentQuestionIndex, questions, answers, status } =
+  const { progress, mode, currentQuestionIndex, questions, answers, status } =
     useAppSelector((store) => store.exam);
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -42,11 +42,11 @@ const Questions = ({
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <div className="bg-white  mt-4 min-h-[528px] rounded-xl">
+    <div className="bg-white p-4  mt-4 min-h-[528px] rounded-xl">
       <EndExamDialog type="quit">
         <button className="flex cursor-pointer items-center gap-1 text-xs mb-2">
           <MdKeyboardArrowLeft />
-          <span>Quit Exam</span>
+          <span>{mode === "learning" ? "Quit Practice" : "Quit Exam"}</span>
         </button>
       </EndExamDialog>
 
@@ -54,7 +54,11 @@ const Questions = ({
         <h4 className="font-light">
           Question {currentQuestionIndex + 1} of {questions.length}
         </h4>
-        <Timer />
+        {mode === "exam" ? (
+          <Timer />
+        ) : (
+          <p className="text-xs">No timer for practice mode</p>
+        )}
       </div>
       <Progress value={progress} className="my-4" />
       <div className="flex items-center justify-between">
@@ -91,7 +95,9 @@ const Questions = ({
             </Button>
           ) : (
             <EndExamDialog type="finish">
-              <Button variant={"destructive"}>Finish Exam</Button>
+              <Button variant={"destructive"}>
+                {mode === "learning" ? "Finish Practice" : "Finish Exam"}
+              </Button>
             </EndExamDialog>
           )
         ) : (

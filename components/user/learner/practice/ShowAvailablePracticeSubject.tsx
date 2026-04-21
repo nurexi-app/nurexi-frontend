@@ -1,10 +1,19 @@
 "use client";
 import { useState } from "react";
 import PracticeInstructions from "./PracticeInstructions";
-
-import { subjects } from "@/lib/exports/practiceSubjects";
 import PracticeCard from "./PracticeCard";
-const ShowAvailablePracticeSubject = () => {
+
+interface SubjectWithCount {
+  id: number;
+  name: string;
+  questionCount: number;
+}
+
+const ShowAvailablePracticeSubject = ({
+  subjectsObject,
+}: {
+  subjectsObject: SubjectWithCount[];
+}) => {
   const [showSubject, setShowSubject] = useState(true);
 
   function handleToggle(): void {
@@ -14,7 +23,7 @@ const ShowAvailablePracticeSubject = () => {
     <PracticeInstructions onToggle={handleToggle} />
   ) : (
     <div className="grid grid-cols-2 mt-4 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {subjects.map((subject, index) => (
+      {subjectsObject.map((subject, index) => (
         <PracticeCard key={index} {...subject} />
       ))}
     </div>

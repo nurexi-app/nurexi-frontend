@@ -50,7 +50,12 @@ const TopicsPerformance = ({ data }: TopicsPerformanceProps) => {
         config={chartConfig}
         className="md:max-h-[60vh] h-full md:px-2 px-0 w-full"
       >
-        <BarChart data={data} layout="vertical" className="ml-0 md:ml-6">
+        <BarChart
+          responsive
+          data={data}
+          layout="vertical"
+          className="ml-0 md:ml-6"
+        >
           <XAxis
             type="number"
             dataKey="score"

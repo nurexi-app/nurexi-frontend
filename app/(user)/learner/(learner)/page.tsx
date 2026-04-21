@@ -27,7 +27,7 @@ export default async function Page() {
     .select("*")
     .eq("user_id", user?.id)
     .order("created_at", { ascending: false })
-    .limit(10);
+    .limit(5);
   if (statsError) {
     return (
       <div className="p-4 border border-destructive bg-destructive/10 rounded">

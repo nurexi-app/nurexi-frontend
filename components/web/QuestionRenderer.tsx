@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import {
   setAnsweredQuestionsProgress,
   setAnswers,
+  setShowExplanation,
 } from "@/lib/features/exam/examSlice";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -14,11 +15,15 @@ import { Badge } from "../ui/badge";
 
 export default function QuestionRenderer({ question }: { question: Question }) {
   const dispatch = useDispatch();
-  const { answers, questions, status } = useAppSelector((state) => state.exam);
+  const { answers, questions, status, showExplanation, mode } = useAppSelector(
+    (state) => state.exam,
+  );
 
   const selectedAnswer = answers
     .find((a) => a.questionId === question.id)
     ?.selected.trim();
+
+  const hasAnswered = selectedAnswer !== undefined || selectedAnswer !== null;
 
   const handleAnswerChange = (value: string) => {
     if (status === "review") return;
@@ -32,6 +37,9 @@ export default function QuestionRenderer({ question }: { question: Question }) {
 
   function handleOptionClick(option: string) {
     if (status === "review") return;
+    if (mode === "learning") {
+      dispatch(setShowExplanation(true));
+    }
     dispatch(
       setAnswers({
         questionId: question.id,
@@ -51,6 +59,11 @@ export default function QuestionRenderer({ question }: { question: Question }) {
   }
   const selectedAnswerForCurrent =
     answers.find((a) => a.questionId === question?.id)?.selected || "";
+
+  const shouldShowExplanation =
+    status === "review" ||
+    (mode === "learning" && hasAnswered && showExplanation);
+
   return (
     <div className="space-y-6">
       <p className="space-y-2 mt-2">{question?.question_text}</p>
@@ -111,19 +124,19 @@ export default function QuestionRenderer({ question }: { question: Question }) {
       )}
 
       {/* REVIEW MODE */}
-      {status === "review" && (
+      {shouldShowExplanation && (
         <div className="mt-4 space-y-4">
           <div className="flex items-center flex-wrap gap-2">
             <Badge
               variant={
                 selectedAnswer?.trim().toLocaleLowerCase() ===
-                question.correct_answer?.trim().toLocaleLowerCase()
+                question?.correct_answer?.trim().toLocaleLowerCase()
                   ? "default"
                   : "destructive"
               }
             >
               {selectedAnswer?.trim().toLocaleLowerCase() ===
-              question.correct_answer?.trim().toLocaleLowerCase()
+              question?.correct_answer?.trim().toLocaleLowerCase()
                 ? "Correct"
                 : "Incorrect"}
             </Badge>
@@ -131,11 +144,11 @@ export default function QuestionRenderer({ question }: { question: Question }) {
               variant="secondary"
               className="whitespace-normal wrap-break-word max-w-full h-auto py-1 "
             >
-              Correct: {question.correct_answer}
+              Correct: {question?.correct_answer}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground">
-            {question.explanation}
+            {question?.explanation}
           </p>
         </div>
       )}
