@@ -14,7 +14,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         />
         <QuoteSwiper />
       </section>
-      <section className=" p-4 lg:p-16 basis-full md:basis-1/2 overflow-auto ">
+      <section className="flex flex-col justify-center p-4 lg:p-16 basis-full md:basis-1/2 overflow-auto ">
         {children}
       </section>
     </main>
