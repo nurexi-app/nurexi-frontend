@@ -78,7 +78,7 @@ export function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
-    <Card className="w-full h-full!  ">
+    <Card className="w-full   ">
       <CardContent className="pt-6">
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FieldGroup>
