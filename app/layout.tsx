@@ -5,6 +5,7 @@ import { rootMetadata } from "@/lib/exports/metadata";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import StoreProvider from "@/context/StoreProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,7 +43,7 @@ export default function RootLayout({
             },
           }}
         />
-        {children}
+        <StoreProvider>{children}</StoreProvider>
       </body>
     </html>
   );

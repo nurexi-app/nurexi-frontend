@@ -35,7 +35,7 @@ export const sidebarLinks: SidebarItem[] = [
   },
   {
     name: "Explore",
-    link: "/explore-courses",
+    link: "/explore",
     icon: Compass,
   },
   {
