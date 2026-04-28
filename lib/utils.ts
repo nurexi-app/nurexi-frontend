@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { CartItem } from "./types/cart";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -56,3 +57,16 @@ export function handleSearchParamsChange(
   params.set(key, value);
   return params.toString();
 }
+
+// Save cart to localStorage
+export const saveCartToLocalStorage = (items: CartItem[]) => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("cart", JSON.stringify(items));
+};
+
+// Load cart from localStorage
+export const loadCartFromLocalStorage = (): CartItem[] => {
+  if (typeof window === "undefined") return [];
+  const stored = localStorage.getItem("cart");
+  return stored ? JSON.parse(stored) : [];
+};

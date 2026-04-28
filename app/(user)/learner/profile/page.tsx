@@ -4,10 +4,10 @@ import DashboardCaption from "@/components/web/DashboardCaption";
 // import NotificationSection from "@/components/web/Notification";
 import ChangePassword from "@/components/user/learner/profile/ChangePassword";
 import { GetUserProfile } from "@/lib/actions/auth";
-import { toast } from "sonner";
 import DisplayName from "@/components/user/learner/profile/DisplayName";
 import UploadProfilePic from "@/components/user/learner/profile/UploadProfilePic";
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Profile",
@@ -20,9 +20,9 @@ export default async function ProfilePage() {
     user = await GetUserProfile();
   } catch (error) {
     if (error instanceof Error) {
-      toast.error(error.message);
+      notFound();
     } else {
-      toast.error("Something went wrong");
+      notFound();
     }
   }
   return (

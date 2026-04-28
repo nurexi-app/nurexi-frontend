@@ -5,8 +5,6 @@ import { Bell } from "lucide-react";
 import { ReactNode, Suspense } from "react";
 import { MobileSidebar } from "@/components/web/MobileSidebar";
 import Link from "next/link";
-import AppProvider from "@/context/AppProvider";
-import StoreProvider from "@/context/StoreProvider";
 import { GetUserProfile } from "@/lib/actions/auth";
 import AvatarSkeleton from "@/components/web/AvatarSkeleton";
 import { MobileCaptionHeaderCaption } from "@/components/web/DashboardCaption";
@@ -16,14 +14,12 @@ export default async function Layout({ children }: { children: ReactNode }) {
   const profile = await GetUserProfile();
 
   return (
-    <AppProvider>
-      <StoreProvider>
-        <main className="min-h-dvh bg-custom-background">
-          <Asidebar />
+    <main className="min-h-dvh bg-custom-background">
+      <Asidebar />
 
-          {/* Header - margin adjusts based on sidebar state */}
-          <header
-            className="
+      {/* Header - margin adjusts based on sidebar state */}
+      <header
+        className="
               fixed top-0 bg-custom-background md:bg-background  right-0 z-30 
               h-16 flex items-center justify-between
               md:border-b px-4
@@ -31,49 +27,47 @@ export default async function Layout({ children }: { children: ReactNode }) {
               left-0 md:left-14
               md:group-hover/sidebar:left-64 max-sm:flex-row-reverse
             "
-          >
-            <div className="flex items-center md:w-[80%] gap-3">
-              <MobileSidebar />
-              <Input
-                type="search"
-                placeholder="Search for topics"
-                className="h-10 hidden md:block bg-custom-background"
-              />
-            </div>
+      >
+        <div className="flex items-center md:w-[80%] gap-3">
+          <MobileSidebar />
+          <Input
+            type="search"
+            placeholder="Search for topics"
+            className="h-10 hidden md:block bg-custom-background"
+          />
+        </div>
 
-            <div className="flex items-center gap-1 md:gap-3">
-              <Link href={"/learner/notification"} className="max-sm:hidden">
-                <Bell size={24} />
-              </Link>
-              <Suspense fallback={<AvatarSkeleton />}>
-                <Avatar className="h-8 w-8 md:w-10 md:h-10">
-                  <AvatarImage src={profile?.avatar_url} />
-                  <AvatarFallback className="uppercase">
-                    {profile?.full_name?.slice(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
-              </Suspense>
+        <div className="flex items-center gap-1 md:gap-3">
+          <Link href={"/learner/notification"} className="max-sm:hidden">
+            <Bell size={24} />
+          </Link>
+          <Suspense fallback={<AvatarSkeleton />}>
+            <Avatar className="h-8 w-8 md:w-10 md:h-10">
+              <AvatarImage src={profile?.avatar_url} />
+              <AvatarFallback className="uppercase">
+                {profile?.full_name?.slice(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+          </Suspense>
 
-              <MobileCaptionHeaderCaption
-                title={`Welcome back, ${profile?.full_name.split(" ")[0] || "User"}!👋🏾`}
-                text="Ready to ace your next exam?"
-              />
-            </div>
-          </header>
+          <MobileCaptionHeaderCaption
+            title={`Welcome back, ${profile?.full_name.split(" ")[0] || "User"}!👋🏾`}
+            text="Ready to ace your next exam?"
+          />
+        </div>
+      </header>
 
-          {/* Content - margin adjusts with sidebar */}
-          <section
-            className="
+      {/* Content - margin adjusts with sidebar */}
+      <section
+        className="
               pt-16 px-1 md:px-4
               transition-all duration-300 ease-in-out
               md:ml-14
             "
-          >
-            <ShowPageName userId={profile?.id} />
-            {children}
-          </section>
-        </main>
-      </StoreProvider>
-    </AppProvider>
+      >
+        <ShowPageName userId={profile?.id} />
+        {children}
+      </section>
+    </main>
   );
 }
