@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useAppDispatch } from "@/hooks/StoreHooks";
 import { addToCart } from "@/lib/features/cart/cartSlice";
+import { formatPrice } from "@/lib/utils";
 import { ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 
@@ -88,18 +89,20 @@ export default function BundleCard({
               {sessionCount} sessions
             </span>
             <p className="text-2xl font-bold">
-              {is_free ? "Free" : `$${price}`}
+              {is_free ? "Free" : `${formatPrice(price / 100)}`}
             </p>
           </div>
-          <Button
-            size="sm"
-            variant="secondary"
-            className="gap-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-0"
-            onClick={() => handleAddToCart()}
-          >
-            <ShoppingCart className="h-4 w-4" />
-            Add to Cart
-          </Button>
+          {!is_free && price > 0 && (
+            <Button
+              size="sm"
+              variant="secondary"
+              className="gap-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-0"
+              onClick={() => handleAddToCart()}
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Add to Cart
+            </Button>
+          )}
         </div>
       </div>
     </div>

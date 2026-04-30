@@ -11,6 +11,7 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { formatPrice } from "@/lib/utils";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export default function CheckoutPage() {
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
-  const total = subtotal - discount;
+  const total = (subtotal - discount) / 100;
   const grandTotal = total;
 
   // Check authentication on page load
@@ -81,6 +82,7 @@ export default function CheckoutPage() {
             quantity: item.quantity,
             type: item.type,
           })),
+          userId: user.id,
         }),
       });
 
@@ -115,7 +117,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
+    <div className="container mt-18 mx-auto px-4 py-8 ">
       <div className="flex items-center gap-4 mb-6">
         <Link href="/cart">
           <Button variant="ghost" size="icon">
@@ -143,7 +145,7 @@ export default function CheckoutPage() {
                       Qty: {item.quantity}
                     </p>
                   </div>
-                  <p>${(item.price * item.quantity).toFixed(2)}</p>
+                  <p>{formatPrice((item.price * item.quantity) / 100)}</p>
                 </div>
               ))}
             </div>
@@ -151,17 +153,17 @@ export default function CheckoutPage() {
             <div className="space-y-2 pt-4 border-t">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>{formatPrice(subtotal / 100)}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount</span>
-                  <span>-${discount.toFixed(2)}</span>
+                  <span>-${formatPrice(discount)}</span>
                 </div>
               )}
               <div className="border-t pt-2 flex justify-between font-semibold text-lg">
                 <span>Total</span>
-                <span>${grandTotal.toFixed(2)}</span>
+                <span>{formatPrice(grandTotal)}</span>
               </div>
             </div>
           </div>
@@ -198,7 +200,7 @@ export default function CheckoutPage() {
                   Redirecting to Paystack...
                 </>
               ) : (
-                `Pay $${grandTotal.toFixed(2)}`
+                `Pay ${formatPrice(grandTotal)}`
               )}
             </Button>
 
