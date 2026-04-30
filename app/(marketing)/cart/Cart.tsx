@@ -7,10 +7,9 @@ import { clearCart, removeFromCart } from "@/lib/features/cart/cartSlice";
 import { Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { useSelector } from "react-redux";
-import { RootState } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { formatPrice } from "@/lib/utils";
 
 function Cart() {
   const router = useRouter();
@@ -57,7 +56,7 @@ function Cart() {
         <p className="text-muted-foreground mb-6">
           Looks like you haven't added anything yet
         </p>
-        <Link href="/explore?tab=bundles">
+        <Link href="/explore">
           <Button>Continue Shopping</Button>
         </Link>
       </div>
@@ -117,10 +116,10 @@ function Cart() {
                   </div> */}
                 <div className="text-right">
                   <p className="font-semibold">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {formatPrice((item.price * item.quantity) / 100)}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    ${item.price.toFixed(2)} each
+                    {formatPrice(item.price / 100)} each
                   </p>
                 </div>
               </div>
@@ -152,11 +151,11 @@ function Cart() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>{formatPrice(subtotal / 100)}</span>
               </div>
               <div className="border-t pt-2 flex justify-between font-semibold">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>{formatPrice(total / 100)}</span>
               </div>
             </div>
 

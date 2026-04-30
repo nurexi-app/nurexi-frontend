@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import crypto from "crypto";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export async function POST(req: NextRequest) {
   try {
     const signature = req.headers.get("x-paystack-signature");
     const body = await req.text();
 
-    // Verify signature
     const hash = crypto
       .createHmac("sha512", process.env.PAYSTACK_SECRET_KEY!)
       .update(body)
@@ -18,7 +17,7 @@ export async function POST(req: NextRequest) {
     }
 
     const event = JSON.parse(body);
-    const supabase = await createClient();
+    const supabase = supabaseAdmin;
 
     if (event.event === "charge.success") {
       const { reference, metadata, amount } = event.data;
@@ -40,7 +39,7 @@ export async function POST(req: NextRequest) {
           .from("purchases")
           .update({
             status: "completed",
-            completed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           })
           .eq("payment_reference", reference)
           .eq("status", "pending");

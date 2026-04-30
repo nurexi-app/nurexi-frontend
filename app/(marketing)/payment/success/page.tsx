@@ -122,7 +122,6 @@ export default function PaymentSuccessPage() {
         if (hasCompleted) {
           // Success! Clear cart and show success
           dispatch(clearCart());
-          localStorage.removeItem("cart");
           setStatus("success");
         } else if (hasPending) {
           // Still pending - webhook hasn't processed yet

@@ -1,25 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export async function POST(req: NextRequest) {
   try {
     const { email, amount, items, userId } = await req.json();
-
     const reference = `TX_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
-    const supabase = await createClient();
-
-    for (const item of items) {
-      await supabase.from("purchases").insert({
-        user_id: userId,
-        bundle_id: item.id,
-        amount_paid: item.price * item.quantity,
-        status: "pending", // Not paid yet
-        payment_reference: reference, // Same reference for all items in cart
-      });
+    // 1. Logic Check: Ensure items exists
+    if (!items || !Array.isArray(items)) {
+      return NextResponse.json({ error: "No items provided" }, { status: 400 });
     }
 
-    // Call Paystack API to initialize payment
+    // 2. Loop with Error Handling
+    for (const item of items) {
+      console.log(`Inserting item: ${item.id}`);
+
+      const { data, error } = await supabaseAdmin
+        .from("purchases")
+        .insert({
+          user_id: userId,
+          bundle_id: item.id,
+          amount_paid: item.price * item.quantity,
+          status: "pending",
+          payment_reference: reference,
+        })
+        .select();
+
+      if (error) {
+        console.error(
+          "Supabase Insertion Error:",
+          error.message,
+          error.details,
+        );
+        // Throwing here stops the loop and triggers the catch block below
+        throw new Error(`Failed to insert ${item.name}: ${error.message}`);
+      }
+    }
+
+    // 3. Initialize Paystack
     const response = await fetch(
       "https://api.paystack.co/transaction/initialize",
       {
@@ -30,33 +48,28 @@ export async function POST(req: NextRequest) {
         },
         body: JSON.stringify({
           email,
-          amount: Math.round(amount * 100), // convert to kobo
+          amount: Math.round(amount * 100),
           reference,
           callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success`,
-          metadata: {
-            items,
-            user_id: userId,
-          },
+          metadata: { items, user_id: userId },
         }),
       },
     );
 
-    // Parse Paystack's response
     const data = await response.json();
 
-    // If Paystack returns an error, send it back to frontend
     if (!data.status) {
       return NextResponse.json({ error: data.message }, { status: 400 });
     }
 
-    // Send the payment link back to frontend
     return NextResponse.json({
       authorization_url: data.data.authorization_url,
       reference,
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("API Route Error:", error.message);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: error.message || "Internal server error" },
       { status: 500 },
     );
   }
