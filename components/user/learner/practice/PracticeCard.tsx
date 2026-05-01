@@ -38,7 +38,7 @@ const PracticeCard = ({
         }}
       >
         {/* Overlay gradient for better text readability */}
-        <div className="absolute inset-0 bg-linear-to-t from-black/60 to-black/20 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-linear-to-br from-black/20 to-black/15 pointer-events-none"></div>
 
         {/* Content */}
         <div className="relative z-10 h-full flex flex-col justify-between">

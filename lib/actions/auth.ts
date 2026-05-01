@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ResetPasswordSchema, UpdatePasswordSchema } from "../validators/auth";
@@ -182,4 +183,33 @@ export async function Welcome() {
 
   revalidatePath("/learner", "layout");
   return { success: true };
+}
+
+export async function DeleteAccountAction() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+
+  const { error } = await supabase.from("profiles").delete().eq("id", user.id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(
+    user.id,
+  );
+
+  if (authError) {
+    throw new Error(authError.message);
+  }
+
+  await supabase.auth.signOut();
+  revalidatePath("/", "layout");
+  redirect("/login");
 }
