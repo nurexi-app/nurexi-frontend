@@ -30,7 +30,7 @@ interface FooterColumn {
 const footerMenu: FooterColumn[] = [
   {
     title: "Features",
-    links: ["Performance", "Security", "Analytics", "Automation"],
+    links: ["Verify Payment", "Security", "Analytics", "Automation"],
   },
   {
     title: "About",
@@ -112,7 +112,13 @@ export default function Footer() {
           {footerMenu.map((column, index) => (
             <div key={index} className="footer-column space-y-4">
               <h3 className="font-bold text-gray-900">{column.title}</h3>
-              <ul className={column.isSocial ? "flex gap-4" : "space-y-2"}>
+              <ul
+                className={
+                  column.isSocial
+                    ? "flex flex-col items-center gap-4"
+                    : "space-y-2"
+                }
+              >
                 {column.links.map((link, idx) => {
                   if (column.isSocial && typeof link !== "string") {
                     return (
