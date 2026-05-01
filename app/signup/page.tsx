@@ -4,17 +4,17 @@ import { RegisterForm } from "./RegisterForm";
 import QuoteSwiper from "./QuoteSwipper";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-
+import SignUpImg from "@/public/assets/auth.jpg";
 export default function Register() {
   return (
     <main className="flex h-screen max-h-screen lg:gap-4 overflow-hidden ">
       <section className="basis-1/2 hidden md:block w-full relative h-full">
         <Image
-          src={"/assets/auth.jpg"}
+          src={SignUpImg}
           className="object-cover"
           alt="sign up screen"
           fill
-          priority
+          placeholder="blur"
         />
         <QuoteSwiper />
       </section>
