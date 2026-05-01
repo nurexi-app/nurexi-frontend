@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,27 +12,30 @@ import {
 } from "@/components/animate-ui/components/radix/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { AlertTriangle } from "lucide-react";
 import { DeleteAccountAction } from "@/lib/actions/auth";
 
 export default function DeleteAccount() {
-  const [confirmation, setConfirmation] = useState("");
+  const [password, setPassword] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
   const handleDelete = async () => {
-    if (confirmation !== "i want to delete my account") {
-      toast.error("Please type the confirmation text exactly.");
+    if (!password.trim()) {
+      toast.error("Please enter your password to confirm");
       return;
     }
 
     setIsDeleting(true);
     try {
-      await DeleteAccountAction();
+      await DeleteAccountAction(password);
       toast.success("Account deleted successfully.");
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete account.");
+      toast.error(
+        error.message || "Failed to delete account. Incorrect password?",
+      );
       setIsDeleting(false);
     }
   };
@@ -54,11 +57,11 @@ export default function DeleteAccount() {
         open={isOpen}
         onOpenChange={(open) => {
           setIsOpen(open);
-          if (!open) setConfirmation(""); // Reset on close
+          if (!open) setPassword("");
         }}
       >
         <DialogTrigger asChild>
-          <Button variant={"destructive"} className="text-sm font-medium  mt-1">
+          <Button variant={"destructive"} className="text-sm font-medium mt-1">
             Delete my account
           </Button>
         </DialogTrigger>
@@ -76,20 +79,18 @@ export default function DeleteAccount() {
               Warning: You will lose access to all your progress and records
               immediately.
             </div>
+
             <div className="space-y-2">
-              <p className="text-sm font-medium">
-                To confirm, type{" "}
-                <span className="font-bold select-none text-foreground italic">
-                  "i want to delete my account"
-                </span>{" "}
-                in the box below
-              </p>
+              <Label htmlFor="password">Enter your password to confirm</Label>
               <Input
-                value={confirmation}
-                onChange={(e) => setConfirmation(e.target.value)}
-                placeholder="i want to delete my account"
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Your password"
                 className="mt-1"
                 autoFocus
+                autoComplete="off"
               />
             </div>
           </div>
@@ -98,9 +99,7 @@ export default function DeleteAccount() {
             <Button
               variant="destructive"
               onClick={handleDelete}
-              disabled={
-                confirmation !== "i want to delete my account" || isDeleting
-              }
+              disabled={!password.trim() || isDeleting}
               className="w-full"
             >
               {isDeleting ? "Deleting..." : "Permanently Delete My Account"}
