@@ -4,6 +4,7 @@ import QuoteSwiper from "../signup/QuoteSwipper";
 import { LoginForm } from "./LoginForm";
 import Link from "next/link";
 import { Metadata } from "next";
+import loginImg from "@/public/assets/auth.jpg";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -13,11 +14,11 @@ export default function Register() {
     <main className="flex h-screen max-h-screen lg:gap-4 overflow-hidden ">
       <section className="basis-1/2 hidden md:block w-full relative h-full">
         <Image
-          src={"/assets/auth.jpg"}
+          src={loginImg}
           className="object-cover"
           alt="sign up screen"
           fill
-          priority
+          placeholder="blur"
         />
         <QuoteSwiper />
       </section>

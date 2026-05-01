@@ -6,12 +6,12 @@ import { Autoplay } from "swiper/modules";
 
 import "swiper/css";
 
-const heroImages = [
-  "/assets/keyFeatures.jpg",
-  "/assets/hero2.png",
-  "/assets/hero3.png",
-  "/assets/stethoscope.png",
-];
+import hero1 from "@/public/assets/keyFeatures.jpg";
+import hero2 from "@/public/assets/hero2.png";
+import hero3 from "@/public/assets/hero3.png";
+import hero4 from "@/public/assets/stethoscope.png";
+
+const heroImages = [hero1, hero2, hero3, hero4];
 
 export default function KeyFeatureSlide() {
   return (
@@ -34,7 +34,8 @@ export default function KeyFeatureSlide() {
               alt={`Hero image ${idx + 1}`}
               fill
               className="object-cover rounded-2xl"
-              priority={idx === 0}
+              fetchPriority={idx === 0 ? "high" : "low"}
+              placeholder="blur"
             />
           </SwiperSlide>
         ))}

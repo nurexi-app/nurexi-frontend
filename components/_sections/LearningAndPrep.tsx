@@ -93,7 +93,7 @@ export default function HowItWorks() {
                 transition={{ duration: 0.4, delay: 0.1 }}
                 className="relative w-20 h-20 lg:w-23.75 lg:h-23.75"
               >
-                <Image src={src} fill alt="icon" />
+                <Image src={src} fill alt="icon" loading="lazy" />
               </motion.div>
             </motion.div>
           ))}
@@ -107,7 +107,12 @@ export default function HowItWorks() {
           viewport={{ once: true }}
           className="max-sm:hidden md:col-span-2 relative h-full"
         >
-          <Image src={"/assets/howItWorks.png"} fill alt="how it works image" />
+          <Image
+            src={"/assets/howItWorks.png"}
+            loading="lazy"
+            fill
+            alt="how it works image"
+          />
         </motion.div>
       </div>
     </section>

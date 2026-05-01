@@ -170,6 +170,7 @@ export default function KeyFeatures() {
                 alt={heading + " image"}
                 width={48}
                 height={48}
+                loading="lazy"
                 className="h-12 w-12"
               />
               <h2 className="font-semibold">{heading}</h2>
@@ -195,6 +196,7 @@ export default function KeyFeatures() {
                 alt={heading + " image"}
                 width={48}
                 height={48}
+                loading="lazy"
                 className="h-12 w-12"
               />
               <h2 className="font-semibold">{heading}</h2>

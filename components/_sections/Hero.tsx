@@ -124,7 +124,8 @@ export default function HeroSection() {
             alt="hero image"
             className="object-contain"
             fill
-            priority={true}
+            fetchPriority="high"
+            loading="eager"
             sizes="(max-width: 768px) 100%, (max-width: 1200px) 650px"
           />
         </div>

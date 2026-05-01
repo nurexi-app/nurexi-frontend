@@ -18,7 +18,7 @@ export const rootMetadata: Metadata = {
     siteName: "Nurexi",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og.png",
         width: 1200,
         height: 630,
         alt: "Nurexi - Transform your nursing education journey",
@@ -35,9 +35,9 @@ export const rootMetadata: Metadata = {
       "Nurexi - Nigeria's #1 Nursing Education & Exam Preparation Platform",
     description:
       "Empowering nursing students across Nigeria to excel in nursing licensing exams. Practice with realistic mock exams, personalized feedback, and curriculum-aligned question banks.",
-    images: ["/twitter-image.png"],
-    creator: "@nurexi",
-    site: "@nurexi",
+    images: ["/og.png"],
+    creator: "@nurexiForNurses",
+    site: "@nurexiForNurses",
   },
 
   // Icons
@@ -83,7 +83,9 @@ export const rootMetadata: Metadata = {
     "nursing exam practice",
   ],
 
-  authors: [{ name: "Ochife Ogechukwu", url: "https://nurexi.com" }],
+  authors: [
+    { name: "Ochife Ogechukwu", url: "https://buildwithochife.vercel.app" },
+  ],
   creator: "Ochife Ogechukwu",
   publisher: "Nurexi",
 

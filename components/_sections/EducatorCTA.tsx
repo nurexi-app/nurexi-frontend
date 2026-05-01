@@ -58,7 +58,7 @@ export default function EducatorCTA() {
   return (
     <section
       ref={containerRef}
-      className="bg-secondaryDarkActive h-90 text-center flex items-center flex-col gap-12 text-white pt-14 pb-22 px-4"
+      className="bg-radial from-[rgba(0,0,0,0.35)] via-secondaryDarkActive/60_30% to-secondaryDarkActive h-90 text-center flex items-center flex-col gap-12 text-white pt-14 pb-22 px-4"
       id="ForEducators"
     >
       <h3 className="font-medium animate-educator">Educator&apos;s Panel</h3>
