@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import DashboardCaption from "@/components/web/DashboardCaption";
 // import NotificationSection from "@/components/web/Notification";
 import ChangePassword from "@/components/user/learner/profile/ChangePassword";
+import DeleteAccount from "@/components/user/learner/profile/DeleteAccount";
 import { GetUserProfile } from "@/lib/actions/auth";
 import DisplayName from "@/components/user/learner/profile/DisplayName";
 import UploadProfilePic from "@/components/user/learner/profile/UploadProfilePic";
@@ -81,6 +82,7 @@ export default async function ProfilePage() {
 
         {/* <NotificationSection /> */}
         <ChangePassword />
+        <DeleteAccount />
       </div>
     </>
   );
