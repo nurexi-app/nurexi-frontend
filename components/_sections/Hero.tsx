@@ -78,18 +78,21 @@ export default function HeroSection() {
       <div className="flex items-center flex-col md:flex-row gap-4 justify-between">
         {/* Hero Text */}
         <div ref={textRef} className="md:basis-[48%]    tex-left">
-          <h1 className="hero-text-line bodyText mb-3 md:mb-6.5 text-primary w-fit p-2 rounded-2xl">
-            ✨ Reliable Learning, Anytime
-          </h1>
-          <h2 className="heroText heroHeading font-normal px-0  max-sm:w-[80vw]    mb-2.5">
-            <span className="hero-text-line">
-              The easiest way to prepare and
-            </span>
-            <span className="hero-text-line">
-              <span className="font-semibold"> Pass</span> your
-              <span className="font-semibold"> Nursing</span> exams
-            </span>
-          </h2>
+          <div className="flex flex-col-reverse">
+            <h1 className="heroText heroHeading font-normal px-0  max-sm:w-[80vw]    mb-2.5">
+              <span className="hero-text-line">
+                The easiest way to prepare and
+              </span>
+              <span className="hero-text-line">
+                <span className="font-semibold"> Pass</span> your
+                <span className="font-semibold"> Nursing</span> exams
+              </span>
+            </h1>
+            <p className="hero-text-line bodyText mb-3 md:mb-6.5 text-primary w-fit p-2 rounded-2xl">
+              ✨ Reliable Learning, Anytime
+            </p>
+          </div>
+
           <p className="heroParagraph">
             Ace your Nursing exam with expert guidance, realistic practice
             tests, and smart tools built to boost your confidence.
