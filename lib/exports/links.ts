@@ -12,6 +12,7 @@ import { MessageSquarePlus } from "@/components/animate-ui/icons/message-square-
 import { ComponentType } from "react";
 import { User } from "@/components/animate-ui/icons/user";
 import { Bell } from "@/components/animate-ui/icons/bell";
+import { BadgeCheck } from "@/components/animate-ui/icons/badge-check";
 
 export interface SidebarLink {
   name: string;
@@ -68,7 +69,7 @@ export const sidebarLinks: SidebarItem[] = [
 export const EducatorsLinks = [
   {
     name: "Dashboard",
-    link: "/learner/",
+    link: "/educator",
     icon: LayoutDashboard,
   },
   {
@@ -79,7 +80,7 @@ export const EducatorsLinks = [
   {
     name: "Verification",
     link: "/educator/verification",
-    icon: MdVerified,
+    icon: BadgeCheck,
   },
 ];
 export const accountLinks: SidebarAccountLink[] = [
