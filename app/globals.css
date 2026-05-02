@@ -49,6 +49,7 @@
   --color-grey: oklch(0.53 0.007 268.34);
   --color-secondaryLight: #f0f8fd;
   --color-secondaryLightActive: #d1e8fa;
+  --color-secondaryLightHover: #e9f4fc;
   --color-secondaryDark: #5187b3;
   --color-secondaryDarkActive: var(--secondaryDarkActive);
   --color-secondaryDarker: #263f53;
