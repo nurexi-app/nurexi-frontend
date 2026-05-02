@@ -185,7 +185,7 @@ export async function Welcome() {
   return { success: true };
 }
 
-export async function DeleteAccountAction() {
+export async function DeleteAccountAction(password: string) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -195,11 +195,16 @@ export async function DeleteAccountAction() {
     throw new Error("User not authenticated");
   }
 
-  const { error } = await supabase.from("profiles").delete().eq("id", user.id);
+  // Verify password first
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: user.email!,
+    password: password,
+  });
 
-  if (error) {
-    throw new Error(error.message);
+  if (signInError) {
+    throw new Error("Incorrect password");
   }
+  await supabase.auth.signOut();
 
   const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(
     user.id,
@@ -209,7 +214,6 @@ export async function DeleteAccountAction() {
     throw new Error(authError.message);
   }
 
-  await supabase.auth.signOut();
   revalidatePath("/", "layout");
   redirect("/login");
 }
