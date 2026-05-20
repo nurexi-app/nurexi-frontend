@@ -17,12 +17,10 @@ export default async function VerificationPage() {
   let verificationObj;
   try {
     user = await GetUserProfile();
-    console.log("user obj :", user);
     if (!user?.id) {
       return redirect("/login?redirectUrl=/educator/verification");
     }
     verificationObj = await getVerificationDetails(user.id);
-    console.log(verificationObj);
   } catch (error) {
     notFound();
   }

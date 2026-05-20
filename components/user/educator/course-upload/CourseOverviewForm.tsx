@@ -14,7 +14,7 @@ import {
   courseOverviewType,
 } from "@/lib/validators/courseUpload";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus } from "lucide-react";
+import { Eye, Loader2, Plus } from "lucide-react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
@@ -22,24 +22,41 @@ import {
   NativeSelectOption,
 } from "@/components/ui/native-select";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { generateSlug } from "@/lib/utils";
+import { updateCourseOverview } from "@/lib/actions/course-action";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/animate-ui/components/radix/dialog";
+import Image from "next/image";
+import { X } from "@/components/animate-ui/icons/x";
+import { AnimateIcon } from "@/components/animate-ui/icons/icon";
 
 interface CourseOverviewFormProps {
-  courseId?: string | null;
+  course: any;
 }
 
 export default function CourseOverviewForm({
-  courseId,
+  course,
 }: CourseOverviewFormProps) {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isManualSlug, setIsManualSlug] = useState(false);
+  const [imagePreview, setImagePreview] = useState(course?.cover_image || "");
+
   const form = useForm<courseOverviewType>({
     resolver: zodResolver(courseOverviewSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      dificultyLevel: "Beginner",
-      expectedDuration: "",
-      language: "",
-      learningOutcome: [],
-      image: "",
+      title: course?.title || "",
+      slug: course?.slug || "",
+      description: course?.description || "",
+      dificultyLevel: course?.difficulty_level || "Beginner",
+      expectedDuration: course?.expected_duration || "",
+      language: course?.language || "",
+      learningOutcome: course?.what_you_will_learn || [],
+      image: course?.cover_image || "",
     },
   });
 
@@ -48,92 +65,121 @@ export default function CourseOverviewForm({
     name: "learningOutcome" as never,
   });
 
-  const router = useRouter();
+  const watchTitle = form.watch("title");
+  const watchSlug = form.watch("slug");
+  const watchImage = form.watch("image");
 
-  function onSubmit(data: courseOverviewType) {
-    toast("You submitted the following values:", {
-      description: (
-        <pre className="bg-code text-code-foreground mt-2 w-[320px] overflow-x-auto rounded-md p-4">
-          <code>{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-      position: "bottom-right",
-      classNames: {
-        content: "flex flex-col gap-2",
-      },
-      style: {
-        "--border-radius": "calc(var(--radius)  + 4px)",
-      } as React.CSSProperties,
-    });
+  useEffect(() => {
+    if (!isManualSlug && watchTitle) {
+      const generatedSlug = generateSlug(watchTitle);
+      if (generatedSlug !== watchSlug) {
+        form.setValue("slug", generatedSlug);
+      }
+    }
+  }, [watchTitle, isManualSlug, watchSlug, form]);
 
+  // Update image preview when URL changes
+  useEffect(() => {
+    setImagePreview(watchImage || "");
+  }, [watchImage]);
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsManualSlug(true);
+    form.setValue("slug", e.target.value);
+  };
+
+  const onSubmit = async (data: courseOverviewType) => {
+    setIsSubmitting(true);
+
+    const result = await updateCourseOverview(course?.id, data);
+
+    if (result.error) {
+      toast.error(result.error);
+      setIsSubmitting(false);
+      return;
+    }
+
+    toast.success("Course overview saved!");
+
+    // Navigate to next section
     const params = new URLSearchParams(window.location.search);
     params.set("section", "course-content");
     router.push(`?${params.toString()}`);
-  }
+  };
 
   return (
-    <form
-      onSubmit={form.handleSubmit(onSubmit)}
-      id="form-overview"
-      className="space-y-4"
-    >
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <FieldGroup>
-        <Controller
-          name="title"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="form-overview-title">
-                Course Title
-              </FieldLabel>
-              <Input
-                {...field}
-                id="form-overview-title"
-                aria-invalid={fieldState.invalid}
-                placeholder="Introduction to Pharamacology"
-                className="h-9 w-full bg-primary-light placeholder:text-sm    text-muted-foreground"
-                autoComplete="off"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Title */}
+          <Controller
+            name="title"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field>
+                <FieldLabel>Course Title *</FieldLabel>
+                <Input
+                  {...field}
+                  placeholder="e.g., Introduction to Pharmacology"
+                  className="h-10"
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
 
+          {/* Slug */}
+          <Controller
+            name="slug"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field>
+                <FieldLabel>Course URL Slug *</FieldLabel>
+                <Input
+                  {...field}
+                  onChange={handleSlugChange}
+                  placeholder="introduction-to-pharmacology"
+                  className="h-10"
+                />
+                <p className="text-xs text-muted-foreground">
+                  URL: nurexi.com/courses/{field.value || "your-slug"}
+                </p>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+        </div>
+
+        {/* Description */}
         <Controller
           name="description"
           control={form.control}
           render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="form-overview-description">
-                Course Description
-              </FieldLabel>
+            <Field>
+              <FieldLabel>Course Description *</FieldLabel>
               <Textarea
                 {...field}
-                id="form-overview-description"
-                aria-invalid={fieldState.invalid}
-                placeholder="Description of the course"
-                className="h-9 w-full bg-primary-light placeholder:text-sm    text-muted-foreground"
-                autoComplete="off"
+                rows={4}
+                placeholder="What will students learn in this course?"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
 
-        <div className="flex items-center  gap-4 md:flex-row flex-col justify-between">
+        {/* Difficulty & Duration */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Controller
             name="dificultyLevel"
             control={form.control}
             render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid} className="w-full">
-                <FieldLabel htmlFor="form-overview-dificultyLevel">
-                  Difficulty Level
-                </FieldLabel>
-                <NativeSelect
-                  id="form-overview-dificultyLevel"
-                  className="w-full"
-                  {...field}
-                >
+              <Field>
+                <FieldLabel>Difficulty Level *</FieldLabel>
+                <NativeSelect {...field} className="h-10">
                   <NativeSelectOption value="Beginner">
                     Beginner
                   </NativeSelectOption>
@@ -144,7 +190,6 @@ export default function CourseOverviewForm({
                     Advanced
                   </NativeSelectOption>
                 </NativeSelect>
-
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
@@ -156,18 +201,9 @@ export default function CourseOverviewForm({
             name="expectedDuration"
             control={form.control}
             render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid} className="w-full">
-                <FieldLabel htmlFor="form-overview-expectedDuration">
-                  Expected Duration
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id="form-overview-expectedDuration"
-                  aria-invalid={fieldState.invalid}
-                  placeholder="2 weeks"
-                  className="h-9 w-full bg-primary-light placeholder:text-sm    text-muted-foreground"
-                  autoComplete="off"
-                />
+              <Field>
+                <FieldLabel>Expected Duration *</FieldLabel>
+                <Input {...field} placeholder="e.g., 4 weeks, 10 hours" />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
                 )}
@@ -175,89 +211,135 @@ export default function CourseOverviewForm({
             )}
           />
         </div>
+
+        {/* Language */}
         <Controller
           name="language"
           control={form.control}
           render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="form-overview-language">Language</FieldLabel>
-              <Input
-                {...field}
-                id="form-overview-language"
-                aria-invalid={fieldState.invalid}
-                placeholder="Language"
-                className="h-9 w-full bg-primary-light placeholder:text-sm    text-muted-foreground"
-                autoComplete="off"
-              />
+            <Field>
+              <FieldLabel>Language *</FieldLabel>
+              <Input {...field} placeholder="e.g., English, French" />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
 
-        <div className="flex flex-col gap-2">
-          <FieldLabel>Learning Outcomes</FieldLabel>
+        {/* Learning Outcomes */}
+        <div className="space-y-2">
+          <FieldLabel>What You Will Learn *</FieldLabel>
 
           {fields.map((field, index) => (
-            <div key={field.id} className="flex gap-2 items-center">
+            <div key={field.id} className="flex gap-2 items-start">
               <Input
-                {...form.register(`learningOutcome.${index}` as const)}
-                placeholder="Learning Outcome"
-                className="h-9 w-full bg-primary-light placeholder:text-sm text-muted-foreground"
-                autoComplete="off"
+                {...form.register(`learningOutcome.${index}`)}
+                placeholder="e.g., Understand basic pharmacology concepts"
+                className="flex-1"
               />
               <Button
                 type="button"
-                variant="ghost"
+                variant="destructive"
                 size="icon"
                 onClick={() => remove(index)}
-                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                className="h-10 w-10 shrink-0"
               >
-                <span className="sr-only">Remove</span>
-                &times;
+                <AnimateIcon animateOnHover>
+                  <X className="h-4 w-4" />
+                </AnimateIcon>
               </Button>
             </div>
           ))}
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => append("")}
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Learning Outcome
+          </Button>
+
           {form.formState.errors.learningOutcome && (
             <FieldError errors={[form.formState.errors.learningOutcome]} />
           )}
-
-          <div className="flex items-center gap-4">
-            <Button size={"icon"} type="button" onClick={() => append("")}>
-              <Plus />
-            </Button>
-          </div>
         </div>
 
-        <Controller
-          name="image"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="form-overview-image">
-                Course Image
-              </FieldLabel>
-              <Input
-                {...field}
-                id="form-overview-image"
-                aria-invalid={fieldState.invalid}
-                placeholder="Course Image"
-                className="h-9 w-full bg-primary-light placeholder:text-sm    text-muted-foreground"
-                autoComplete="off"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
+        {/* Course Image */}
+        <div className="space-y-2">
+          <FieldLabel>Course Image URL</FieldLabel>
 
-        <div className="flex gap-4 items-center justify-end">
+          <div className="flex gap-4 items-start">
+            <Input
+              {...form.register("image")}
+              placeholder="https://example.com/course-image.jpg"
+              className="flex-1"
+            />
+
+            {imagePreview && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Preview
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <div className="relative w-full h-64">
+                    <Image
+                      src={imagePreview}
+                      alt="Course preview"
+                      fill
+                      className="object-contain rounded-lg"
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+
+          {imagePreview && (
+            <div className="relative w-32 h-32 mt-2 rounded-lg overflow-hidden border">
+              <Image
+                src={imagePreview}
+                alt="Course thumbnail"
+                fill
+                className="object-cover"
+              />
+            </div>
+          )}
+
+          <p className="text-xs text-muted-foreground">
+            Use a public image URL. Recommended size: 1280x720px
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-4 items-center justify-end pt-4 border-t">
           <Button
-            variant={"outline"}
             type="button"
+            variant="outline"
             onClick={() => form.reset()}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
-          <Button type="submit">Save and Continue</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save and Continue"
+            )}
+          </Button>
         </div>
       </FieldGroup>
     </form>

@@ -70,3 +70,11 @@ export const loadCartFromLocalStorage = (): CartItem[] => {
   const stored = localStorage.getItem("cart");
   return stored ? JSON.parse(stored) : [];
 };
+
+// Generate slug from title
+export const generateSlug = (title: string) => {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+};
