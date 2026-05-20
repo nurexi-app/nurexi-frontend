@@ -73,8 +73,8 @@ export const EducatorsLinks = [
     icon: LayoutDashboard,
   },
   {
-    name: "Course Upload",
-    link: "/educator/course-upload",
+    name: "Courses",
+    link: "/educator/courses",
     icon: GiTeacher,
   },
   {

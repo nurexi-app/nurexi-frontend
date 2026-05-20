@@ -1,0 +1,26 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "text": "What is the normal heart rate?",
+      "options": ["60-100 bpm", "80-120 bpm", "40-80 bpm", "100-140 bpm"],
+      "correct": "60-100 bpm",
+      "points": 10,
+      "explanation": "Normal adult resting heart rate is 60-100 beats per minute."
+    },
+    {
+      "id": "q2",
+      "text": "Which chamber of the heart pumps blood to the body?",
+      "options": [
+        "Right atrium",
+        "Right ventricle",
+        "Left atrium",
+        "Left ventricle"
+      ],
+      "correct": "Left ventricle",
+      "points": 10,
+      "explanation": "The left ventricle pumps oxygenated blood to the body through the aorta."
+    }
+  ],
+  "passing_score": 70
+}
