@@ -16,6 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Image from "next/image";
 
 /* ------------------ dummy data ------------------ */
 const courses = [
@@ -42,7 +43,7 @@ const courses = [
   },
 ];
 
-const ManageCourse = () => {
+const ManageCourse = ({ allCourses }: { allCourses: any[] }) => {
   return (
     <div className="mt-4 px-2 py-7 space-y-6">
       {/* Header */}
@@ -65,11 +66,21 @@ const ManageCourse = () => {
 
       {/* Course List */}
       <div className="flex flex-col gap-2">
-        {courses.map((course) => (
+        {allCourses.map((course) => (
           <Item key={course.id} variant="outline" className="rounded-xl">
             {/* LEFT ICON */}
             <ItemMedia>
-              <FileText className="size-15 text-muted-foreground" />
+              {course?.cover_image ? (
+                <Image
+                  src={course.cover_image}
+                  alt="cover-image"
+                  className="size-15 object-cover"
+                  width={100}
+                  height={100}
+                />
+              ) : (
+                <FileText className="size-15 text-muted-foreground" />
+              )}
             </ItemMedia>
 
             {/* MAIN CONTENT */}
@@ -87,12 +98,12 @@ const ManageCourse = () => {
                       : ""
                   }
                 >
-                  {course.status === "published" ? "Published" : "Draft"}
+                  {course?.status === "published" ? "Published" : "Draft"}
                 </Badge>
               </div>
 
               <ItemDescription>
-                {course.pages} pages • Updated {course.updatedAt}
+                {course?.pages} pages • Updated {course.updatedAt}
               </ItemDescription>
             </ItemContent>
 
@@ -102,20 +113,9 @@ const ManageCourse = () => {
                 variant="ghost"
                 size="icon"
                 className="text-muted-foreground hover:text-foreground"
-                onClick={() => {
-                  const params = new URLSearchParams(window.location.search);
-                  params.set("type", "edit");
-                  params.set("courseId", course.id);
-                  // Reset to first section when entering edit mode
-                  params.set("section", "course-overview");
-                  window.history.pushState(null, "", `?${params.toString()}`);
-                  // Force re-render or use router if parent doesn't detect pushState (Next.js Link/Router is better)
-                  // But since this is a client component inside a page that uses searchParams,
-                  // the clean way is to use the Next.js router.
-                }}
               >
                 <Link
-                  href={`?type=edit&courseId=${course.id}&section=course-overview`}
+                  href={`/educator/courses/${course.id}/edit?section=course-overview`}
                 >
                   <Pencil size={16} />
                 </Link>
@@ -124,6 +124,11 @@ const ManageCourse = () => {
           </Item>
         ))}
       </div>
+      {allCourses.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12">
+          <p className="bodyText text-muted-foreground">No courses found</p>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,115 +1,218 @@
+"use client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
-import { FaFloppyDisk, FaPlus, FaTrash } from "react-icons/fa6";
+import {
+  addNewSection,
+  deleteSection,
+  getAllCourseSections,
+  addLesson,
+  deleteLesson,
+  getSectionLessons,
+  updateLesson,
+} from "@/lib/actions/course-action";
+import { useEffect, useRef, useState } from "react";
+import { FaFloppyDisk, FaPlus } from "react-icons/fa6";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
+import { toast } from "sonner";
+import ActualSection from "./Section";
 
-/**
- * Data structures for Course Content
- */
-interface Chapter {
+interface Lesson {
   id: string;
   title: string;
-  content: string; // Text description/content
-  file?: File | null; // Placeholder for file upload logic
-  videoUrl?: string;
+  content_type: string;
+  video_url?: string;
+  pdf_url?: string;
+  image_url?: string;
+  text_content?: string;
+  is_preview: boolean;
+  position: number;
 }
 
 interface Section {
   id: string;
   title: string;
-  chapters: Chapter[];
+  lessons: Lesson[];
 }
 
-export default function CourseSection() {
-  const [sections, setSections] = useState<Section[]>([
-    {
-      id: crypto.randomUUID(),
-      title: "Section 1",
-      chapters: [],
-    },
-  ]);
+export default function CourseSection({ courseId }: { courseId: string }) {
+  const [sections, setSections] = useState<Section[]>([]);
+  const [errorState, setErrorState] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const addSection = () => {
-    setSections((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        title: `Section ${prev.length + 1}`,
-        chapters: [],
-      },
-    ]);
-  };
-
-  const addChapter = (sectionId: string) => {
-    setSections((prev) =>
-      prev.map((section) => {
-        if (section.id === sectionId) {
-          return {
-            ...section,
-            chapters: [
-              ...section.chapters,
-              {
-                id: crypto.randomUUID(),
-                title: `Chapter ${section.chapters.length + 1}`,
-                content: "",
-              },
-            ],
-          };
+  // Fetch sections and lessons on load
+  useEffect(() => {
+    async function fetchCourseData() {
+      setIsLoading(true);
+      try {
+        const allSections = await getAllCourseSections(courseId);
+        if (allSections) {
+          const sectionsWithLessons = await Promise.all(
+            allSections.map(async (section: any) => {
+              const lessons = await getSectionLessons(section.id);
+              return { ...section, lessons: lessons || [] };
+            }),
+          );
+          setSections(sectionsWithLessons);
         }
-        return section;
-      }),
-    );
-  };
+      } catch (error) {
+        toast.error("Failed to load course data");
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
+    fetchCourseData();
+  }, [courseId]);
+
+  // Add new section
+  async function handleAddSection() {
+    setIsLoading(true);
+    try {
+      const newSection = await addNewSection(courseId);
+      if (newSection) {
+        setSections((prev) => [...prev, { ...newSection, lessons: [] }]);
+        toast.success("Section added");
+      }
+    } catch (error: unknown) {
+      const msg =
+        error instanceof Error ? error.message : "Error adding section";
+      toast.error(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // Delete section with undo
+  const deleteTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  async function handleDeleteSection(sectionId: string) {
+    if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+    if (countdownIntervalRef.current)
+      clearInterval(countdownIntervalRef.current);
+
+    let timeLeft = 5;
+
+    const toastId = toast.loading(`Deleting section in ${timeLeft}s...`, {
+      description: "This action will be permanent.",
+      action: {
+        label: "Undo",
+        onClick: () => {
+          if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+          if (countdownIntervalRef.current)
+            clearInterval(countdownIntervalRef.current);
+          toast.dismiss(toastId);
+          toast.success("Deletion cancelled");
+        },
+      },
+    });
+
+    countdownIntervalRef.current = setInterval(() => {
+      timeLeft -= 1;
+      if (timeLeft > 0) {
+        toast.loading(`Deleting section in ${timeLeft}s...`, { id: toastId });
+      } else {
+        if (countdownIntervalRef.current)
+          clearInterval(countdownIntervalRef.current);
+      }
+    }, 1000);
+
+    deleteTimerRef.current = setTimeout(async () => {
+      if (countdownIntervalRef.current)
+        clearInterval(countdownIntervalRef.current);
+      setIsLoading(true);
+      toast.loading("Processing deletion...", { id: toastId });
+
+      try {
+        const response = await deleteSection(sectionId);
+        if (response.success) {
+          setSections((prev) => prev.filter((s) => s.id !== sectionId));
+          toast.success("Section deleted successfully", { id: toastId });
+        }
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : "Error deleting";
+        setErrorState(msg);
+        toast.error(msg, { id: toastId });
+      } finally {
+        setIsLoading(false);
+        deleteTimerRef.current = null;
+      }
+    }, 5000);
+  }
+
+  // Update section title
   const updateSectionTitle = (id: string, newTitle: string) => {
     setSections((prev) =>
       prev.map((s) => (s.id === id ? { ...s, title: newTitle } : s)),
     );
   };
 
-  const updateChapter = (
+  // Add lesson to section
+  async function handleAddLesson(sectionId: string) {
+    try {
+      const newLesson = await addLesson(sectionId, courseId);
+      if (newLesson) {
+        setSections((prev) =>
+          prev.map((section) =>
+            section.id === sectionId
+              ? { ...section, lessons: [...section.lessons, newLesson] }
+              : section,
+          ),
+        );
+        toast.success("Lesson added");
+      }
+    } catch (error) {
+      toast.error("Failed to add lesson");
+    }
+  }
+
+  // Update lesson
+  async function handleUpdateLesson(
     sectionId: string,
-    chapterId: string,
-    field: keyof Chapter,
-    value: any,
-  ) => {
-    setSections((prev) =>
-      prev.map((section) => {
-        if (section.id === sectionId) {
-          return {
-            ...section,
-            chapters: section.chapters.map((chapter) =>
-              chapter.id === chapterId
-                ? { ...chapter, [field]: value }
-                : chapter,
-            ),
-          };
-        }
-        return section;
-      }),
-    );
-  };
+    lessonId: string,
+    updates: Partial<Lesson>,
+  ) {
+    try {
+      const updatedLesson = await updateLesson(lessonId, updates);
+      if (updatedLesson) {
+        setSections((prev) =>
+          prev.map((section) =>
+            section.id === sectionId
+              ? {
+                  ...section,
+                  lessons: section.lessons.map((lesson) =>
+                    lesson.id === lessonId
+                      ? { ...lesson, ...updatedLesson }
+                      : lesson,
+                  ),
+                }
+              : section,
+          ),
+        );
+      }
+    } catch (error) {
+      toast.error("Failed to update lesson");
+    }
+  }
 
-  const deleteSection = (id: string) => {
-    setSections((prev) => prev.filter((s) => s.id !== id));
-  };
-
-  const deleteChapter = (sectionId: string, chapterId: string) => {
-    setSections((prev) =>
-      prev.map((s) => {
-        if (s.id === sectionId) {
-          return {
-            ...s,
-            chapters: s.chapters.filter((c) => c.id !== chapterId),
-          };
-        }
-        return s;
-      }),
-    );
-  };
+  // Delete lesson
+  async function handleDeleteLesson(sectionId: string, lessonId: string) {
+    try {
+      await deleteLesson(lessonId);
+      setSections((prev) =>
+        prev.map((section) =>
+          section.id === sectionId
+            ? {
+                ...section,
+                lessons: section.lessons.filter((l) => l.id !== lessonId),
+              }
+            : section,
+        ),
+      );
+      toast.success("Lesson deleted");
+    } catch (error) {
+      toast.error("Failed to delete lesson");
+    }
+  }
 
   return (
     <section className="p-4 space-y-8">
@@ -118,135 +221,52 @@ export default function CourseSection() {
         <div className="space-y-1 max-sm:basis-1/2">
           <h3>Course Section</h3>
           <p className="bodyText">
-            Organize your course content into sections and chapters.
+            Organize your course content into sections and lessons.
           </p>
         </div>
 
         <Button
-          onClick={addSection}
+          onClick={handleAddSection}
           className="bg-secondary hover:bg-secondary/90"
+          disabled={isLoading}
         >
           <FaPlus /> Add section
         </Button>
       </div>
 
       {/* Sections List */}
-      <div className="space-y-6">
-        {sections.map((section, index) => (
-          <div
-            key={section.id}
-            className="border rounded-lg p-6 space-y-4 bg-card"
-          >
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1 space-y-2">
-                <Label htmlFor={`section-${section.id}`}>Section Title</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id={`section-${section.id}`}
-                    value={section.title}
-                    onChange={(e) =>
-                      updateSectionTitle(section.id, e.target.value)
-                    }
-                    placeholder="e.g. Introduction to Next.js"
-                    className="font-medium text-lg"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => deleteSection(section.id)}
-                    className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
-                  >
-                    <FaTrash />
-                  </Button>
-                </div>
-              </div>
-            </div>
+      <ActualSection
+        sections={sections}
+        updateSectionTitle={updateSectionTitle}
+        handleDeleteSection={handleDeleteSection}
+        handleDeleteLesson={handleDeleteLesson}
+        handleUpdateLesson={handleUpdateLesson}
+        handleAddLesson={handleAddLesson}
+      />
 
-            {/* Chapters */}
-            <div className="pl-4 border-l-2 border-border space-y-6">
-              <div className="space-y-4">
-                {section.chapters.map((chapter, cIndex) => (
-                  <div
-                    key={chapter.id}
-                    className="bg-muted/30 p-4 rounded-md space-y-4 relative group"
-                  >
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteChapter(section.id, chapter.id)}
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                      >
-                        <FaTrash className="w-4 h-4" />
-                      </Button>
-                    </div>
+      {/* Empty State */}
+      {sections.length === 0 && !isLoading && (
+        <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-lg">
+          No sections yet. Click "Add section" to get started.
+        </div>
+      )}
 
-                    <div className="space-y-2">
-                      <Label>Chapter Title</Label>
-                      <Input
-                        value={chapter.title}
-                        onChange={(e) =>
-                          updateChapter(
-                            section.id,
-                            chapter.id,
-                            "title",
-                            e.target.value,
-                          )
-                        }
-                        placeholder={`Chapter ${cIndex + 1}`}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Content / Description</Label>
-                        <Textarea
-                          value={chapter.content}
-                          onChange={(e) =>
-                            updateChapter(
-                              section.id,
-                              chapter.id,
-                              "content",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="What is this chapter about?"
-                          className="min-h-[100px]"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Video URL / File (Placeholder)</Label>
-                        <div className="border border-dashed border-input rounded-md h-[100px] flex items-center justify-center text-muted-foreground text-sm bg-background">
-                          File Upload / Video URL Input Area
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => addChapter(section.id)}
-                className="w-full border-dashed"
-              >
-                <FaPlus className="mr-2 h-3 w-3" /> Add Chapter
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Loading State */}
+      {isLoading && sections.length === 0 && (
+        <div className="text-center py-16 text-muted-foreground">
+          Loading course content...
+        </div>
+      )}
 
       {/* Footer Navigation */}
       <div className="flex items-center justify-between mt-8 lg:mt-16 pt-6 border-t">
-        <Button variant={"outline"}>
-          <MdKeyboardArrowLeft /> Previous{" "}
+        <Button variant="outline">
+          <MdKeyboardArrowLeft /> Previous
         </Button>
 
         <div className="flex gap-4 items-center">
-          <Button variant={"outline"}>
-            <FaFloppyDisk /> Save as Draft{" "}
+          <Button variant="outline">
+            <FaFloppyDisk /> Save as Draft
           </Button>
           <Button>
             Next <MdKeyboardArrowRight />

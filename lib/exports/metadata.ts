@@ -8,7 +8,10 @@ export const rootMetadata: Metadata = {
   },
   description:
     "Empowering nursing students across Nigeria to excel in NMCN, NCLEX, and nursing school exams. Practice with realistic mock exams, personalized feedback, and curriculum-aligned question banks. Coming soon: Educator courses and community learning.",
-
+  metadataBase: new URL("https://nurexi.com"),
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title:
       "Nurexi - Nigeria's #1 Nursing Education & Exam Preparation Platform",
@@ -54,6 +57,7 @@ export const rootMetadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    nocache: false,
     googleBot: {
       index: true,
       follow: true,
@@ -62,10 +66,6 @@ export const rootMetadata: Metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
-  },
-
-  alternates: {
-    canonical: "https://nurexi.com",
   },
 
   keywords: [
