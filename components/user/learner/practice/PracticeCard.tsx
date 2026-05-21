@@ -3,14 +3,14 @@
 import { useAppDispatch } from "@/hooks/StoreHooks";
 import { setMode } from "@/lib/features/exam/examSlice";
 import Link from "next/link";
-import { MdKeyboardArrowRight } from "react-icons/md";
+import { ArrowRight } from "lucide-react";
 
 interface PracticeCardProps {
   id: number;
   name: string;
   questionCount: number;
   description?: string;
-  imageUrl?: string;
+  image?: string;
 }
 
 const PracticeCard = ({
@@ -18,45 +18,64 @@ const PracticeCard = ({
   name,
   questionCount,
   description = "Practice questions to strengthen your knowledge",
-  imageUrl = "https://fudndaljoprnyhpidjkm.supabase.co/storage/v1/object/public/subject_images/pharmacology/pharmacology.jpg",
+  image,
 }: PracticeCardProps) => {
   const dispatch = useAppDispatch();
+
   return (
     <Link
-      onClick={() => {
-        dispatch(setMode("learning"));
-      }}
+      onClick={() => dispatch(setMode("learning"))}
       href={`/learner/practice/${id}`}
-      className="h-40 block"
+      className="group block h-44 rounded-2xl overflow-hidden relative focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
     >
+      {/* ── background image ── */}
       <div
-        className="h-full w-full space-y-4 group/item border-[0.5px] transition duration-200 cursor-pointer bg-background hover:shadow border-secondaryLightActive rounded-[10px] p-4 pb-6 relative overflow-hidden"
+        className="absolute inset-0 bg-cover bg-center transition-transform duration-500 ease-out group-hover:scale-105"
         style={{
-          background: `linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.3)), url("${imageUrl}")`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundImage: `url("${image || `https://placehold.co/400x200?text=${encodeURIComponent(name)}`}")`,
         }}
-      >
-        {/* Overlay gradient for better text readability */}
-        <div className="absolute inset-0 bg-linear-to-br from-black/20 to-black/15 pointer-events-none"></div>
+      />
 
-        {/* Content */}
-        <div className="relative z-10 h-full flex flex-col justify-between">
-          <div>
-            <h3 className="text-white font-semibold text-lg">{name}</h3>
-            <p className="text-white/80 text-sm mt-1 line-clamp-2">
-              {description}
-            </p>
-          </div>
+      {/* ── gradient overlays ── */}
+      {/* base dark scrim for readability */}
+      <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-black/10" />
+      {/* subtle colour tint from bottom */}
+      <div className="absolute inset-0 bg-linear-to-br from-transparent to-black/30" />
 
-          <div className="flex items-center justify-between">
-            <span className="bg-white/20 backdrop-blur-sm px-3 py-1 text-xs rounded-full text-white">
-              {questionCount} questions
-            </span>
-            <MdKeyboardArrowRight
-              size={20}
-              className="text-white group-hover/item:translate-x-1 transition duration-200"
-            />
+      {/* ── hover shine ── */}
+      <div className="absolute inset-0 bg-linear-to-br from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+      {/* ── border ── */}
+      <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 group-hover:ring-white/20 transition-all duration-300" />
+
+      {/* ── content ── */}
+      <div className="relative z-10 h-full flex flex-col justify-between p-4">
+        {/* top: question count pill */}
+        <div className="flex justify-end">
+          <span className="text-[11px] font-semibold tracking-wide bg-white/15 backdrop-blur-md border border-white/20 text-white/90 rounded-full px-2.5 py-1">
+            {questionCount} Qs
+          </span>
+        </div>
+
+        {/* bottom: name + description + arrow */}
+        <div className="space-y-1">
+          <div className="flex items-end justify-between gap-2">
+            <div className="min-w-0">
+              <h3 className="text-white font-bold text-[15px] leading-snug tracking-tight line-clamp-1">
+                {name}
+              </h3>
+              <p className="text-white/55 text-[12px] leading-relaxed line-clamp-2 mt-0.5">
+                {description}
+              </p>
+            </div>
+
+            {/* arrow button */}
+            <div className="shrink-0 w-8 h-8 rounded-full bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center transition-all duration-200 group-hover:bg-white group-hover:border-white group-hover:scale-110">
+              <ArrowRight
+                size={14}
+                className="text-white group-hover:text-black duration-200 group-hover:translate-x-0.5 transition-all"
+              />
+            </div>
           </div>
         </div>
       </div>

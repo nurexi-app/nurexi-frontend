@@ -13,8 +13,10 @@ export const metadata: Metadata = {
 export default async function MockExamPage() {
   const supabase = await createClient();
   // const { data: exams } = await supabase.from("exams").select("*");
-  const { data: exams } = await supabase.from("exams").select(
-    `
+  const { data: exams } = await supabase
+    .from("exams")
+    .select(
+      `
       *,
       exam_session (
         id,
@@ -22,7 +24,8 @@ export default async function MockExamPage() {
         year
       )
     `,
-  );
+    )
+    .eq("exam_session.is_active", true);
 
   return (
     <>

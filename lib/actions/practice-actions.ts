@@ -138,7 +138,8 @@ export async function GetSubjectsWithCounts(
       subject_id,
       subjects (
         id,
-        name
+        name,
+        image
       )
     `,
     )
@@ -151,18 +152,20 @@ export async function GetSubjectsWithCounts(
   // Step 3: Count questions per subject using a Map
   const subjectMap = new Map<
     number,
-    { id: number; name: string; count: number }
+    { id: number; name: string; count: number; image: string }
   >();
 
   for (const item of data || []) {
     const subjectId = item.subject_id;
     const subjectName = (item.subjects as any)?.name;
+    const subjectImage = (item.subjects as any)?.image;
 
     if (!subjectId || !subjectName) continue;
 
     if (!subjectMap.has(subjectId)) {
       subjectMap.set(subjectId, {
         id: subjectId,
+        image: subjectImage,
         name: subjectName,
         count: 0,
       });
@@ -178,6 +181,7 @@ export async function GetSubjectsWithCounts(
   const result: SubjectWithCount[] = Array.from(subjectMap.values()).map(
     (item) => ({
       id: item.id,
+      image: item?.image,
       name: item.name,
       questionCount: item.count,
     }),
