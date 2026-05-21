@@ -9,8 +9,7 @@ interface ParamsProps {
 const Page = async ({ params }: ParamsProps) => {
   const { id } = await params;
   const user = await GetUserProfile();
-  const questions = await GetPracticeQuestions(user?.id, id, 20);
-  console.log(questions);
+  const questions = await GetPracticeQuestions(user?.id, id, -1);
   return (
     <Suspense fallback={<h3>Loading...</h3>}>
       <PracticeClient questions={questions} />

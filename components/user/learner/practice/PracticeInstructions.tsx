@@ -14,7 +14,7 @@ export default function PracticeInstructions({
       {/* Illustration / Image placeholder */}
       <div className="relative h-72 overflow-hidden rounded-lg flex items-center justify-center bg-primary/5">
         {/* Overlay */}
-        <div className="absolute inset-0 z-40 bg-linear-to-b from-black/60 to-black/10 pointer-events-none" />
+        <div className="absolute inset-0 z-20 bg-linear-to-b from-black/60 to-black/10 pointer-events-none" />
 
         {/* Text content */}
         <div className="absolute z-50 text-center text-white space-y-2">
@@ -73,7 +73,7 @@ export default function PracticeInstructions({
 
       {/* CTA */}
       <div className="flex justify-end">
-        <Button onClick={onToggle}>Start Learning</Button>
+        <Button onClick={() => onToggle()}>Start Learning</Button>
       </div>
     </div>
   );

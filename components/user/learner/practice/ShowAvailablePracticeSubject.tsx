@@ -14,14 +14,15 @@ const ShowAvailablePracticeSubject = ({
 }: {
   subjectsObject: SubjectWithCount[];
 }) => {
-  const [showSubject, setShowSubject] = useState(true);
+  const [showSubject, setShowSubject] = useState(false);
 
   function handleToggle(): void {
-    setShowSubject(!showSubject);
+    setShowSubject((prev) => !prev);
   }
-  return showSubject ? (
-    <PracticeInstructions onToggle={handleToggle} />
-  ) : (
+  if (!showSubject) {
+    return <PracticeInstructions onToggle={handleToggle} />;
+  }
+  return (
     <div className="grid grid-cols-2 mt-4 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {subjectsObject.map((subject, index) => (
         <PracticeCard key={index} {...subject} />
