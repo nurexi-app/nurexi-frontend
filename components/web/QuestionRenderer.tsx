@@ -76,7 +76,10 @@ export default function QuestionRenderer({ question }: { question: Question }) {
           value={selectedAnswerForCurrent}
           className="gap-3 mt-4 mb-5 flex flex-col"
         >
-          {question?.options.map((option, index) => {
+          {(question?.question_type === "true_false"
+            ? ["True", "False"]
+            : question?.options || []
+          ).map((option, index) => {
             const isSelected = selectedAnswerForCurrent === option;
 
             return (

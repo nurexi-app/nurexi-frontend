@@ -1,9 +1,9 @@
 // app/learner/exam/[examCode]/ExamSessionSelector.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAppDispatch, useAppSelector } from "@/hooks/StoreHooks";
+import { useAppDispatch } from "@/hooks/StoreHooks";
 import {
   setExamSession,
   setExamDuration,
@@ -11,8 +11,18 @@ import {
 } from "@/lib/features/exam/examSlice";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Lock, Unlock, Clock, AlertCircle, BookOpen } from "lucide-react";
+import {
+  Lock,
+  Unlock,
+  Clock,
+  AlertCircle,
+  BookOpen,
+  Sparkles,
+  CheckCircle2,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 interface Session {
   id: number;
@@ -20,6 +30,7 @@ interface Session {
   year: number;
   hasAccess: boolean;
   questionCount: number;
+  authorName: string;
 }
 
 interface ExamSessionSelectorProps {
@@ -37,13 +48,13 @@ export default function ExamSessionSelector({
 }: ExamSessionSelectorProps) {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { duration } = useAppSelector((store) => store.exam);
 
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(
     null,
   );
   const [selectedDuration, setSelectedDuration] = useState<number>(90); // Default 90 minutes
   const [isStarting, setIsStarting] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState(false);
 
   // Get selected session details
   const selectedSession = sessions.find((s) => s.id === selectedSessionId);
@@ -51,10 +62,13 @@ export default function ExamSessionSelector({
     ? !selectedSession.hasAccess
     : false;
 
-  // Handle session selection
-  const handleSessionChange = (sessionId: number) => {
-    setSelectedSessionId(sessionId);
-    dispatch(setExamSession(sessionId));
+  // Handle session selection (Now allows selecting locked sessions to preview access action!)
+  const handleSessionChange = (session: Session) => {
+    setSelectedSessionId(session.id);
+    // Only dispatch active session state if they actually have access rights
+    if (session.hasAccess) {
+      dispatch(setExamSession(session.id));
+    }
   };
 
   // Handle duration change
@@ -63,64 +77,73 @@ export default function ExamSessionSelector({
     dispatch(setExamDuration(minutes * 60)); // Convert to seconds
   };
 
-  // Handle start exam
+  // Handle start exam or purchase routing
   const handleStartExam = async () => {
     if (!selectedSessionId) return;
 
-    setIsStarting(true);
+    try {
+      setIsStarting(true);
 
-    // If user is not logged in, redirect to login
-    if (!user) {
-      router.push(
-        `/login?redirect=/learner/exam/${examCode}/${selectedSessionId}`,
-      );
-      return;
-    }
-
-    // Check access again (to be safe)
-    const supabase = createClient();
-    const { data: hasAccess } = await supabase.rpc("check_exam_access", {
-      p_user_id: user.id,
-      p_exam_session_id: selectedSessionId,
-    });
-
-    if (!hasAccess) {
-      // Find which bundle contains this session for purchase
-      const { data: bundleQuestion } = await supabase
-        .from("bundle_questions")
-        .select("bundle_id")
-        .eq("exam_session_id", selectedSessionId)
-        .single();
-
-      if (bundleQuestion) {
-        router.push(
-          `/purchase/${bundleQuestion.bundle_id}?session=${selectedSessionId}&exam=${examCode}`,
-        );
-      } else {
-        router.push(`/purchase?session=${selectedSessionId}&exam=${examCode}`);
+      // If user is not logged in, redirect directly to intended target context
+      if (!user) {
+        router.push(`/login?redirect=/learner/exam/${examCode}`);
+        return;
       }
-      setIsStarting(false);
-      return;
-    }
 
-    // Has access - start the exam
-    dispatch(startExam(examCode.toLowerCase()));
-    router.push(`/learner/exam/${examCode}/${selectedSessionId}`);
-    setIsStarting(false);
+      setCheckingAccess(true);
+      const supabase = createClient();
+
+      const { data: hasAccess } = await supabase.rpc("check_exam_access", {
+        p_user_id: user.id,
+        p_exam_session_id: selectedSessionId,
+      });
+
+      if (!hasAccess) {
+        const { data: bundleQuestion } = await supabase
+          .from("bundle_questions")
+          .select("bundle_id")
+          .eq("exam_session_id", selectedSessionId)
+          .single();
+
+        if (bundleQuestion) {
+          router.push(`/explore/?${bundleQuestion.bundle_id}`);
+        } else {
+          router.push(`/explore?session=${selectedSessionId}&exam=${examCode}`);
+        }
+        return;
+      }
+
+      // Valid Access granted
+      dispatch(startExam(examCode.toLowerCase()));
+      router.push(`/learner/exam/${examCode}/${selectedSessionId}`);
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error?.message);
+      } else {
+        toast.error("An error occurred. Please try again.");
+      }
+    }
+    {
+      setIsStarting(false);
+      setCheckingAccess(false);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Session Selection */}
-      <div className="space-y-2">
-        <Label htmlFor="examSession" className="text-base font-semibold">
-          Select Exam Session
-        </Label>
-        <p className="text-sm text-muted-foreground mb-3">
-          Choose which year/session you want to practice
-        </p>
+    <div className="space-y-8 antialiased">
+      {/* ─── SECTION 1: SESSION SELECTION ───────────────────────────────── */}
+      <div className="space-y-3">
+        <div>
+          <Label className="text-base font-semibold text-foreground tracking-tight">
+            Select Exam Session
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            Choose which year/session template you want to practice under
+            simulation conditions
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {sessions.map((session) => {
             const isLocked = !session.hasAccess;
             const isSelected = selectedSessionId === session.id;
@@ -128,44 +151,55 @@ export default function ExamSessionSelector({
             return (
               <button
                 key={session.id}
-                onClick={() => !isLocked && handleSessionChange(session.id)}
-                disabled={isLocked}
+                type="button"
+                onClick={() => handleSessionChange(session)}
                 className={`
-                  relative p-4 rounded-lg border-2 text-left transition-all
+                  group relative p-4 rounded-xl border text-left transition-all duration-200 cursor-pointer
                   ${
                     isSelected
-                      ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                      : "border-border hover:border-primary/50"
-                  }
-                  ${
-                    isLocked
-                      ? "opacity-60 cursor-not-allowed bg-muted/30"
-                      : "cursor-pointer hover:shadow-md"
+                      ? "border-primary bg-primary/2 ring-2 ring-primary/20 shadow-sm"
+                      : "border-border hover:border-muted-foreground/30 hover:bg-muted/10 bg-card"
                   }
                 `}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">{session.session_name}</h3>
+                <div className="flex flex-col h-full justify-between space-y-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="font-medium text-sm text-foreground tracking-tight group-hover:text-primary transition-colors">
+                        {session.session_name}
+                      </h3>
                       {isLocked ? (
-                        <Lock className="h-4 w-4 text-muted-foreground" />
+                        <Badge
+                          variant="secondary"
+                          className="gap-1 px-1.5 py-0.5 text-[10px] font-medium bg-neutral-100 text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400 border-none"
+                        >
+                          <Lock className="h-2.5 w-2.5 text-neutral-400" />
+                          Premium
+                        </Badge>
                       ) : (
-                        <Unlock className="h-4 w-4 text-green-500" />
+                        <Badge
+                          variant="secondary"
+                          className="gap-1 px-1.5 py-0.5 text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-none"
+                        >
+                          <Unlock className="h-2.5 w-2.5 text-emerald-500" />
+                          Unlocked
+                        </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-xs text-muted-foreground font-mono">
                       {session.year}
                     </p>
-                    {/* <p className="text-xs text-muted-foreground mt-2">
-                      {session.questionCount || 100} questions
-                    </p> */}
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {session?.authorName}
+                    </p>
                   </div>
-                  {isLocked && (
-                    <div className="text-xs bg-muted px-2 py-1 rounded">
-                      🔒 Locked
-                    </div>
-                  )}
+
+                  <div className="flex items-center justify-between text-[11px] pt-1 border-t border-border/40 text-muted-foreground">
+                    <span>Questions Count:</span>
+                    <span className="font-semibold text-foreground bg-muted/60 px-1.5 py-0.5 rounded">
+                      {session.questionCount || ""} Qs
+                    </span>
+                  </div>
                 </div>
               </button>
             );
@@ -173,95 +207,121 @@ export default function ExamSessionSelector({
         </div>
       </div>
 
-      {/* Duration Selection */}
-      <div className="space-y-2">
-        <Label htmlFor="duration" className="text-base font-semibold">
-          Exam Duration
-        </Label>
-        <p className="text-sm text-muted-foreground mb-3">
-          Choose how long you want for this practice session
-        </p>
+      {/* ─── SECTION 2: DURATION SELECTION ─────────────────────────────── */}
+      <div className="space-y-3">
+        <div>
+          <Label className="text-base font-semibold text-foreground tracking-tight">
+            Exam Duration
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            Configure target duration boundaries for countdown alerts
+          </p>
+        </div>
 
         <div className="grid grid-cols-3 gap-3">
-          {[60, 90, 120].map((minutes) => (
-            <button
-              key={minutes}
-              onClick={() => handleDurationChange(minutes)}
-              className={`
-                p-3 rounded-lg border-2 text-center transition-all
-                ${
-                  selectedDuration === minutes
-                    ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                    : "border-border hover:border-primary/50"
-                }
-              `}
-            >
-              <Clock className="h-5 w-5 mx-auto mb-1 text-primary" />
-              <span className="font-medium">{minutes} minutes</span>
-            </button>
-          ))}
+          {[60, 90, 120].map((minutes) => {
+            const isDurationSelected = selectedDuration === minutes;
+            return (
+              <button
+                key={minutes}
+                type="button"
+                onClick={() => handleDurationChange(minutes)}
+                className={`
+                  p-3 rounded-xl border text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center space-y-1 bg-card
+                  ${
+                    isDurationSelected
+                      ? "border-primary bg-primary/2 ring-2 ring-primary/20"
+                      : "border-border hover:border-muted-foreground/30"
+                  }
+                `}
+              >
+                <Clock
+                  className={`h-4 w-4 transition-colors ${isDurationSelected ? "text-primary" : "text-muted-foreground"}`}
+                />
+                <span className="font-medium text-xs text-foreground">
+                  {minutes} Mins
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Exam Details Card */}
-      <div className="mt-6 rounded-lg border bg-muted/30 p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-5 w-5 text-primary" />
-          <h3 className="text-base font-semibold">Exam Details</h3>
+      {/* ─── SECTION 3: RULES & DETAILS BRIEF ──────────────────────────── */}
+      <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3.5">
+        <div className="flex items-center gap-2 text-foreground">
+          <BookOpen className="h-4 w-4 text-primary" />
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Quiz Instructions & Tips
+          </h3>
         </div>
 
-        <ul className="space-y-2 text-sm text-muted-foreground">
-          <li className="flex items-center gap-2">
-            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <span>Questions vary by session (typically 80-120 questions)</span>
-          </li>
-          <li className="flex items-center gap-2">
-            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <span>Answers and explanations available after submission</span>
-          </li>
-          <li className="flex items-center gap-2">
-            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <span>Auto-submission when time elapses</span>
-          </li>
-          <li className="flex items-center gap-2">
-            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <span>Review your answers before final submission</span>
-          </li>
-        </ul>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-muted-foreground">
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="h-3.5 w-3.5 text-primary/70 shrink-0 mt-0.5" />
+            <span>
+              Detailed explanations and rationales will unlock as soon as you
+              submit your quiz.
+            </span>
+          </div>
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="h-3.5 w-3.5 text-primary/70 shrink-0 mt-0.5" />
+            <span>
+              Your progress saves automatically after every answer—no need to
+              worry if you lose connection.
+            </span>
+          </div>
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="h-3.5 w-3.5 text-primary/70 shrink-0 mt-0.5" />
+            <span>
+              If the study timer runs out, your quiz answers will safely submit
+              exactly where you left off.
+            </span>
+          </div>
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="h-3.5 w-3.5 text-primary/70 shrink-0 mt-0.5" />
+            <span>
+              You can flag difficult questions to review, skip ahead, or come
+              back to them before finishing.
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Start Button */}
-      <div className="pt-4">
+      {/* ─── SECTION 4: ACTIONS PLATFORM BUTTONS ───────────────────────── */}
+      <div className="pt-2">
         {!user && (
-          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 text-yellow-600" />
-            <p className="text-sm text-yellow-700">
-              Please login to start the exam
+          <div className="mb-4 p-3 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 rounded-xl flex items-center gap-2.5">
+            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <p className="text-xs text-amber-800 dark:text-amber-300">
+              An active learner profile session token is required to start
+              running test compilation records.
             </p>
           </div>
         )}
-
         <Button
           onClick={handleStartExam}
-          disabled={!selectedSessionId || !user || isStarting}
-          className="w-full h-12 text-base font-semibold"
+          disabled={!selectedSessionId || isStarting}
+          variant={isSelectedSessionLocked ? "secondary" : "default"}
+          className="w-full h-12 text-sm font-semibold rounded-xl tracking-wide shadow-sm transition-all active:scale-[0.99]"
         >
-          {isStarting
-            ? "Starting..."
-            : !user
-              ? "Login to Start"
-              : !selectedSessionId
-                ? "Select a Session to Start"
-                : isSelectedSessionLocked
-                  ? "Purchase Access to Start"
-                  : `Start ${examName} Exam`}
-        </Button>
-
-        {selectedSession && isSelectedSessionLocked && (
-          <p className="text-xs text-center text-muted-foreground mt-3">
-            This session requires purchase. Click start to view pricing options.
-          </p>
-        )}
+          {checkingAccess ? (
+            "Checking your access..."
+          ) : isStarting ? (
+            "Loading your quiz..."
+          ) : !user ? (
+            "Log in to Start Practicing"
+          ) : !selectedSessionId ? (
+            "Choose an Exam Session Above"
+          ) : isSelectedSessionLocked ? (
+            <span className="flex items-center gap-1.5 justify-center">
+              <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+              Unlock Study Access for {selectedSession?.session_name}
+            </span>
+          ) : (
+            "Start Practice Quiz"
+          )}
+        </Button>{" "}
       </div>
     </div>
   );

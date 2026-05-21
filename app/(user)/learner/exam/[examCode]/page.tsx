@@ -1,7 +1,6 @@
-// app/learner/exam/[examCode]/page.tsx
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { BookOpen, Clock, FileText } from "lucide-react";
+import { Clock, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import DashboardCaption from "@/components/web/DashboardCaption";
 import ExamSessionSelector from "@/components/user/learner/exam/ExamSelectorSession";
@@ -25,11 +24,14 @@ export default async function ExamSessionPage({ params }: ExamPageProps) {
       exam_session (
         id,
         session_name,
-        year
+        year,
+        questions_count:questions(count),
+        author_name: profiles(full_name)
       )
     `,
     )
     .eq("code", examCode)
+    .eq("exam_session.is_active", true)
     .single();
 
   if (examError || !exam) {
@@ -67,9 +69,10 @@ export default async function ExamSessionPage({ params }: ExamPageProps) {
     id: session.id,
     session_name: session.session_name,
     year: session.year,
+    questionCount: session.questions_count[0]?.count || 0,
+    authorName: session.author_name.full_name,
     hasAccess: accessibleSessionIds.includes(session.id),
   }));
-
   return (
     <>
       <DashboardCaption
