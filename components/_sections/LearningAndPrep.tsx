@@ -108,7 +108,8 @@ export default function HowItWorks() {
           className="max-sm:hidden md:col-span-2 relative h-full"
         >
           <Image
-            src={"/assets/howItWorks.png"}
+            src={"/assets/02.jpeg"}
+            className="object-cover object-center"
             loading="lazy"
             fill
             alt="how it works image"
