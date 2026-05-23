@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useEffect, useState, useCallback } from "react";
+import gsap from "gsap";
+
 const DEMO_QUESTIONS = [
   {
     question:
