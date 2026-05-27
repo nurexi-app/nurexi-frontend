@@ -23,6 +23,8 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { cn, getInitials } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Session {
   id: number;
@@ -31,6 +33,7 @@ interface Session {
   hasAccess: boolean;
   questionCount: number;
   authorName: string;
+  authorAvatar?: string;
 }
 
 interface ExamSessionSelectorProps {
@@ -153,52 +156,109 @@ export default function ExamSessionSelector({
                 key={session.id}
                 type="button"
                 onClick={() => handleSessionChange(session)}
-                className={`
-                  group relative p-4 rounded-xl border text-left transition-all duration-200 cursor-pointer
-                  ${
-                    isSelected
-                      ? "border-primary bg-primary/2 ring-2 ring-primary/20 shadow-sm"
-                      : "border-border hover:border-muted-foreground/30 hover:bg-muted/10 bg-card"
-                  }
-                `}
+                className={cn(
+                  "group relative w-full text-left rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+                  isSelected
+                    ? "border-primary bg-primary/5 shadow-[0_0_0_3px_oklch(78.07%_0.117_166.71/0.15)]"
+                    : "border-border bg-card hover:border-primary/30 hover:shadow-sm",
+                )}
               >
-                <div className="flex flex-col h-full justify-between space-y-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="font-medium text-sm text-foreground tracking-tight group-hover:text-primary transition-colors">
+                {/* selected indicator strip */}
+                <div
+                  className={cn(
+                    "absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl transition-all duration-200",
+                    isSelected ? "bg-primary" : "bg-transparent",
+                  )}
+                />
+
+                <div className="p-4 pl-5 flex flex-col gap-3">
+                  {/* ── top row: name + lock badge ── */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h3
+                        className={cn(
+                          "font-semibold text-sm leading-snug tracking-tight truncate transition-colors duration-150",
+                          isSelected
+                            ? "text-primary"
+                            : "text-foreground group-hover:text-primary",
+                        )}
+                      >
                         {session.session_name}
                       </h3>
-                      {isLocked ? (
-                        <Badge
-                          variant="secondary"
-                          className="gap-1 px-1.5 py-0.5 text-[10px] font-medium bg-neutral-100 text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400 border-none"
-                        >
-                          <Lock className="h-2.5 w-2.5 text-neutral-400" />
-                          Premium
-                        </Badge>
-                      ) : (
-                        <Badge
-                          variant="secondary"
-                          className="gap-1 px-1.5 py-0.5 text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-none"
-                        >
-                          <Unlock className="h-2.5 w-2.5 text-emerald-500" />
-                          Unlocked
-                        </Badge>
+                      {session.year && (
+                        <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
+                          {session.year}
+                        </p>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground font-mono">
-                      {session.year}
-                    </p>
-                    <p className="text-xs text-muted-foreground font-mono">
-                      {session?.authorName}
-                    </p>
+
+                    {isLocked ? (
+                      <Badge
+                        variant="secondary"
+                        className="shrink-0 gap-1 px-1.5 py-0.5 text-[10px] font-medium bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400 border-none rounded-full"
+                      >
+                        <Lock className="h-2.5 w-2.5" />
+                        Premium
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="secondary"
+                        className="shrink-0 gap-1 px-1.5 py-0.5 text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-none rounded-full"
+                      >
+                        <Unlock className="h-2.5 w-2.5 text-emerald-500" />
+                        Free
+                      </Badge>
+                    )}
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] pt-1 border-t border-border/40 text-muted-foreground">
-                    <span>Questions Count:</span>
-                    <span className="font-semibold text-foreground bg-muted/60 px-1.5 py-0.5 rounded">
-                      {session.questionCount || ""} Qs
-                    </span>
+                  {/* ── author row ── */}
+                  {session.authorName && (
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6 shrink-0 ring-1 ring-border">
+                        <AvatarImage
+                          src={session?.authorAvatar || ""}
+                          alt={session.authorName}
+                        />
+                        <AvatarFallback
+                          className="text-[10px] font-semibold"
+                          style={{
+                            background: "oklch(78.07% 0.117 166.71 / 0.15)",
+                            color: "oklch(42% 0.117 166.71)",
+                          }}
+                        >
+                          {getInitials(session.authorName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-[11px] text-muted-foreground truncate">
+                        {session.authorName}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* ── bottom row: question count + selected check ── */}
+                  <div
+                    className={cn(
+                      "flex items-center justify-between pt-2.5 border-t text-[11px]",
+                      isSelected ? "border-primary/20" : "border-border/50",
+                    )}
+                  >
+                    <span className="text-muted-foreground">Questions</span>
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={cn(
+                          "font-semibold px-1.5 py-0.5 rounded text-[11px]",
+                          isSelected
+                            ? "bg-primary/10 text-primary"
+                            : "bg-muted/60 text-foreground",
+                        )}
+                      >
+                        {session.questionCount ?? "—"} Qs
+                      </span>
+                      {isSelected && (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                      )}
+                    </div>
                   </div>
                 </div>
               </button>

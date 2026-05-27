@@ -78,3 +78,13 @@ export const generateSlug = (title: string) => {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 };
+
+export function getInitials(name?: string) {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}

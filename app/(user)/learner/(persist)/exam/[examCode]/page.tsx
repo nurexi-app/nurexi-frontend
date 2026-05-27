@@ -26,7 +26,7 @@ export default async function ExamSessionPage({ params }: ExamPageProps) {
         session_name,
         year,
         questions_count:questions(count),
-        author_name: profiles(full_name)
+        author: profiles(full_name,avatar_url)
       )
     `,
     )
@@ -70,7 +70,8 @@ export default async function ExamSessionPage({ params }: ExamPageProps) {
     session_name: session.session_name,
     year: session.year,
     questionCount: session.questions_count[0]?.count || 0,
-    authorName: session.author_name.full_name,
+    authorName: session.author?.full_name,
+    authorAvatar: session.author?.avatar_url,
     hasAccess: accessibleSessionIds.includes(session.id),
   }));
   return (
