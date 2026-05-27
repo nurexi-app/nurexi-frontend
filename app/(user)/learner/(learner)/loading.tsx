@@ -1,7 +1,7 @@
-import DashboardSkeleton from "@/components/web/DashboardSkeleton";
+import BrandLoader from "@/components/web/BrandLoader";
 
 const Loading = () => {
-  return <DashboardSkeleton />;
+  return <BrandLoader message="Initializing your learning space..." />;
 };
 
 export default Loading;

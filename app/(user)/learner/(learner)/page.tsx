@@ -1,14 +1,11 @@
-import { Card, CardDescription } from "@/components/ui/card";
 import StatsGrid from "./Stats";
 import { weeklyPracticeStats } from "@/lib/exports/stats";
 import { RecentActivities } from "@/components/web/RecentActivities";
 import { Recommended } from "@/components/web/Recomendations";
 import DashboardCaption from "@/components/web/DashboardCaption";
 import { GetUserProfile } from "@/lib/actions/auth";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { dashboardMetadata } from "@/lib/exports/metadata";
-import { AnimateIcon } from "@/components/animate-ui/icons/icon";
 import QuickLinks from "@/components/web/QuickLinks";
 
 export const metadata = dashboardMetadata;
