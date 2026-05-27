@@ -2,95 +2,69 @@ import { Metadata } from "next";
 
 export const rootMetadata: Metadata = {
   title: {
-    default:
-      "Nurexi - Nigeria's #1 Nursing Education & Exam Preparation Platform",
+    default: "Nurexi | Nigeria's #1 NMCN CBT Practice & Exam Prep Platform",
     template: "%s | Nurexi",
   },
   description:
-    "Empowering nursing students across Nigeria to excel in NMCN, NCLEX, and nursing school exams. Practice with realistic mock exams, personalized feedback, and curriculum-aligned question banks. Coming soon: Educator courses and community learning.",
+    "Pass your NMCN Professional Qualifying Exam on the first attempt. Practice with realistic CBT mock exams, real nursing past questions, detailed rationales, and NCLEX prep.",
   metadataBase: new URL("https://nurexi.com"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title:
-      "Nurexi - Nigeria's #1 Nursing Education & Exam Preparation Platform",
+    title: "Nurexi | Nigeria's #1 NMCN CBT Practice & Exam Prep Platform",
     description:
-      "Empowering nursing students across Nigeria to excel in nursing licensing exams. Practice with realistic mock exams, personalized feedback, and curriculum-aligned question banks. Study smarter, perform better, and confidently achieve licensure.",
+      "Pass your NMCN Professional Qualifying Exam on your first attempt. Access timed CBT mock exams, real nursing past questions, and smart performance analytics tailored for Nigerian nursing students.",
     url: "https://nurexi.com",
     siteName: "Nurexi",
-    images: [
-      {
-        url: "/og.png",
-        width: 1200,
-        height: 630,
-        alt: "Nurexi - Transform your nursing education journey",
-      },
-    ],
     locale: "en_NG",
     type: "website",
   },
-
-  // Twitter
   twitter: {
     card: "summary_large_image",
-    title:
-      "Nurexi - Nigeria's #1 Nursing Education & Exam Preparation Platform",
+    title: "Nurexi | NMCN CBT Practice & Nursing Exam Prep",
     description:
-      "Empowering nursing students across Nigeria to excel in nursing licensing exams. Practice with realistic mock exams, personalized feedback, and curriculum-aligned question banks.",
+      "Master your nursing council exams with Nurexi. Timed CBT simulations, verified past questions, and deep rationales for Nigerian nursing students.",
     images: ["/og.png"],
     creator: "@nurexiForNurses",
-    site: "@nurexiForNurses",
   },
-
-  // Icons
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon-16x16.png",
     apple: "/apple-touch-icon.png",
   },
-
   verification: {
     google: "your-google-verification-code",
   },
-
   robots: {
     index: true,
     follow: true,
-    nocache: false,
     googleBot: {
       index: true,
       follow: true,
-      noimageindex: false,
       "max-video-preview": -1,
       "max-image-preview": "large",
       "max-snippet": -1,
     },
   },
-
   keywords: [
-    "nursing education Nigeria",
     "NMCN exam preparation",
-    "NCLEX preparation",
-    "nursing licensing exam",
+    "nursing past questions Nigeria",
+    "online NMCN CBT practice",
+    "nursing council exam app",
+    "NCLEX preparation Nigeria",
     "nursing mock exams",
-    "nursing past questions",
     "nursing students Nigeria",
-    "nursing school study tool",
-    "nursing board exam prep",
-    "nursing study platform",
-    "healthcare education Nigeria",
-    "nursing exam practice",
+    "basic nursing qualifying exam",
+    "midwifery council past questions",
+    "medical surgical nursing questions",
   ],
-
   authors: [
     { name: "Ochife Ogechukwu", url: "https://buildwithochife.vercel.app" },
   ],
   creator: "Ochife Ogechukwu",
   publisher: "Nurexi",
-
   category: "education",
-
   appleWebApp: {
     title: "Nurexi",
     statusBarStyle: "black-translucent",
@@ -99,7 +73,7 @@ export const rootMetadata: Metadata = {
 };
 
 export const dashboardMetadata: Metadata = {
-  title: "Dashboard",
+  title: "Learner Dashboard",
   description:
-    "Track your nursing exam progress, view your performance stats, and continue your preparation journey. Monitor your streak, weekly practice, and topic mastery.",
+    "Track your nursing exam progress, analyze performance stats, and master high-yield topics. Monitor your study streak and NMCN CBT test readiness.",
 };
