@@ -1,9 +1,9 @@
 // app/learner/exam/[examCode]/[sessionId]/page.tsx
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ExamClient from "@/components/user/learner/exam/ExamClient";
 import { Suspense } from "react";
-import Loader from "@/components/web/Loader";
+import BrandLoader from "@/components/web/BrandLoader";
 
 interface Props {
   params: Promise<{
@@ -57,7 +57,7 @@ export default async function ExamPage({ params }: Props) {
   }));
 
   return (
-    <Suspense fallback={<Loader />}>
+    <Suspense fallback={<BrandLoader message="Setting up exam..." />}>
       <ExamClient questions={formattedQuestions} examCode={examCode} />
     </Suspense>
   );
