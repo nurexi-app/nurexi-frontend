@@ -5,6 +5,7 @@ export type QuestionType =
   | "true_false"
   | "scenario"
   | "fill_in_the_blank"
+  | "short_answer"
   | "calculation";
 
 export type DifficultyLevel = "easy" | "medium" | "hard";

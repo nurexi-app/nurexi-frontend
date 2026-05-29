@@ -94,7 +94,10 @@ const examSlice = createSlice({
 
         if (!question) return false;
 
-        if (question.question_type === "fill_in_the_blank") {
+        if (
+          question.question_type === "fill_in_the_blank" ||
+          question.question_type === "short_answer"
+        ) {
           return (
             answer.selected.trim().toLowerCase() ===
             question.correct_answer.trim().toLowerCase()
