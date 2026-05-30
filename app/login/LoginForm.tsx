@@ -48,25 +48,17 @@ export function LoginForm() {
 
   function onSubmit(data: loginFormValues) {
     startTransition(async () => {
-      try {
-        await Login(data);
-        toast.success("success", {
-          description: <p className="bodyText">Welcome back</p>,
+      const response = await Login(data);
+      if (!response.success) {
+        toast.error("Error", {
+          description: <p className="bodyText">{response.error}</p>,
         });
-      } catch (error) {
-        if (error instanceof Error) {
-          if (error.message.includes("NEXT_REDIRECT")) {
-            return;
-          }
-          toast.error("Error", {
-            description: <p className="bodyText">{error.message}</p>,
-          });
-        } else {
-          toast.error("Error", {
-            description: <p className="bodyText">Something went wrong</p>,
-          });
-        }
+        return;
       }
+      toast.success("success", {
+        description: <p className="bodyText">Welcome back</p>,
+      });
+      router.push(response.data?.redirect!!);
     });
   }
 

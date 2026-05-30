@@ -6,6 +6,8 @@ import PracticeCard from "./PracticeCard";
 interface SubjectWithCount {
   id: number;
   name: string;
+  description?: string;
+  image?: string;
   questionCount: number;
 }
 
@@ -14,6 +16,7 @@ const ShowAvailablePracticeSubject = ({
 }: {
   subjectsObject: SubjectWithCount[];
 }) => {
+  console.log("subject: ", subjectsObject);
   const [showSubject, setShowSubject] = useState(false);
 
   function handleToggle(): void {

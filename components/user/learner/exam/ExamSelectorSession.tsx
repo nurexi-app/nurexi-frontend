@@ -82,7 +82,7 @@ export default function ExamSessionSelector({
 
   // Handle start exam or purchase routing
   const handleStartExam = async () => {
-    if (!selectedSessionId) return;
+    if (!selectedSessionId || !selectedSession) return;
 
     try {
       setIsStarting(true);
@@ -90,18 +90,12 @@ export default function ExamSessionSelector({
       // If user is not logged in, redirect directly to intended target context
       if (!user) {
         router.push(`/login?redirect=/learner/exam/${examCode}`);
-        return;
+        return; // Don't reset isStarting so button stays in loading state during redirect
       }
 
-      setCheckingAccess(true);
-      const supabase = createClient();
-
-      const { data: hasAccess } = await supabase.rpc("check_exam_access", {
-        p_user_id: user.id,
-        p_exam_session_id: selectedSessionId,
-      });
-
-      if (!hasAccess) {
+      if (!selectedSession.hasAccess) {
+        setCheckingAccess(true);
+        const supabase = createClient();
         const { data: bundleQuestion } = await supabase
           .from("bundle_questions")
           .select("bundle_id")
@@ -113,22 +107,21 @@ export default function ExamSessionSelector({
         } else {
           router.push(`/explore?session=${selectedSessionId}&exam=${examCode}`);
         }
-        return;
+        return; // Don't reset isStarting so button stays in loading state during redirect
       }
 
       // Valid Access granted
       dispatch(startExam(examCode.toLowerCase()));
       router.push(`/learner/exam/${examCode}/${selectedSessionId}`);
+      // Don't reset isStarting so button stays in loading state during redirect
     } catch (error) {
+      setIsStarting(false);
+      setCheckingAccess(false);
       if (error instanceof Error) {
         toast.error(error?.message);
       } else {
         toast.error("An error occurred. Please try again.");
       }
-    }
-    {
-      setIsStarting(false);
-      setCheckingAccess(false);
     }
   };
 

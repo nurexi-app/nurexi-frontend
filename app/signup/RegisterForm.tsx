@@ -26,6 +26,7 @@ import {
   AuthenticateWithX,
   SignUp,
 } from "../../lib/actions/auth";
+import { useRouter } from "next/navigation";
 
 type SignupFormValues = z.infer<typeof signupSchema>;
 
@@ -42,34 +43,29 @@ export function RegisterForm() {
   });
 
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   function onSubmit(data: SignupFormValues) {
     startTransition(async () => {
-      try {
-        const payload = {
-          email: data.email,
-          password: data.password,
-          fullName: data.fullName,
-        };
+      const payload = {
+        email: data.email,
+        password: data.password,
+        fullName: data.fullName,
+      };
 
-        await SignUp(payload);
-        toast.success("Account created successfully", {
-          description: (
-            <div className="mt-2 rounded-md bg-muted p-4 text-sm">
-              Please check your email for verification
-            </div>
-          ),
-        });
-      } catch (error) {
-        if (error instanceof Error) {
-          if (error.message.includes("NEXT_REDIRECT")) {
-            return;
-          }
+      const response = await SignUp(payload);
 
-          toast.error(error.message);
-        } else {
-          toast.error("Something went wrong");
-        }
+      if (!response.success) {
+        toast.error(response.error);
+        return;
+      }
+
+      toast.success("Account created successfully!", {
+        description: "Please check your email for verification link.",
+      });
+
+      if (response.data?.redirect) {
+        router.push(response.data.redirect);
       }
     });
   }

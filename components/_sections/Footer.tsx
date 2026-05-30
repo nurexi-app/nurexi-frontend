@@ -38,7 +38,7 @@ const footerMenu: FooterColumn[] = [
   },
   {
     title: "Legal",
-    links: ["Privacy Policy", "Terms of Service", "Cookie Policy"],
+    links: ["Policies"],
   },
   {
     title: "Social",

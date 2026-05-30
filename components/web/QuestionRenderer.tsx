@@ -115,16 +115,17 @@ export default function QuestionRenderer({ question }: { question: Question }) {
       )}
 
       {/* FILL IN THE BLANK */}
-      {question?.question_type === "fill_in_the_blank" && (
-        <div className="border-b-2 border-primary pb-2">
-          <Input
-            placeholder="Type your answer here..."
-            value={selectedAnswer || ""}
-            onChange={(e) => handleAnswerChange(e.target.value)}
-            className="border-none focus-visible:ring-0 text-lg"
-          />
-        </div>
-      )}
+      {question?.question_type === "fill_in_the_blank" ||
+        (question?.question_type === "short_answer" && (
+          <div className="border-b-2 border-primary pb-2">
+            <Input
+              placeholder="Type your answer here..."
+              value={selectedAnswer || ""}
+              onChange={(e) => handleAnswerChange(e.target.value)}
+              className="border-none focus-visible:ring-0 text-lg"
+            />
+          </div>
+        ))}
 
       {/* REVIEW MODE */}
       {shouldShowExplanation && (
