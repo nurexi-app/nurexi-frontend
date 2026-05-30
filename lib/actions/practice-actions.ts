@@ -13,6 +13,8 @@ interface AccessibleSession {
 interface SubjectWithCount {
   id: number;
   name: string;
+  image?: string;
+  description?: string;
   questionCount: number;
 }
 
@@ -139,7 +141,8 @@ export async function GetSubjectsWithCounts(
       subjects (
         id,
         name,
-        image
+        image,
+        description
       )
     `,
     )
@@ -152,14 +155,20 @@ export async function GetSubjectsWithCounts(
   // Step 3: Count questions per subject using a Map
   const subjectMap = new Map<
     number,
-    { id: number; name: string; count: number; image: string }
+    {
+      id: number;
+      name: string;
+      count: number;
+      image?: string;
+      description?: string;
+    }
   >();
 
   for (const item of data || []) {
     const subjectId = item.subject_id;
     const subjectName = (item.subjects as any)?.name;
     const subjectImage = (item.subjects as any)?.image;
-
+    const subjectDescription = (item.subjects as any)?.description;
     if (!subjectId || !subjectName) continue;
 
     if (!subjectMap.has(subjectId)) {
@@ -167,6 +176,7 @@ export async function GetSubjectsWithCounts(
         id: subjectId,
         image: subjectImage,
         name: subjectName,
+        description: subjectDescription,
         count: 0,
       });
     }
@@ -183,6 +193,7 @@ export async function GetSubjectsWithCounts(
       id: item.id,
       image: item?.image,
       name: item.name,
+      description: item?.description,
       questionCount: item.count,
     }),
   );
@@ -250,7 +261,6 @@ export async function GetPracticeQuestions(
 
   const { data, error } = await query;
 
-  console.log(data);
   if (error) {
     throw new Error(`Failed to fetch practice questions: ${error.message}`);
   }

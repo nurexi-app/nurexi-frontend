@@ -13,7 +13,7 @@ export async function SignUp(payload: {
 }) {
   const supabase = await createClient();
 
-  const { data, error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signUp({
     email: payload.email,
     password: payload.password,
 
@@ -26,11 +26,19 @@ export async function SignUp(payload: {
   });
 
   if (error) {
-    throw new Error(error.message);
+    return {
+      error: error.message,
+      success: false,
+    };
   }
 
-  revalidatePath("/learner", "layout");
-  redirect("/check-email");
+  // revalidatePath("/learner", "layout");
+  return {
+    success: true,
+    data: {
+      redirect: "/check-email",
+    },
+  };
 }
 
 export async function Login(payload: {
@@ -40,7 +48,7 @@ export async function Login(payload: {
 }) {
   const supabase = await createClient();
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithPassword({
     email: payload.email,
     password: payload.password,
   });
@@ -49,35 +57,16 @@ export async function Login(payload: {
     if (error.message.includes("Email not confirmed")) {
       redirect("/check-email");
     }
-    throw new Error(error.message);
+    return { error: error.message, success: false };
   }
 
-  // const { data: userProfileData, error: userProfileError } = await supabase
-  //   .from("profiles")
-  //   .select("*")
-  //   .eq("id", data.user.id)
-  //   .single();
-
-  // if (userProfileError) {
-  //   throw new Error(userProfileError.message);
-  // }
-
-  // const roles = userProfileData.roles || [];
-  // Handle both array (roles) and single string (role) cases, defaulting to learner
-  // const userRoles = Array.isArray(roles)
-  //   ? roles
-  //   : [userProfileData.role || "learner"];
-
-  // let redirectPath = "/learner";
-
-  // If user is strictly an educator (and not a learner), send them to educator dashboard
-  // Otherwise (learner or both), send to learner dashboard
-  // if (userRoles.includes("educator") && !userRoles.includes("learner")) {
-  //   redirectPath = "/educator";
-  // }
-
   revalidatePath("/", "layout");
-  redirect("/learner");
+  return {
+    success: true,
+    data: {
+      redirect: "/learner",
+    },
+  };
 }
 
 export async function Logout() {
@@ -130,7 +119,7 @@ export async function AuthenticateWithGoogle() {
   });
 
   if (data.url) {
-    redirect(data.url); // use the redirect API for your server framework
+    redirect(data.url);
   }
 }
 
@@ -144,7 +133,7 @@ export async function AuthenticateWithX() {
   });
 
   if (data.url) {
-    redirect(data.url); // use the redirect API for your server framework
+    redirect(data.url);
   }
 }
 
