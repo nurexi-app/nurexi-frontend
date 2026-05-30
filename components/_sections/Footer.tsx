@@ -30,11 +30,11 @@ interface FooterColumn {
 const footerMenu: FooterColumn[] = [
   {
     title: "Features",
-    links: ["Verify Payment", "Security", "Analytics", "Automation"],
+    links: ["Verify Payment"],
   },
   {
     title: "About",
-    links: ["Our Story", "Team", "Careers", "Contact"],
+    links: ["Contact", "faq"],
   },
   {
     title: "Legal",
@@ -44,10 +44,13 @@ const footerMenu: FooterColumn[] = [
     title: "Social",
     isSocial: true,
     links: [
-      { url: "#", icon: <FaLinkedin size={24} /> },
+      {
+        url: "https://www.linkedin.com/in/ogechukwu-ochife-88443a284",
+        icon: <FaLinkedin size={24} />,
+      },
       { url: "https://x.com/nurexiForNurses", icon: <FaXTwitter size={24} /> },
-      { url: "#", icon: <FaInstagram size={24} /> },
-      { url: "#", icon: <FaFacebook size={24} /> },
+      // { url: "#", icon: <FaInstagram size={24} /> },
+      // { url: "#", icon: <FaFacebook size={24} /> },
     ],
   },
 ];

@@ -50,7 +50,7 @@ export default function HelporQuestions() {
 
         <div className="animate-reveal">
           <Button asChild>
-            <Link href={`mailto:nurexi.team@gmail.com`}>Get in touch</Link>
+            <a href="mailto:support@mails.nurexi.com">Get in touch</a>
           </Button>
         </div>
       </div>

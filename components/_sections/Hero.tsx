@@ -122,10 +122,10 @@ export default function HeroSection() {
               tests, and smart tools built to boost your confidence.
             </p>
 
-            <div className="hero-buttons flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div className="hero-buttons flex flex-row gap-3 w-full sm:w-auto">
               <Button
                 onClick={() => router.push("/learner")}
-                className="cta-pulse w-full sm:w-auto hover:scale-[1.03] active:scale-[0.98] transition-transform duration-200"
+                className="cta-pulse w-1/2 sm:w-auto hover:scale-[1.03] active:scale-[0.98] transition-transform duration-200"
                 size="default"
               >
                 Get Started
@@ -133,7 +133,7 @@ export default function HeroSection() {
               <Button
                 variant="outline"
                 onClick={() => router.push("/learner/exam")}
-                className="w-full sm:w-auto hover:scale-[1.03] active:scale-[0.98] transition-transform duration-200"
+                className="w-1/2 sm:w-auto hover:scale-[1.03] active:scale-[0.98] transition-transform duration-200"
                 size="default"
               >
                 Explore exams →

@@ -193,11 +193,11 @@ export function RegisterForm() {
               render={({ field }) => (
                 <div className="flex items-center gap-2">
                   <Checkbox
-                    className="cursor-pointer"
+                    className="cursor-pointer hidden"
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
-                  <span className="text-sm">Remember me</span>
+                  <span className="text-sm hidden">Remember me</span>
                 </div>
               )}
             />

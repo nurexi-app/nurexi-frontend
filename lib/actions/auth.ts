@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ResetPasswordSchema, UpdatePasswordSchema } from "../validators/auth";
+import { cookies } from "next/headers";
 
 export async function SignUp(payload: {
   email: string;
@@ -60,11 +61,15 @@ export async function Login(payload: {
     return { error: error.message, success: false };
   }
 
+  const cookieStore = await cookies();
+  const redirectTo = cookieStore.get("redirectTo")?.value;
+  cookieStore.delete("redirectTo");
   revalidatePath("/", "layout");
+
   return {
     success: true,
     data: {
-      redirect: "/learner",
+      redirect: redirectTo || "/learner",
     },
   };
 }
@@ -150,6 +155,14 @@ export async function GetUserProfile() {
     .single();
 
   return existingProfile;
+}
+export async function IsEducator() {
+  const profile = await GetUserProfile();
+
+  if (!profile) return false;
+
+  const educatorRole = process.env.EDUCATOR_ROLE;
+  return profile.roles?.includes(educatorRole) ?? false;
 }
 
 export async function Welcome() {
