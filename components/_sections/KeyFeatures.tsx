@@ -65,7 +65,7 @@ export default function KeyFeatures() {
           opacity: 1,
           duration: 0.8,
           scale: 1,
-          ease: "power1",
+          ease: "power1.out",
           scrollTrigger: {
             trigger: headingRef.current,
             start: isMobile ? "top 95%" : "top 85%",
@@ -90,7 +90,7 @@ export default function KeyFeatures() {
             duration: 1,
             scale: 1,
             stagger: 0.15,
-            ease: "power1",
+            ease: "power1.out",
             scrollTrigger: {
               trigger: leftColumnRef.current,
               start: "top 80%",
@@ -113,7 +113,7 @@ export default function KeyFeatures() {
           opacity: 1,
           y: 0,
           duration: 0.9,
-          ease: "power1",
+          ease: "power1.out",
           scrollTrigger: {
             trigger: centerSlideRef.current,
             start: "top 80%",
@@ -138,7 +138,7 @@ export default function KeyFeatures() {
             duration: 1,
 
             stagger: 0.15,
-            ease: "power1",
+            ease: "power1.out",
             scrollTrigger: {
               trigger: rightColumnRef.current,
               start: "top 80%",

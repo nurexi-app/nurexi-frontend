@@ -38,9 +38,9 @@ export default async function Layout({ children }: { children: ReactNode }) {
         </div>
 
         <div className="flex items-center gap-1 md:gap-3">
-          <Link href={"/learner/notification"} className="max-sm:hidden">
+          {/* <Link href={"/learner/notification"} className="max-sm:hidden">
             <Bell size={24} />
-          </Link>
+          </Link> */}
           <Suspense fallback={<AvatarSkeleton />}>
             <Avatar className="h-8 w-8 md:w-10 md:h-10">
               <AvatarImage src={profile?.avatar_url} />

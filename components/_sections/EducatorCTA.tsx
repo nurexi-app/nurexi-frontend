@@ -70,7 +70,7 @@ export default function EducatorCTA() {
           resources.
         </p>
 
-        <Dialog>
+        {/* <Dialog>
           <DialogTrigger asChild>
             <Button size="lg" className="bg-white text-black hover:bg-gray-200">
               Become an Educator
@@ -97,7 +97,10 @@ export default function EducatorCTA() {
               </Button>
             </form>
           </DialogContent>
-        </Dialog>
+        </Dialog> */}
+        <Button asChild>
+          <a href="mailto:nurexi.team@gmail.com">Become an Educator</a>
+        </Button>
       </div>
     </section>
   );

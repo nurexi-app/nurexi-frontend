@@ -132,11 +132,11 @@ export function LoginForm() {
                 render={({ field }) => (
                   <div className="flex items-center gap-2">
                     <Checkbox
-                      className="cursor-pointer"
+                      className="cursor-pointer hidden"
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
-                    <span className="text-sm">Remember me</span>
+                    <span className="text-sm hidden">Remember me</span>
                   </div>
                 )}
               />
@@ -169,7 +169,7 @@ export function LoginForm() {
 
           {/* Social Auth */}
           <div className="grid grid-cols-2 gap-3">
-            {/* <Button
+            <Button
               variant="outline"
               type="button"
               onClick={async () => await AuthenticateWithGoogle()}
@@ -179,15 +179,15 @@ export function LoginForm() {
                 Continue with Google
               </span>
               <span className="md:hidden">Google</span>
-            </Button> */}
+            </Button>
 
-            {/* <Button
+            <Button
               variant="outline"
               type="button"
               onClick={async () => await AuthenticateWithX()}
             >
               <FaXTwitter className="mr-2 h-4 w-4" />X
-            </Button> */}
+            </Button>
           </div>
         </form>
       </CardContent>

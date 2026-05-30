@@ -16,7 +16,6 @@ const ShowAvailablePracticeSubject = ({
 }: {
   subjectsObject: SubjectWithCount[];
 }) => {
-  console.log("subject: ", subjectsObject);
   const [showSubject, setShowSubject] = useState(false);
 
   function handleToggle(): void {

@@ -18,7 +18,7 @@ export default function Register() {
         />
         <QuoteSwiper />
       </section>
-      {true ? (
+      {false ? (
         <div className="container max-w-md m-auto px-4 py-16">
           <div className="bg-white rounded-xl border p-6 text-center">
             <div className="text-4xl mb-4">🚀</div>

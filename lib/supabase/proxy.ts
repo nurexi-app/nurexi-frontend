@@ -40,7 +40,7 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
 
   const user = data?.claims;
-  const protectedRoutes = ["/learner", "/welcome"];
+  const protectedRoutes = ["/learner", "/welcome", "/educator"];
 
   const pathname = request.nextUrl.pathname;
 
@@ -51,7 +51,21 @@ export async function updateSession(request: NextRequest) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    return NextResponse.redirect(url);
+    const redirectResponse = NextResponse.redirect(
+      new URL("/login", request.url),
+    );
+
+    // Store the intended destination in a cookie
+    // Use encodeURIComponent to handle special characters in URLs
+    redirectResponse.cookies.set("redirectTo", pathname, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 5, // 5 minutes (enough time to login)
+    });
+
+    return redirectResponse;
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're

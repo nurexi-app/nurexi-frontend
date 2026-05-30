@@ -4,60 +4,60 @@ import {
 } from "../types/course";
 
 export const dashboardCourses: DashboardCourseInterface[] = [
-  {
-    id: "course_001",
-    title: "Clinical Pharmacology for Nurses",
-    description:
-      "A practical, scenario-based approach to understanding pharmacology in real clinical settings, including drug calculations, safety checks, and patient education.",
-    author: {
-      name: "Dr. Amaka Okoye",
-      verified: true,
-    },
-    progress: 65, // percentage
-    totalLessons: 42,
-    completedLessons: 27,
-    lastAccessed: "2026-01-20",
-    thumbnail: "/assets/medsurge.jpeg",
-    duration: "12h 30m",
-    level: "Intermediate",
-    tags: ["Pharmacology", "Clinical", "NCLEX"],
-  },
-  {
-    id: "course_002",
-    title: "Fundamentals of ICU Nursing",
-    description:
-      "Learn core ICU concepts including ventilator care, hemodynamic monitoring, and critical patient assessment for newly deployed ICU nurses.",
-    author: {
-      name: "Clinexi Academy",
-      verified: true,
-    },
-    progress: 18,
-    totalLessons: 30,
-    completedLessons: 5,
-    lastAccessed: "2026-01-18",
-    thumbnail: "/assets/medsurge.jpeg",
-    duration: "9h 10m",
-    level: "Beginner",
-    tags: ["ICU", "Critical Care"],
-  },
-  {
-    id: "course_003",
-    title: "Occupational Health & Safety for Nurses",
-    description:
-      "Understand workplace health risks, OSHA principles, and preventive strategies for occupational and industrial health nursing.",
-    author: {
-      name: "Samuel Adeyemi, RN",
-      verified: false,
-    },
-    progress: 0,
-    totalLessons: 18,
-    completedLessons: 0,
-    lastAccessed: null,
-    thumbnail: "/assets/hero3.png",
-    duration: "5h 45m",
-    level: "Beginner",
-    tags: ["OHN", "Workplace Safety"],
-  },
+  // {
+  //   id: "course_001",
+  //   title: "Clinical Pharmacology for Nurses",
+  //   description:
+  //     "A practical, scenario-based approach to understanding pharmacology in real clinical settings, including drug calculations, safety checks, and patient education.",
+  //   author: {
+  //     name: "Dr. Amaka Okoye",
+  //     verified: true,
+  //   },
+  //   progress: 65, // percentage
+  //   totalLessons: 42,
+  //   completedLessons: 27,
+  //   lastAccessed: "2026-01-20",
+  //   thumbnail: "/assets/medsurge.jpeg",
+  //   duration: "12h 30m",
+  //   level: "Intermediate",
+  //   tags: ["Pharmacology", "Clinical", "NCLEX"],
+  // },
+  // {
+  //   id: "course_002",
+  //   title: "Fundamentals of ICU Nursing",
+  //   description:
+  //     "Learn core ICU concepts including ventilator care, hemodynamic monitoring, and critical patient assessment for newly deployed ICU nurses.",
+  //   author: {
+  //     name: "Clinexi Academy",
+  //     verified: true,
+  //   },
+  //   progress: 18,
+  //   totalLessons: 30,
+  //   completedLessons: 5,
+  //   lastAccessed: "2026-01-18",
+  //   thumbnail: "/assets/medsurge.jpeg",
+  //   duration: "9h 10m",
+  //   level: "Beginner",
+  //   tags: ["ICU", "Critical Care"],
+  // },
+  // {
+  //   id: "course_003",
+  //   title: "Occupational Health & Safety for Nurses",
+  //   description:
+  //     "Understand workplace health risks, OSHA principles, and preventive strategies for occupational and industrial health nursing.",
+  //   author: {
+  //     name: "Samuel Adeyemi, RN",
+  //     verified: false,
+  //   },
+  //   progress: 0,
+  //   totalLessons: 18,
+  //   completedLessons: 0,
+  //   lastAccessed: null,
+  //   thumbnail: "/assets/hero3.png",
+  //   duration: "5h 45m",
+  //   level: "Beginner",
+  //   tags: ["OHN", "Workplace Safety"],
+  // },
 ];
 
 export const publicCourses: PublicCourseInterface[] = [

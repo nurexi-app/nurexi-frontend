@@ -34,16 +34,11 @@ export const sidebarLinks: SidebarItem[] = [
     link: "/learner",
     icon: LayoutDashboard,
   },
-  {
-    name: "Explore",
-    link: "/explore",
-    icon: Compass,
-  },
-  {
-    name: "Courses",
-    link: "/learner/courses",
-    icon: MessageSquarePlus,
-  },
+  // {
+  //   name: "Explore",
+  //   link: "/explore",
+  //   icon: Compass,
+  // },
   {
     name: "Practice Questions",
     link: "/learner/practice",
@@ -60,10 +55,15 @@ export const sidebarLinks: SidebarItem[] = [
     icon: ChartSpline,
   },
   {
-    name: "Library",
-    link: "/learner/library",
-    icon: PinOff,
+    name: "Courses",
+    link: "/learner/courses",
+    icon: MessageSquarePlus,
   },
+  // {
+  //   name: "Library",
+  //   link: "/learner/library",
+  //   icon: PinOff,
+  // },
 ];
 
 export const EducatorsLinks = [
@@ -89,11 +89,11 @@ export const accountLinks: SidebarAccountLink[] = [
     link: "/learner/profile",
     icon: User,
   },
-  {
-    name: "Notifications",
-    link: "/learner/notification",
-    icon: Bell,
-  },
+  // {
+  //   name: "Notifications",
+  //   link: "/learner/notification",
+  //   icon: Bell,
+  // },
 ];
 
 export const educatorLinks: SidebarAccountLink[] = [
@@ -107,9 +107,9 @@ export const educatorLinks: SidebarAccountLink[] = [
     link: "/educator/notification",
     icon: PiCurrencyNgn,
   },
-  {
-    name: "Notifications",
-    link: "/educator/notification",
-    icon: Bell,
-  },
+  // {
+  //   name: "Notifications",
+  //   link: "/educator/notification",
+  //   icon: Bell,
+  // },
 ];

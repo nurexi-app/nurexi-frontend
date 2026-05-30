@@ -334,11 +334,11 @@ export default function LegalPage() {
               <P>
                 To exercise any of these rights, contact us at{" "}
                 <a
-                  href="mailto:legal@nurexi.com"
+                  href="mailto:legal@mails.nurexi.com"
                   className="underline"
                   style={{ color: "oklch(55% 0.117 166.71)" }}
                 >
-                  legal@nurexi.com
+                  legal@mails.nurexi.com
                 </a>
                 .
               </P>
@@ -356,11 +356,11 @@ export default function LegalPage() {
               <P>
                 For any privacy-related questions, email us at{" "}
                 <a
-                  href="mailto:legal@nurexi.com"
+                  href="mailto:legal@mails.nurexi.com"
                   className="underline"
                   style={{ color: "oklch(55% 0.117 166.71)" }}
                 >
-                  legal@nurexi.com
+                  legal@mails.nurexi.com
                 </a>
                 .
               </P>
@@ -433,11 +433,11 @@ export default function LegalPage() {
                   within 24 hours of purchase if you have not attempted any
                   questions in the session. Contact{" "}
                   <a
-                    href="mailto:legal@nurexi.com"
+                    href="mailto:legal@mails.nurexi.com"
                     className="underline"
                     style={{ color: "oklch(55% 0.117 166.71)" }}
                   >
-                    legal@nurexi.com
+                    legal@mails.nurexi.com
                   </a>{" "}
                   to request a refund.
                 </LI>
@@ -487,11 +487,11 @@ export default function LegalPage() {
               <P>
                 Questions about these terms? Email{" "}
                 <a
-                  href="mailto:legal@nurexi.com"
+                  href="mailto:legal@mails.nurexi.com"
                   className="underline"
                   style={{ color: "oklch(55% 0.117 166.71)" }}
                 >
-                  legal@nurexi.com
+                  legal@mails.nurexi.com
                 </a>
                 .
               </P>
@@ -652,11 +652,11 @@ export default function LegalPage() {
               <P>
                 Questions about cookies? Email{" "}
                 <a
-                  href="mailto:legal@nurexi.com"
+                  href="mailto:legal@mails.nurexi.com"
                   className="underline"
                   style={{ color: "oklch(55% 0.117 166.71)" }}
                 >
-                  legal@nurexi.com
+                  legal@mails.nurexi.com
                 </a>
                 .
               </P>
@@ -667,11 +667,11 @@ export default function LegalPage() {
               <p className="text-sm text-muted-foreground">
                 Have questions about any of our policies?{" "}
                 <a
-                  href="mailto:legal@nurexi.com"
+                  href="mailto:legal@mails.nurexi.com"
                   className="font-medium underline"
                   style={{ color: "oklch(55% 0.117 166.71)" }}
                 >
-                  Contact us at legal@nurexi.com
+                  Contact us at legal@mails.nurexi.com
                 </a>
               </p>
               <p className="text-[11px] text-muted-foreground/60 mt-2">

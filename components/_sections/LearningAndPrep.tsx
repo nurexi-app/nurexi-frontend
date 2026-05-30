@@ -72,7 +72,7 @@ export default function HowItWorks() {
             <motion.div
               key={index}
               variants={{
-                hidden: { opacity: 0, x: -30 },
+                hidden: { opacity: 0, x: -10 },
                 visible: { opacity: 1, x: 0 },
               }}
               transition={{ duration: 0.5, ease: "easeOut" }}
@@ -101,7 +101,7 @@ export default function HowItWorks() {
 
         {/* Side Image */}
         <motion.div
-          initial={{ opacity: 0, x: 40 }}
+          initial={{ opacity: 0, x: 20 }}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}

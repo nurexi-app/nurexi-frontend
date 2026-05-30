@@ -21,8 +21,16 @@ const navlinks = [
   { link: "#faqs", name: "FAQ" },
 ];
 
-export default function Navbar() {
+import { usePathname } from "next/navigation";
+
+export default function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  const getNavLink = (link: string) => {
+    return pathname === "/" ? link : `/${link}`;
+  };
+
 
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
@@ -121,7 +129,7 @@ export default function Navbar() {
         {navlinks.map((nav) => (
           <Link
             key={nav.name}
-            href={nav.link}
+            href={getNavLink(nav.link)}
             className="nav-link group relative text-sm font-medium text-gray-600 hover:text-black transition-colors"
           >
             {nav.name}
@@ -134,15 +142,23 @@ export default function Navbar() {
 
       {/* Desktop Auth */}
       <div className="hidden lg:flex items-center gap-4 link-buttons">
-        <Link
-          href="/login"
-          className={cn(buttonVariants({ variant: "ghost" }))}
-        >
-          Login
-        </Link>
-        <Button asChild>
-          <Link href="/signup">Sign up</Link>
-        </Button>
+        {isLoggedIn ? (
+          <Button asChild>
+            <Link href="/learner">Dashboard</Link>
+          </Button>
+        ) : (
+          <>
+            <Link
+              href="/login"
+              className={cn(buttonVariants({ variant: "ghost" }))}
+            >
+              Login
+            </Link>
+            <Button asChild>
+              <Link href="/signup">Sign up</Link>
+            </Button>
+          </>
+        )}
       </div>
 
       {/* Mobile Menu */}
@@ -163,7 +179,7 @@ export default function Navbar() {
             {navlinks.map((nav) => (
               <Link
                 key={nav.name}
-                href={nav.link}
+                href={getNavLink(nav.link)}
                 onClick={() => setOpen(false)}
                 className="mobile-nav-item text-base font-medium"
               >
@@ -173,19 +189,28 @@ export default function Navbar() {
           </nav>
 
           <div className="mt-8 flex flex-col gap-3 link-buttons">
-            <Link
-              href="/login"
-              onClick={() => setOpen(false)}
-              className={cn(buttonVariants({ variant: "outline" }))}
-            >
-              Login
-            </Link>
-
-            <Button asChild>
-              <Link href="/signup" onClick={() => setOpen(false)}>
-                Sign up
-              </Link>
-            </Button>
+            {isLoggedIn ? (
+              <Button asChild>
+                <Link href="/learner" onClick={() => setOpen(false)}>
+                  Dashboard
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className={cn(buttonVariants({ variant: "outline" }))}
+                >
+                  Login
+                </Link>
+                <Button asChild>
+                  <Link href="/signup" onClick={() => setOpen(false)}>
+                    Sign up
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </SheetContent>
       </Sheet>
