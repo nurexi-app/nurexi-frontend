@@ -6,6 +6,7 @@ import { Question } from "@/lib/types/questions";
 import { endExam, startPractice } from "@/lib/features/exam/examSlice";
 import { Button } from "@/components/ui/button";
 import Questions from "../exam/Questions";
+import Link from "next/link";
 
 interface PracticeClientProps {
   questions: Question[];
@@ -23,8 +24,8 @@ const PracticeClient = ({ questions }: PracticeClientProps) => {
 
   // Handle exit
   const handleExit = () => {
-    dispatch(endExam());
     router.push(`/learner/practice`);
+    dispatch(endExam());
   };
 
   const handlePracticeAgain = () => {
@@ -55,8 +56,8 @@ const PracticeClient = ({ questions }: PracticeClientProps) => {
           {score.percentage}%
         </div>
         <div className="flex gap-4 justify-center">
-          <Button variant="outline" onClick={handleExit}>
-            Back to Subjects
+          <Button variant="outline" onClick={() => handleExit()}>
+            <Link href={"/learner/practice"}>Back to Subjects</Link>
           </Button>
           <Button onClick={() => handlePracticeAgain()}>Practice Again</Button>
         </div>

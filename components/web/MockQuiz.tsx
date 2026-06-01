@@ -2,6 +2,8 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import gsap from "gsap";
+import { Button } from "../ui/button";
+import { useRouter } from "next/navigation";
 
 const DEMO_QUESTIONS = [
   {
@@ -113,6 +115,7 @@ function MockQuizCard() {
 
   const isCorrect = selected === q.correct;
 
+  const router = useRouter();
   return (
     <div className="w-full max-w-full">
       <div
@@ -391,25 +394,36 @@ function MockQuizCard() {
               >
                 💡 {q.explanation}
               </p>
-              <button
-                onClick={goToNext}
-                style={{
-                  alignSelf: "flex-end",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: "oklch(42% 0.117 166.71)",
-                  background: "oklch(78.07% 0.117 166.71 / 0.1)",
-                  border: "1px solid oklch(78.07% 0.117 166.71 / 0.25)",
-                  borderRadius: 8,
-                  padding: "5px 14px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 5,
-                }}
-              >
-                Next question →
-              </button>
+              {qIndex < 2 ? (
+                <button
+                  onClick={goToNext}
+                  style={{
+                    alignSelf: "flex-end",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "oklch(42% 0.117 166.71)",
+                    background: "oklch(78.07% 0.117 166.71 / 0.1)",
+                    border: "1px solid oklch(78.07% 0.117 166.71 / 0.25)",
+                    borderRadius: 8,
+                    padding: "5px 14px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
+                  }}
+                >
+                  Next question →
+                </button>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/learner/practice")}
+                  className="w-[47%] sm:w-auto hover:scale-[1.03] active:scale-[0.98] transition-transform duration-200"
+                  size="default"
+                >
+                  Start Practice →
+                </Button>
+              )}
             </div>
           )}
 
