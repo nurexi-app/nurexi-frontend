@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
     </div>
     <p style="color: #666;">— Ochife<br>Founder, Nurexi</p>
     <hr style="margin: 32px 0 16px; border: none; border-top: 1px solid #e2e8f0;">
-    <p style="font-size: 12px; color: #94a3b8;">Need help? Reply to this email or visit our <a href="${appUrl}/help" style="color: #1a8a5c;">help center</a>.</p>
+    <p style="font-size: 12px; color: #94a3b8;">Need help? Reply to this email or visit our <a href="${appUrl}/faq" style="color: #1a8a5c;">help center</a>.</p>
   </div>
 </body>
 </html>
