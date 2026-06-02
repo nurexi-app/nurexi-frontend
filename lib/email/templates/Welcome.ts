@@ -1,7 +1,3 @@
-// lib/email/templates/welcome.ts
-// Reusable welcome email template for Nurexi
-// Used in both email/OTP signups and Google OAuth signups
-
 interface WelcomeEmailProps {
   displayName: string;
   appUrl: string;
@@ -26,7 +22,7 @@ export function welcomeEmailHtml({
 
   <!-- preheader (hidden preview text) -->
   <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">
-    Welcome to Nurexi — your nursing exam prep starts here. 🎉
+    Welcome to Nurexi — your nursing exam prep starts here.
     &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
   </div>
 
@@ -61,7 +57,7 @@ export function welcomeEmailHtml({
                 <tr>
                   <td style="background:linear-gradient(135deg,#1a7a45 0%,#2aad63 100%);padding:36px 40px 32px;">
                     <p style="margin:0 0 8px;color:rgba(255,255,255,0.7);font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">
-                      You're in 🎉
+                      You're in
                     </p>
                     <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;line-height:1.2;letter-spacing:-0.5px;">
                       Welcome to Nurexi,<br/>${firstName}
