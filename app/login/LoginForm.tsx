@@ -172,7 +172,7 @@ export function LoginForm() {
             <Button
               variant="outline"
               type="button"
-              onClick={async () => await AuthenticateWithGoogle()}
+              onClick={async () => await AuthenticateWithGoogle("learner")}
             >
               <FcGoogle className="mr-2 h-4 w-4" />
               <span className="hidden md:inline-block">

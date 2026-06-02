@@ -226,7 +226,7 @@ export function RegisterForm() {
               disabled={isPending}
               variant="outline"
               type="button"
-              onClick={async () => await AuthenticateWithGoogle()}
+              onClick={async () => await AuthenticateWithGoogle("welcome")}
             >
               <FcGoogle className="mr-2 h-4 w-4" />
               <span className="hidden md:inline-block">
