@@ -120,6 +120,7 @@ export default function QuestionRenderer({ question }: { question: Question }) {
                   orientation="horizontal"
                   className="cursor-pointer gap-3"
                 >
+                  <span>{String.fromCharCode(65 + index)}</span>
                   <RadioGroupItem
                     className="size-4 shrink-0"
                     value={option}

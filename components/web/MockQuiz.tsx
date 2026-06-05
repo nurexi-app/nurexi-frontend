@@ -263,7 +263,6 @@ function MockQuizCard() {
             }}
           >
             {q.options.map((opt, i) => {
-              const isVisible = visibleOptions.includes(i);
               const isSelected = selected === i;
               const isCorrectOpt = i === q.correct;
 
@@ -299,8 +298,6 @@ function MockQuizCard() {
                   key={i}
                   onClick={() => handleSelect(i)}
                   style={{
-                    opacity: isVisible ? 1 : 0,
-                    transform: isVisible ? "translateX(0)" : "translateX(-8px)",
                     transition:
                       "opacity 0.25s ease, transform 0.25s ease, background 0.2s, border-color 0.2s",
                     display: "flex",
