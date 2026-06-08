@@ -156,6 +156,15 @@ export async function GetUserProfile() {
 
   return existingProfile;
 }
+export async function GetUserId() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getUser();
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data.user.id;
+}
 export async function IsEducator() {
   const profile = await GetUserProfile();
 

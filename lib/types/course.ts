@@ -27,3 +27,39 @@ export interface DashboardCourseInterface extends BaseCourse {
   completedLessons: number;
   lastAccessed: string | null;
 }
+
+export interface LessonAsset {
+  provider: "cloudinary" | "supabase";
+
+  type: "video" | "pdf";
+
+  public_id?: string;
+
+  asset_id?: string;
+
+  thumbnail_url?: string;
+
+  duration_seconds?: number;
+
+  filename?: string;
+}
+export type LessonType = "video" | "pdf" | "text";
+
+export interface Lesson {
+  id: string;
+
+  title: string;
+
+  content_type: LessonType;
+
+  asset?: LessonAsset | null;
+
+  is_preview: boolean;
+  text_content?: string;
+}
+
+export interface Section {
+  id: string;
+  title: string;
+  lessons: Lesson[];
+}

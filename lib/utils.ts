@@ -88,3 +88,27 @@ export function getInitials(name?: string) {
     .toUpperCase()
     .slice(0, 2);
 }
+
+export function debounce<T extends (...args: any[]) => void>(
+  func: T,
+  delay: number,
+): ((...args: Parameters<T>) => void) & { cancel: () => void } {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const debounced = (...args: Parameters<T>): void => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      func(...args);
+    }, delay);
+  };
+
+  debounced.cancel = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  };
+
+  return debounced;
+}
