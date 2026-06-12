@@ -1,11 +1,12 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import ManageCourse from "./ManageCourse";
 import { FaBook, FaDollarSign, FaFlipboard, FaUpload } from "react-icons/fa6";
 import { Separator } from "@/components/ui/separator";
 import CourseOverviewForm from "./CourseOverviewForm";
 import CourseSection from "./CourseSections";
+import { CourseProvider } from "@/context/CourseProvider";
+import Quiz from "./Quiz";
 
 const courseUploadTabs = [
   {
@@ -19,8 +20,8 @@ const courseUploadTabs = [
     icon: <FaBook />,
   },
   {
-    label: "Quiz",
-    value: "quiz",
+    label: "Quizzes",
+    value: "course-quiz",
     icon: <FaUpload />,
   },
   {
@@ -29,16 +30,15 @@ const courseUploadTabs = [
     icon: <FaDollarSign />,
   },
 ];
-const EditCourse = ({ course }: { course: any }) => {
+const EditCourse = ({ course, userId }: { course: any; userId: string }) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Get current 'section' from URL, defaulting to 'course-overview'
   const currentSection = searchParams.get("section") || "course-overview";
 
   return (
-    <>
+    <CourseProvider courseId={course?.id || ""} userId={userId}>
       <div className="py-6 px-3 rounded bg-white">
         <div className="grid grid-cols-4 justify-center mb-4">
           {courseUploadTabs.map(({ icon, label, value }, i) => {
@@ -69,21 +69,15 @@ const EditCourse = ({ course }: { course: any }) => {
         {currentSection === "course-overview" && (
           <CourseOverviewForm course={course} />
         )}
-        {currentSection === "course-content" && (
-          <CourseSection courseId={course?.id} />
-        )}
+        {currentSection === "course-content" && <CourseSection />}
         {currentSection === "course-pricing" && (
           <div className="p-10 text-center border rounded-lg bg-slate-50">
             <h2 className="text-xl font-semibold">Pricing Settings</h2>
           </div>
         )}
-        {currentSection === "course-publish" && (
-          <div className="p-10 text-center border rounded-lg bg-slate-50">
-            <h2 className="text-xl font-semibold">Publish Settings</h2>
-          </div>
-        )}
+        {currentSection === "course-quiz" && <Quiz />}
       </div>
-    </>
+    </CourseProvider>
   );
 };
 

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "../supabase/server";
+import { LessonAsset } from "../types/course";
 import { courseOverviewType } from "../validators/courseUpload";
 
 // course uplaod, sections and lessons
@@ -195,10 +196,14 @@ export async function updateSection(
     .single();
 
   if (error) {
+    console.log(error);
     throw new Error("Failed to update section");
   }
 
-  return data;
+  return {
+    success: true,
+    data,
+  };
 }
 
 export async function deleteSection(sectionId: string) {
@@ -322,15 +327,13 @@ export async function updateLesson(
   updates: {
     title?: string;
     content_type?: string;
-    video_url?: string;
-    pdf_url?: string;
-    image_url?: string;
     text_content?: string;
     attachments?: any[];
     quiz_data?: any;
     duration_minutes?: number;
     is_preview?: boolean;
     position?: number;
+    asset?: LessonAsset | null;
   },
 ) {
   const supabase = await createClient();
