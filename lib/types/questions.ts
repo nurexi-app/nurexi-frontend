@@ -24,3 +24,11 @@ export interface Question {
   is_active: boolean;
   subject: string;
 }
+
+export interface Quiz {
+  id: string;
+  question: string;
+  questionType: QuestionType;
+  options: string[];
+  answer: string;
+}
