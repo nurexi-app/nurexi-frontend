@@ -7,6 +7,7 @@ import { GetUserProfile } from "@/lib/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { dashboardMetadata } from "@/lib/exports/metadata";
 import QuickLinks from "@/components/web/QuickLinks";
+import { RatePrompt } from "@/components/web/RateUs";
 
 export const metadata = dashboardMetadata;
 export default async function Page() {

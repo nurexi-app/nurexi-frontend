@@ -61,7 +61,9 @@ export default function EducatorCTA() {
       className="bg-radial from-[rgba(106,105,105,0.35)] via-secondaryDarkActive/60_30% to-secondaryDarkActive h-90 text-center flex items-center flex-col gap-12 text-white pt-14 pb-22 px-4"
       id="ForEducators"
     >
-      <h3 className="font-medium animate-educator">Educator&apos;s Panel</h3>
+      <h3 className="font-semibold text-2xl animate-educator">
+        Educator&apos;s Panel
+      </h3>
 
       <div className="space-y-6 max-w-200 animate-educator">
         <p className="bodyText">
