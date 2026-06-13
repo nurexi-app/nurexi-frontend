@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import ExamClient from "@/components/user/learner/exam/ExamClient";
 import { Suspense } from "react";
 import BrandLoader from "@/components/web/BrandLoader";
+import { GetUserProfile } from "@/lib/actions/auth";
 
 interface Props {
   params: Promise<{
@@ -16,12 +17,13 @@ export default async function ExamPage({ params }: Props) {
   const { examCode, sessionId } = await params;
   const supabase = await createClient();
 
-  // Step 1: Get user (middleware already ensures they're logged in)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await GetUserProfile();
+  const { data: learnerData } = await supabase
+    .from("learner_stats")
+    .select("total_exam_attempts")
+    .eq("user_id", user?.id)
+    .single();
 
-  // Step 2: Check if user has access to this session
   const { data: hasAccess } = await supabase.rpc("check_exam_access", {
     p_user_id: user!.id,
     p_exam_session_id: Number(sessionId),
@@ -58,7 +60,13 @@ export default async function ExamPage({ params }: Props) {
 
   return (
     <Suspense fallback={<BrandLoader message="Setting up exam..." />}>
-      <ExamClient questions={formattedQuestions} examCode={examCode} />
+      <ExamClient
+        questions={formattedQuestions}
+        examCode={examCode}
+        userId={user?.id}
+        displayName={user?.full_name}
+        examCount={learnerData?.total_exam_attempts || 0}
+      />
     </Suspense>
   );
 }
