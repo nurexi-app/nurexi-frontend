@@ -23,11 +23,11 @@ const TestimonialCard = () => {
         <Avatar className="h-8 w-8 md:w-10 md:h-10">
           <AvatarImage src={"#"} />
           <AvatarFallback className="uppercase">
-            {"og"?.slice(0, 2)}
+            {"IB"?.slice(0, 2)}
           </AvatarFallback>
         </Avatar>
         <div>
-          <h3 className="font-medium text-sm">John Doe</h3>
+          <h3 className="font-medium text-sm">Ike Buchi</h3>
           <p className="subText text-[#78767D4D]">Student</p>
         </div>
       </div>

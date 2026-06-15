@@ -7,7 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/animate-ui/components/radix/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Star, X, AlertCircle } from "lucide-react";
@@ -17,7 +17,6 @@ import {
   hasUserRated,
 } from "@/lib/actions/testimonial-actions";
 import { cn } from "@/lib/utils";
-import DisplayName from "../user/learner/profile/DisplayName";
 
 interface RatePromptProps {
   userId: string;
