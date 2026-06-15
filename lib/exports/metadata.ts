@@ -2,19 +2,19 @@ import { Metadata } from "next";
 
 export const rootMetadata: Metadata = {
   title: {
-    default: "Nurexi | Nigeria's #1 NMCN CBT Practice & Exam Prep Platform",
+    default: "Nurexi: Nigeria's #1 Nursing Exam CBT Prep",
     template: "%s | Nurexi",
   },
   description:
-    "Pass your NMCN Professional Qualifying Exam on the first attempt. Practice with realistic CBT mock exams, real nursing past questions, detailed rationales, and NCLEX prep.",
+    "Ace your NMCN exam on your first attempt! Practice with realistic nursing CBT mock exams, real past questions, detailed rationales, and NCLEX prep",
   metadataBase: new URL("https://nurexi.com"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Nurexi | Nigeria's #1 NMCN CBT Practice & Exam Prep Platform",
+    title: "Nurexi: Nigeria's #1 Nursing Exam CBT Prep",
     description:
-      "Pass your NMCN Professional Qualifying Exam on your first attempt. Access timed CBT mock exams, real nursing past questions, and smart performance analytics tailored for Nigerian nursing students.",
+      "Ace your NMCN exam on your first attempt! Practice with realistic nursing CBT mock exams, real past questions, detailed rationales, and NCLEX prep",
     url: "https://nurexi.com",
     siteName: "Nurexi",
     locale: "en_NG",

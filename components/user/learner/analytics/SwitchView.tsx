@@ -3,7 +3,7 @@
 import { handleSearchParamsChange } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const tabs = ["Overview", "Topics", "Achievements"];
+const tabs = ["Overview", "Topics"];
 
 const SwitchView = () => {
   const router = useRouter();
