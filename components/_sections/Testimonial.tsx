@@ -4,7 +4,21 @@ import TestimonialCTA from "./TestimonialCTA";
 import TestimonialSwiper from "./TestimonialSwiper";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Star from "../web/Star";
+import CountUp from "../helpers/CountUp";
+import {
+  getApprovedTestimonials,
+  getTestimonialStats,
+} from "@/lib/actions/testimonial-actions";
 const Testimonial = async () => {
+  // const [testimonialStats, approvedTestimonials] = await Promise.all([
+  //   getTestimonialStats(),
+  //   getApprovedTestimonials(),
+  // ]);
+
+  // console.log("log obj: ", {
+  //   stats: testimonialStats,
+  //   testimonials: approvedTestimonials,
+  // });
   return (
     <section className="bg-[#F0F8FF] py-12 px-4" id="testimonials">
       <div className=" max-w-150 mx-auto mb-8">
@@ -14,7 +28,10 @@ const Testimonial = async () => {
 
         <div className=" flex justify-between  h-40 mb-4 md:mb-0 md:h-64 w-full ">
           <div className="basis-[30%]  h-[100px] lg:w-48 lg:h-50  flex flex-col justify-center items-center text-center gap-2 md:h-[160px]  bg-[#4541FE] ml-8 rounded-t-[1rem] md:rounded-t-[2rem] rounded-br-[1rem] md:rounded-br-[2rem]">
-            <h5 className="text-white font-bold text-3xl md:text-4xl">10K+</h5>
+            <h5 className="text-white font-bold text-3xl md:text-4xl">
+              <CountUp to={10} from={0} duration={3} />
+              <span>K+</span>
+            </h5>
             <h6 className="text-white subText">Positive reviews*</h6>
           </div>
 
@@ -22,7 +39,7 @@ const Testimonial = async () => {
 
           <div className="basis-[32%]  h-[100px] lg:w-48 lg:h-50 flex flex-col justify-center p-4  gap-2 md:h-[160px]  bg-white rounded-t-[1rem] md:rounded-t-[2rem] rounded-br-[1rem] md:rounded-br-[2rem]">
             <h5 className="text-black font-semibold text-lg md:text-2xl">
-              500 +
+              <CountUp to={500} from={0} duration={3} /> <span>+</span>
             </h5>
             <h6 className="text-black subText">Exam focused Questions</h6>
 
@@ -42,7 +59,7 @@ const Testimonial = async () => {
               <Star ratingNumber={5} className="w-3 h-3" />
             </div>
             <h5 className="text-black font-semibold text-3xl md:text-4xl">
-              4.5 / 5
+              <CountUp to={4.5} from={0} duration={3} /> / 5
             </h5>
             <h6 className="text-black subText">Overall rating*</h6>
           </div>

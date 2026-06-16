@@ -5,6 +5,7 @@ import HelporQuestions from "../../components/_sections/HelporQuestions";
 import FAQSection from "../../components/_sections/Faqs";
 import HowItWorks from "../../components/_sections/LearningAndPrep";
 import Testimonial from "@/components/_sections/Testimonial";
+import NewsletterSignup from "@/components/_sections/NewsletterSignUp";
 export default function HomePage() {
   return (
     <>
@@ -13,6 +14,7 @@ export default function HomePage() {
       <HowItWorks />
       <EducatorCTA />
       <Testimonial />
+      <NewsletterSignup />
       <FAQSection />
       <HelporQuestions />
     </>

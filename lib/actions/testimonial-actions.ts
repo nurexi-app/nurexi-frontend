@@ -23,12 +23,17 @@ export async function submitTestimonial(
   }
 
   // Get user profile for display name
-
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("avatar_url")
+    .eq("id", userId)
+    .single();
   const { error } = await supabase.from("testimonials").insert({
     user_id: userId,
     rating,
     content,
     display_name: displayName || "Anonymous",
+    avatar_url: profile?.avatar_url,
     is_approved: false,
   });
 
