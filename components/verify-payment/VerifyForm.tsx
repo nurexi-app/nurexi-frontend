@@ -8,9 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
-interface VerifyFormProps {
-  userId: string;
-}
 
 type VerificationStatus =
   | "idle"
@@ -20,7 +17,7 @@ type VerificationStatus =
   | "pending"
   | "not_found";
 
-export default function VerifyForm({ userId }: VerifyFormProps) {
+export default function VerifyForm() {
   const router = useRouter();
   const [reference, setReference] = useState("");
   const [status, setStatus] = useState<VerificationStatus>("idle");
@@ -41,7 +38,7 @@ export default function VerifyForm({ userId }: VerifyFormProps) {
       const response = await fetch("/api/paystack/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reference, userId }),
+        body: JSON.stringify({ reference }),
       });
 
       const data = await response.json();

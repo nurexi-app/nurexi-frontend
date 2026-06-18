@@ -33,7 +33,7 @@ export default async function VerifyPaymentPage() {
           your payment.
         </p>
 
-        <VerifyForm userId={user.id} />
+        <VerifyForm />
       </div>
     </div>
   );

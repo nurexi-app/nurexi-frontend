@@ -40,14 +40,14 @@ export const sidebarLinks: SidebarItem[] = [
   //   icon: Compass,
   // },
   {
-    name: "Practice Questions",
-    link: "/learner/practice",
-    icon: Binary,
-  },
-  {
     name: "Mock Exams",
     link: "/learner/exam",
     icon: Airplay,
+  },
+  {
+    name: "Practice Questions",
+    link: "/learner/practice",
+    icon: Binary,
   },
   {
     name: "Progress",

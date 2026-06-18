@@ -9,6 +9,9 @@ export default function LogRocketProvider({
   children: React.ReactNode;
 }) {
   useEffect(() => {
+    if (process.env.NEXT_PUBLIC_APP_URL === "http://localhost:3000") {
+      return;
+    }
     if (typeof window !== "undefined") {
       LogRocket.init("nurexi/nurexi-web");
     }
