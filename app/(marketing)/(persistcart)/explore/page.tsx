@@ -10,7 +10,10 @@ export default async function ExplorePage() {
       .from("bundles")
       .select(
         `id,name,description,price,is_free, bundle_questions ( exam_session_id )`,
-      );
+      )
+      .eq("is_active", true)
+      .eq("is_free", false)
+      .gt("price", 0);
     if (bundleError) throw new Error("boundle fetch error");
 
     bundlesWithCount = bundles.map((bundle) => ({
@@ -21,8 +24,6 @@ export default async function ExplorePage() {
       description: bundle.description,
       sessionCount: bundle.bundle_questions?.length || 0,
     }));
-
-    console.log("bundles with count: ", bundlesWithCount);
   } catch (error) {
     notFound();
   }

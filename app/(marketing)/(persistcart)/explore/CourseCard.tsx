@@ -19,10 +19,10 @@ export default function CourseCard({ name, description, instructor }: any) {
           <span className="text-xs text-orange-500 bg-orange-50 px-2 py-1 rounded-full">
             Coming Soon
           </span>
-          <Button size="sm" variant="ghost" className="gap-2">
+          {/* <Button size="sm" variant="ghost" className="gap-2">
             <Bell className="h-4 w-4" />
             Notify
-          </Button>
+          </Button> */}
         </div>
       </div>
     </div>

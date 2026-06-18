@@ -60,6 +60,11 @@ export default function CheckoutPage() {
   }, [isLoading, items.length, router]);
 
   const handleCheckout = async () => {
+    if (!user) {
+      toast.error("Please sign in to continue");
+      return;
+    }
+
     if (!email) {
       toast.error("Please enter your email");
       return;
@@ -74,15 +79,11 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
-          amount: grandTotal,
           items: items.map((item) => ({
             id: item.id,
             name: item.name,
-            price: item.price,
             quantity: item.quantity,
-            type: item.type,
           })),
-          userId: user.id,
         }),
       });
 

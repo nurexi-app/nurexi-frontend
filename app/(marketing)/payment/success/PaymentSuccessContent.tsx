@@ -178,7 +178,7 @@ export default function PaymentSuccessContent() {
         <p className="text-muted-foreground mb-4">{errorMessage}</p>
         <div className="flex gap-4 justify-center">
           <Button onClick={() => window.location.reload()}>Try Again</Button>
-          <Link href="/learner/my-learning">
+          <Link href="/learner/exam">
             <Button variant="outline">Check My Learning</Button>
           </Link>
         </div>
@@ -194,7 +194,7 @@ export default function PaymentSuccessContent() {
         <h1 className="text-2xl font-bold mb-2">Verification Issue</h1>
         <p className="text-muted-foreground mb-6">{errorMessage}</p>
         <div className="flex gap-4 justify-center">
-          <Link href="/learner/my-learning">
+          <Link href="/learner/exam">
             <Button>Go to My Learning</Button>
           </Link>
           <Link href="/explore">
@@ -217,8 +217,8 @@ export default function PaymentSuccessContent() {
         </p>
         <div className="flex gap-4 justify-center">
           <Button onClick={() => window.location.reload()}>Check Again</Button>
-          <Link href="/learner/my-learning">
-            <Button variant="outline">Check My Learning</Button>
+          <Link href="/verify-payment">
+            <Button variant="outline">Verify payment manually</Button>
           </Link>
         </div>
       </div>
@@ -235,8 +235,8 @@ export default function PaymentSuccessContent() {
         learning dashboard.
       </p>
       <div className="flex gap-4 justify-center">
-        <Link href="/learner/my-learning">
-          <Button size="lg">Go to My Learning</Button>
+        <Link href="/learner/exam">
+          <Button size="lg">Go to Dashboard</Button>
         </Link>
         <Link href="/explore">
           <Button size="lg" variant="outline">

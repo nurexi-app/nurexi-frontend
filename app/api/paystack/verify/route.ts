@@ -1,13 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { resend } from "@/lib/email/resend";
 
 export async function POST(req: NextRequest) {
   try {
-    const { reference, userId } = await req.json();
+    const supabaseServer = await createClient();
+    const {
+      data: { user },
+    } = await supabaseServer.auth.getUser();
 
-    if (!reference || !userId) {
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { reference } = await req.json();
+    const userId = user.id;
+    const userEmail = user.email;
+
+    if (!reference) {
       return NextResponse.json(
-        { error: "Reference and user ID required" },
+        { error: "Reference required" },
         { status: 400 },
       );
     }
@@ -17,14 +30,13 @@ export async function POST(req: NextRequest) {
       .from("purchases")
       .select("status, payment_reference")
       .eq("payment_reference", reference)
-      .eq("user_id", userId)
-      .maybeSingle();
+      .eq("user_id", userId);
 
     if (fetchError) {
       return NextResponse.json({ error: "Database error" }, { status: 500 });
     }
 
-    if (existing?.status === "completed") {
+    if (existing?.some((p: any) => p.status === "completed")) {
       return NextResponse.json({
         status: "success",
         message: "Access already granted for this transaction.",
@@ -63,6 +75,25 @@ export async function POST(req: NextRequest) {
         })
         .eq("payment_reference", reference)
         .eq("user_id", userId);
+
+      await resend.emails.send({
+        from: "Nurexi Receipts <receipts@mails.nurexi.com>",
+        to: userEmail!,
+        subject: "Payment Confirmation - Nurexi",
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <h2 style="color: #2563eb;">Payment Successful!</h2>
+            <p>Thank you for your purchase.</p>
+            <p>Your payment reference is: <strong style="background-color: #f3f4f6; padding: 4px 8px; border-radius: 4px;">${reference}</strong></p>
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/verify-payment?reference=${reference}">
+              <p>Verify your payment</p>
+            </a>
+            <p>You can use this reference to manually verify your payment on our platform if needed.</p>
+            <br/>
+            <p>Best regards,<br/><strong>The Nurexi Team</strong></p>
+          </div>
+                        `,
+      });
 
       if (updateError) {
         return NextResponse.json(
