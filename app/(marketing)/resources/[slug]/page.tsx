@@ -110,26 +110,40 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const resource = await getResource(params.slug);
-  if (!resource) return { title: "Resource Not Found | Nurexi" };
+  const { slug } = await params;
+  const resource = await getResource(slug);
+  if (!resource) return { title: "Resource Not Found " };
 
+  const coverImage = resource.cover_image_url || nursingBlog;
   return {
-    title: `${resource.title} | Nurexi Resource Centre`,
+    metadataBase: new URL("https://nurexi.com"),
+
+    title: `${resource.title}`,
     description: resource.excerpt || resource.title,
+
     openGraph: {
       title: resource.title,
       description: resource.excerpt || resource.title,
       url: `https://nurexi.com/resources/${resource.slug}`,
       type: "article",
-      images: resource.cover_image_url
-        ? [{ url: resource.cover_image_url }]
+
+      images: coverImage
+        ? [
+            {
+              url: typeof coverImage === "string" ? coverImage : coverImage.src,
+            },
+          ]
         : [],
     },
+
     twitter: {
       card: "summary_large_image",
       title: resource.title,
       description: resource.excerpt || resource.title,
-      images: resource.cover_image_url ? [resource.cover_image_url] : [],
+
+      images: coverImage
+        ? [typeof coverImage === "string" ? coverImage : coverImage.src]
+        : [],
     },
   };
 }
