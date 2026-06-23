@@ -122,3 +122,63 @@ export const getUUID = (): string => {
   // Client-side environment
   return window.crypto.randomUUID();
 };
+
+export interface ExtractedHeading {
+  id: string;
+  text: string;
+  level: number;
+}
+
+// turn heading text into a url-safe id, same slugify logic as your db
+function slugifyHeading(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// recursively extract plain text from a Tiptap node's content array
+function extractText(node: any): string {
+  if (!node) return "";
+  if (node.type === "text") return node.text ?? "";
+  if (!node.content) return "";
+  return node.content.map(extractText).join("");
+}
+
+/**
+ * Extracts all headings from Tiptap JSON content.
+ * Deduplicates ids by appending -2, -3 etc if the same heading text repeats.
+ */
+export function extractHeadings(content: any): ExtractedHeading[] {
+  if (!content?.content) return [];
+
+  const headings: ExtractedHeading[] = [];
+  const seenIds = new Map<string, number>();
+
+  for (const node of content.content) {
+    if (node.type !== "heading") continue;
+
+    const text = extractText(node).trim();
+    if (!text) continue;
+
+    let id = slugifyHeading(text);
+
+    // handle duplicate heading text
+    if (seenIds.has(id)) {
+      const count = seenIds.get(id)! + 1;
+      seenIds.set(id, count);
+      id = `${id}-${count}`;
+    } else {
+      seenIds.set(id, 1);
+    }
+
+    headings.push({
+      id,
+      text,
+      level: node.attrs?.level ?? 2,
+    });
+  }
+
+  return headings;
+}
