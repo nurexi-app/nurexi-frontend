@@ -66,21 +66,21 @@ const Testimonial = async () => {
 
           <div className="h-36 md:h-72 basis-7/10 flex flex-col justify-center bg-[#0F1722] text-white p-2 md:p-6 rounded-b-[1rem] md:rounded-b-[2rem] rounded-tr-[1rem] md:rounded-tr-[2rem]">
             <p className="mb-4 text-[8px] md:text-lg">
-              Nurexi made studying for my NMCN exams simple and stress-free. The
-              practice questions, explanations, and mock tests helped me track
-              my progress and focus on what I needed. By exam day, I felt
-              confident and fully prepared.
+              I built Nurexi to make NMCN exam prep simple and stress-free. With
+              practice questions, mock tests, and free resources to keep you
+              clinically grounded, my goal is to ensure you walk into exam day
+              fully prepared and confident.
             </p>
 
             <div className="flex gap-4 items-center">
               <Avatar className="md:size-15 size-10">
                 <AvatarImage src={""} />
-                <AvatarFallback className="">OG</AvatarFallback>
+                <AvatarFallback className="">OC</AvatarFallback>
               </Avatar>
 
               <div>
-                <p className="font-medium text-sm">John Doe</p>
-                <p className="subText text-[#78767D4D]">Student</p>
+                <p className="font-medium text-sm">Ochife Ogechukwu</p>
+                <p className="subText text-[#78767D4D]">Creator</p>
               </div>
             </div>
           </div>
