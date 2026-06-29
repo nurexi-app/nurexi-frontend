@@ -21,7 +21,6 @@ function Cart() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      // Open modal by navigating to intercepted route
       router.push("/login");
       return;
     }
@@ -173,7 +172,7 @@ function Cart() {
             <Button
               className="w-full"
               size="lg"
-              onClick={handleProceedToCheckout}
+              onClick={() => handleProceedToCheckout()}
             >
               Proceed to Checkout
             </Button>
