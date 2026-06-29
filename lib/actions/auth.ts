@@ -6,12 +6,21 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ResetPasswordSchema, UpdatePasswordSchema } from "../validators/auth";
 import { cookies } from "next/headers";
+import { verifyTurnstileToken } from "./turnstile";
 
 export async function SignUp(payload: {
   email: string;
   password: string;
   fullName: string;
+  turnstileToken: string;
 }) {
+  const isHuman = await verifyTurnstileToken(payload.turnstileToken);
+  if (!isHuman) {
+    return {
+      error: "Security check failed. Please refresh and try again.",
+      success: false,
+    };
+  }
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signUp({
@@ -86,7 +95,17 @@ export async function Logout() {
   redirect("/login");
 }
 
-export async function InitializeResetPassword(payload: ResetPasswordSchema) {
+export async function InitializeResetPassword(payload: {
+  email: string;
+  turnstileToken: string;
+}) {
+  const isHuman = await verifyTurnstileToken(payload.turnstileToken);
+  if (!isHuman) {
+    return {
+      error: "Security check failed. Please refresh and try again.",
+      success: false,
+    };
+  }
   const supabase = await createClient();
 
   const { data, error } = await supabase.auth.resetPasswordForEmail(

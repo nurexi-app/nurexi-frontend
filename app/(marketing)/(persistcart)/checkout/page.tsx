@@ -38,7 +38,7 @@ export default function CheckoutPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        localStorage.setItem("redirectAfterLogin", "/checkout");
+        document.cookie = "redirectTo=/checkout; path=/; max-age=3600";
         router.push("/login");
         return;
       }
