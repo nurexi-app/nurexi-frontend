@@ -14,11 +14,14 @@ import {
 } from "@/lib/validators/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Mail } from "lucide-react";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { Turnstile } from "@marsidev/react-turnstile";
+
 export default function ResetPasswordForm() {
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const form = useForm({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
@@ -29,9 +32,17 @@ export default function ResetPasswordForm() {
   const [isPending, startTransition] = useTransition();
 
   function onSubmit(data: ResetPasswordSchema) {
+    if (!turnstileToken) {
+      toast.error("Please complete the security check.");
+      return;
+    }
+
     startTransition(async () => {
       try {
-        await InitializeResetPassword(data);
+        await InitializeResetPassword({
+          ...data,
+          turnstileToken,
+        });
         toast.success("Please check your email for verification", {
           description: (
             <div className="mt-2 rounded-md bg-muted p-4 text-sm">
@@ -70,6 +81,13 @@ export default function ResetPasswordForm() {
               <FieldError errors={[fieldState.error]} />
             </Field>
           )}
+        />
+
+        <Turnstile
+          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+          onSuccess={(token) => setTurnstileToken(token)}
+          onExpire={() => setTurnstileToken(null)}
+          onError={() => setTurnstileToken(null)}
         />
       </FieldGroup>
 

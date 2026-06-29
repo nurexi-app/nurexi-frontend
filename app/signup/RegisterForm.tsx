@@ -26,11 +26,13 @@ import {
   AuthenticateWithX,
   SignUp,
 } from "../../lib/actions/auth";
+import { Turnstile } from "@marsidev/react-turnstile";
 import { useRouter } from "next/navigation";
 
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 export function RegisterForm() {
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -47,10 +49,16 @@ export function RegisterForm() {
 
   function onSubmit(data: SignupFormValues) {
     startTransition(async () => {
+      if (!turnstileToken) {
+        alert("Please complete the security check.");
+        return;
+      }
+
       const payload = {
         email: data.email,
         password: data.password,
         fullName: data.fullName,
+        turnstileToken,
       };
 
       const response = await SignUp(payload);
@@ -200,6 +208,14 @@ export function RegisterForm() {
                   <span className="text-sm hidden">Remember me</span>
                 </div>
               )}
+            />
+
+            {/* turnstile */}
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+              onSuccess={(token) => setTurnstileToken(token)}
+              onExpire={() => setTurnstileToken(null)}
+              onError={() => setTurnstileToken(null)}
             />
           </FieldGroup>
 

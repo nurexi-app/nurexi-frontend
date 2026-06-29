@@ -4,28 +4,40 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppDispatch, useAppSelector } from "@/hooks/StoreHooks";
 import { clearCart, removeFromCart } from "@/lib/features/cart/cartSlice";
-import { Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
+import { Trash2, ShoppingBag, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/lib/utils";
+import { useState } from "react";
 
 function Cart() {
   const router = useRouter();
   const supabase = createClient();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const handleProceedToCheckout = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      setIsCheckingOut(true);
+      const {
+        data: { user },
+        error
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      router.push("/login");
-      return;
+      if (error || !user) {
+        document.cookie = "redirectTo=/checkout; path=/; max-age=3600";
+        router.push("/login");
+        return;
+      }
+
+      router.push("/checkout");
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsCheckingOut(false);
     }
-
-    router.push("/checkout");
   };
 
   const { items: cartItems, discount } = useAppSelector((store) => store.cart);
@@ -172,9 +184,17 @@ function Cart() {
             <Button
               className="w-full"
               size="lg"
+              disabled={isCheckingOut}
               onClick={() => handleProceedToCheckout()}
             >
-              Proceed to Checkout
+              {isCheckingOut ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Please wait...
+                </>
+              ) : (
+                "Proceed to Checkout"
+              )}
             </Button>
           </div>
         </div>
