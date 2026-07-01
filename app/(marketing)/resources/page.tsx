@@ -13,6 +13,7 @@ import {
   ArrowRight,
   Search,
 } from "lucide-react";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Resource Centre | Nurexi",
@@ -83,11 +84,13 @@ function ResourceCard({ resource }: { resource: Resource }) {
       className="group flex flex-col bg-card border border-border rounded-2xl overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 no-underline"
     >
       {resource.cover_image_url ? (
-        <div className="h-44 overflow-hidden">
-          <img
+        <div className="h-44 relative w-full overflow-hidden">
+          <Image
             src={resource.cover_image_url}
             alt={resource.title}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
       ) : (

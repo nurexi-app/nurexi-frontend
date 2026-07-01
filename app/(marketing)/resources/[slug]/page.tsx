@@ -108,7 +108,7 @@ async function getResource(slug: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
   const resource = await getResource(slug);
@@ -149,7 +149,7 @@ export async function generateMetadata({
 }
 
 export async function generateStaticParams() {
-  const supabase = await createPublicClient();
+  const supabase = createPublicClient();
   const { data } = await supabase
     .from("resources")
     .select("slug")
@@ -184,7 +184,7 @@ function CreatorLinkButton({ link }: { link: CreatorLink }) {
 export default async function ResourcePage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
   const r = await getResource(slug);
@@ -206,7 +206,7 @@ export default async function ResourcePage({
         {r.cover_image_url && (
           <div className="h-64 md:h-80 mb-4 rounded-xl overflow-hidden relative">
             <Image
-              src={r.cover_image_url ?? nursingBlog}
+              src={r.cover_image_url || nursingBlog}
               alt={r.title}
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
