@@ -87,12 +87,6 @@ export default function ExamSessionSelector({
     try {
       setIsStarting(true);
 
-      // If user is not logged in, redirect directly to intended target context
-      if (!user) {
-        router.push(`/login?redirect=/learner/exam/${examCode}`);
-        return; // Don't reset isStarting so button stays in loading state during redirect
-      }
-
       if (!selectedSession.hasAccess) {
         setCheckingAccess(true);
         const supabase = createClient();
@@ -246,7 +240,11 @@ export default function ExamSessionSelector({
                             : "bg-muted/60 text-foreground",
                         )}
                       >
-                        {session.questionCount ?? "—"} Qs
+                        {session.questionCount === 0 ? (
+                          <span>50+</span>
+                        ) : (
+                          <span>{session.questionCount ?? "—"} Qs</span>
+                        )}
                       </span>
                       {isSelected && (
                         <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />

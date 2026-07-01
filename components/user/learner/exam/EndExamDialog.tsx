@@ -80,8 +80,8 @@ const EndExamDialog = ({
   };
 
   const handleQuit = () => {
-    dispatch(endExam());
     router.push(mode === "learning" ? "/learner/practice" : "/learner/exam");
+    dispatch(endExam());
   };
 
   return (
@@ -104,11 +104,16 @@ const EndExamDialog = ({
             Cancel
           </Button>
           {type === "finish" ? (
-            <Button onClick={handleSubmit} disabled={isSaving}>
+            <Button
+              onClick={() => {
+                handleSubmit();
+              }}
+              disabled={isSaving}
+            >
               {isSaving ? "Saving..." : "Submit"}
             </Button>
           ) : (
-            <Button variant={"destructive"} onClick={handleQuit}>
+            <Button variant={"destructive"} onClick={() => handleQuit()}>
               Quit
             </Button>
           )}

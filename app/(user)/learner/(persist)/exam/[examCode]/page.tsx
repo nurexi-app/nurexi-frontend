@@ -64,7 +64,6 @@ export default async function ExamSessionPage({ params }: ExamPageProps) {
       .map((result) => result.sessionId);
   }
 
-  // Step 4: Prepare sessions with access info (NO question count)
   const sessionsWithAccess = exam.exam_session.map((session: any) => ({
     id: session.id,
     session_name: session.session_name,

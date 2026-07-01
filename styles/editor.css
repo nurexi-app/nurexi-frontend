@@ -87,3 +87,12 @@
 .tiptap.prose > :first-child {
   margin-top: 0 !important;
 }
+
+.tiptap p {
+  font-size: 1rem;
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  word-spacing: 1px;
+  margin-bottom: 1.6rem;
+  color: #333333;
+}
