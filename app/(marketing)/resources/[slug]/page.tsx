@@ -20,6 +20,7 @@ import OnThisPage from "@/components/web/Onthispage";
 import ResourceContent from "@/components/web/ResourceContent";
 import nursingBlog from "@/public/assets/nursingblog.jpg";
 import Image from "next/image";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // ─── types matching your live schema ──────────────────────────────────────────
 
@@ -265,20 +266,12 @@ export default async function ResourcePage({
 
             {/* author + date */}
             <div className="flex items-center gap-3 mb-8 pb-8 border-b border-border">
-              {r.author_avatar ? (
-                <img
-                  src={r.author_avatar}
-                  alt={r.author_name ?? ""}
-                  className="h-10 w-10 rounded-full object-cover ring-2 ring-border"
-                />
-              ) : (
-                <div
-                  className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
-                  style={{ background: "oklch(60% 0.117 166.71)" }}
-                >
+              <Avatar className="size-10">
+                <AvatarImage src={r?.author_avatar || ""} />
+                <AvatarFallback className="uppercase">
                   {r.author_name?.[0]?.toUpperCase() ?? "N"}
-                </div>
-              )}
+                </AvatarFallback>
+              </Avatar>
               <div>
                 <p className="text-[13px] font-semibold text-foreground">
                   {r.author_name ?? "Nurexi"}
@@ -314,20 +307,12 @@ export default async function ResourcePage({
                 }}
               >
                 <div className="flex items-center gap-3 mb-4">
-                  {r.author_avatar ? (
-                    <img
-                      src={r.author_avatar}
-                      alt={r.author_name ?? ""}
-                      className="h-12 w-12 rounded-full object-cover ring-2 ring-border"
-                    />
-                  ) : (
-                    <div
-                      className="h-12 w-12 rounded-full flex items-center justify-center text-base font-bold text-white shrink-0"
-                      style={{ background: "oklch(60% 0.117 166.71)" }}
-                    >
+                  <Avatar className="size-10">
+                    <AvatarImage src={r?.author_avatar || ""} />
+                    <AvatarFallback className="uppercase">
                       {r.author_name?.[0]?.toUpperCase() ?? "N"}
-                    </div>
-                  )}
+                    </AvatarFallback>
+                  </Avatar>
                   <div>
                     <p className="text-[13px] font-semibold text-foreground">
                       {r.author_name ?? "Nurexi"}

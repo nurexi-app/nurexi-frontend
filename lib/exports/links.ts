@@ -59,11 +59,11 @@ export const sidebarLinks: SidebarItem[] = [
     link: "/learner/courses",
     icon: MessageSquarePlus,
   },
-  // {
-  //   name: "Library",
-  //   link: "/learner/library",
-  //   icon: PinOff,
-  // },
+  {
+    name: "Resources",
+    link: "/resources",
+    icon: PinOff,
+  },
 ];
 
 export const EducatorsLinks = [
