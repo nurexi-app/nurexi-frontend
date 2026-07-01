@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/lib/utils";
 import { useState } from "react";
 
-function Cart() {
+function Cart({ userObj }: { userObj: any }) {
   const router = useRouter();
   const supabase = createClient();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -20,12 +20,12 @@ function Cart() {
   const handleProceedToCheckout = async () => {
     try {
       setIsCheckingOut(true);
-      const {
-        data: { user },
-        error
-      } = await supabase.auth.getUser();
+      // const {
+      //   data: { user },
+      //   error,
+      // } = await supabase.auth.getUser();
 
-      if (error || !user) {
+      if (!userObj.success) {
         document.cookie = "redirectTo=/checkout; path=/; max-age=3600";
         router.push("/login");
         return;
@@ -138,7 +138,7 @@ function Cart() {
           ))}
 
           <div className="flex justify-between gap-4">
-            <Link href="/explore?tab=bundles">
+            <Link href="/explore">
               <Button variant="outline" className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 Continue Shopping

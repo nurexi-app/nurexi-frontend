@@ -13,11 +13,18 @@ export async function SignUp(payload: {
   password: string;
   fullName: string;
   turnstileToken: string;
+  acceptPolicy: boolean;
 }) {
   const isHuman = await verifyTurnstileToken(payload.turnstileToken);
   if (!isHuman) {
     return {
       error: "Security check failed. Please refresh and try again.",
+      success: false,
+    };
+  }
+  if (!payload.acceptPolicy) {
+    return {
+      error: "Please review and accept our policies",
       success: false,
     };
   }

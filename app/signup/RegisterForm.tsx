@@ -28,6 +28,7 @@ import {
 } from "../../lib/actions/auth";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type SignupFormValues = z.infer<typeof signupSchema>;
 
@@ -40,7 +41,7 @@ export function RegisterForm() {
       email: "",
       password: "",
       confirmPassword: "",
-      rememberMe: false,
+      acceptPolicy: false,
     },
   });
 
@@ -59,6 +60,7 @@ export function RegisterForm() {
         password: data.password,
         fullName: data.fullName,
         turnstileToken,
+        acceptPolicy: data.acceptPolicy,
       };
 
       const response = await SignUp(payload);
@@ -194,19 +196,24 @@ export function RegisterForm() {
               )}
             />
 
-            {/* Remember Me */}
+            {/* accept policy*/}
             <Controller
-              name="rememberMe"
+              name="acceptPolicy"
               control={form.control}
-              render={({ field }) => (
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    className="cursor-pointer hidden"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                  <span className="text-sm hidden">Remember me</span>
-                </div>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      className="cursor-pointer "
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                    <Link href={"/policies"} className="text-sm  underline">
+                      Accept our policies
+                    </Link>
+                  </div>
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
               )}
             />
 
