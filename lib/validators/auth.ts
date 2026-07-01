@@ -14,7 +14,9 @@ export const signupSchema = z
 
     confirmPassword: z.string(),
 
-    rememberMe: z.boolean().optional(),
+    acceptPolicy: z.boolean(
+      "Kindly review and accept policy before you proceed",
+    ),
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"],

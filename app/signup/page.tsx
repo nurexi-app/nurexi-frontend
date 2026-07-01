@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import SignUpImg from "@/public/assets/auth.jpg";
 export default function Register() {
   return (
-    <main className="flex h-screen max-h-screen lg:gap-4 overflow-hidden ">
+    <main className="flex h-screen min-h-screen lg:gap-4 overflow-hidden ">
       <section className="basis-1/2 hidden md:block w-full relative h-full">
         <Image
           src={SignUpImg}

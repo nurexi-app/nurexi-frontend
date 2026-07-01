@@ -29,6 +29,7 @@ import Logo from "./Logo";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useAppSelector } from "@/hooks/StoreHooks";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -67,7 +68,7 @@ function CartButton({ itemCount = 0 }: { itemCount?: number }) {
     >
       <ShoppingCart className="h-[18px] w-[18px] text-foreground" />
       {itemCount > 0 && (
-        <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 flex items-center justify-center text-[10px] font-bold rounded-full">
+        <Badge className="absolute  -top-1 -right-1 h-4 min-w-4 px-1 flex items-center justify-center text-[10px] font-bold rounded-full">
           {itemCount > 9 ? "9+" : itemCount}
         </Badge>
       )}
@@ -176,6 +177,8 @@ export default function Navbar({
     { scope: headerRef },
   );
 
+  const cartItem = useAppSelector((store) => store.cart.items);
+
   return (
     <header
       ref={headerRef}
@@ -236,7 +239,7 @@ export default function Navbar({
       {/* ── Desktop right side: cart + auth ── */}
       <div className="hidden lg:flex items-center gap-3 link-buttons">
         <div className="nav-link">
-          <CartButton itemCount={cartItemCount} />
+          <CartButton itemCount={cartItem.length} />
         </div>
 
         {isLoggedIn ? (
@@ -260,7 +263,7 @@ export default function Navbar({
 
       {/* ── Mobile: cart + menu trigger ── */}
       <div className="flex items-center gap-1 lg:hidden">
-        <CartButton itemCount={cartItemCount} />
+        <CartButton itemCount={cartItem.length} />
 
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
