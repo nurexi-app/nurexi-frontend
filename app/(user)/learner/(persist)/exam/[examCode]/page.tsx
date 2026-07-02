@@ -4,12 +4,18 @@ import { Clock, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import DashboardCaption from "@/components/web/DashboardCaption";
 import ExamSessionSelector from "@/components/user/learner/exam/ExamSelectorSession";
+import { Metadata } from "next";
 
 interface ExamPageProps {
   params: Promise<{
     examCode: string;
   }>;
 }
+
+export const metadata: Metadata = {
+  title: "Exam",
+  description: "Simulate your preferred mock exam",
+};
 
 export default async function ExamSessionPage({ params }: ExamPageProps) {
   const { examCode } = await params;

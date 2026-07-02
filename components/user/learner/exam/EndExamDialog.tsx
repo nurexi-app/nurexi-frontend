@@ -81,7 +81,9 @@ const EndExamDialog = ({
 
   const handleQuit = () => {
     router.push(mode === "learning" ? "/learner/practice" : "/learner/exam");
-    dispatch(endExam());
+    setTimeout(() => {
+      dispatch(endExam());
+    }, 1000);
   };
 
   return (
