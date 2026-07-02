@@ -1,4 +1,3 @@
-// app/learner/exam/[examCode]/[sessionId]/page.tsx
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ExamClient from "@/components/user/learner/exam/ExamClient";
@@ -12,6 +11,11 @@ interface Props {
     sessionId: string;
   }>;
 }
+
+// export const metadata: Metadata = {
+//   title: "Exam",
+//   description: "Simulate your preferred mock exam",
+// };
 
 export default async function ExamPage({ params }: Props) {
   const { examCode, sessionId } = await params;
