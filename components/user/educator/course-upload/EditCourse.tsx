@@ -7,6 +7,7 @@ import CourseOverviewForm from "./CourseOverviewForm";
 import CourseSection from "./CourseSections";
 import { CourseProvider } from "@/context/CourseProvider";
 import Quiz from "./Quiz";
+import CoursePricing from "./CoursePricing";
 
 const courseUploadTabs = [
   {
@@ -70,11 +71,7 @@ const EditCourse = ({ course, userId }: { course: any; userId: string }) => {
           <CourseOverviewForm course={course} />
         )}
         {currentSection === "course-content" && <CourseSection />}
-        {currentSection === "course-pricing" && (
-          <div className="p-10 text-center border rounded-lg bg-slate-50">
-            <h2 className="text-xl font-semibold">Pricing Settings</h2>
-          </div>
-        )}
+        {currentSection === "course-pricing" && <CoursePricing />}
         {currentSection === "course-quiz" && <Quiz />}
       </div>
     </CourseProvider>

@@ -182,3 +182,12 @@ export function extractHeadings(content: any): ExtractedHeading[] {
 
   return headings;
 }
+
+export function calcDiscountedPrice(
+  price: number,
+  type: "percentage" | "fixed",
+  value: number,
+): number {
+  if (type === "percentage") return price - (price * value) / 100;
+  return price - value;
+}
