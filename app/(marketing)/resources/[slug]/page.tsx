@@ -92,7 +92,7 @@ async function getResource(slug: string) {
 
   if (resource.created_by) {
     const { data: profile } = await supabase
-      .from("profiles")
+      .from("public_profiles")
       .select("full_name, avatar_url")
       .eq("id", resource.created_by)
       .single();

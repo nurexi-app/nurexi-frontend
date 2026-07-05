@@ -20,7 +20,7 @@ import {
   updateSection,
 } from "@/lib/actions/course-action";
 import { Lesson, Section } from "@/lib/types/course";
-import { Quiz } from "@/lib/types/questions";
+import { QuestionType, Quiz } from "@/lib/types/questions";
 import { getUUID } from "@/lib/utils";
 
 interface CourseContextType {
@@ -43,10 +43,10 @@ interface CourseContextType {
   ) => Promise<void>;
   handleDeleteLesson: (sectionId: string, lessonId: string) => void;
 
-  quizzes: Quiz[];
-  addQuiz: () => void;
-  handleRemoveQuiz: (id: string) => void;
-  updateQuiz: (id: string, updates: Partial<Quiz>) => void;
+  addQuiz: (sectionId: string) => void;
+  handleRemoveQuiz: (sectionId: string, id: string) => void;
+  updateQuiz: (sectionId: string, id: string, updates: Partial<Quiz>) => void;
+  quizSection: { sectionId: string; quizArray: Quiz[] }[];
 }
 
 const CourseContext = createContext<CourseContextType | undefined>(undefined);
@@ -63,40 +63,77 @@ export const CourseProvider = ({
   const [sections, setSections] = useState<Section[]>([]);
   const [errorState, setErrorState] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [quizzes, setQuizzes] = useState<Quiz[]>([
+
+  const [quizSection, setQuizSection] = useState([
     {
-      id: "1",
-      question: "",
-      questionType: "mcq",
-      options: ["", "", "", ""],
-      answer: "",
+      sectionId: "",
+      quizArray: [
+        {
+          id: "1",
+          question: "",
+          questionType: "mcq" as QuestionType,
+          options: ["", "", "", ""],
+          answer: "",
+        },
+      ],
     },
   ]);
-
-  const addQuiz = () => {
-    setQuizzes([
-      ...quizzes,
-      {
-        id: getUUID(),
-        question: "",
-        questionType: "mcq",
-        options: ["", "", "", ""] as string[],
-        answer: "",
-      },
-    ]);
+  const addQuiz = (sectionId: string) => {
+    console.log("adding quiz to section", sectionId);
+    setQuizSection((prev) =>
+      prev.map((section) =>
+        section.sectionId === sectionId
+          ? {
+              ...section,
+              quizArray: [
+                ...section.quizArray,
+                {
+                  id: getUUID(),
+                  question: "",
+                  questionType: "mcq",
+                  options: ["", "", "", ""],
+                  answer: "",
+                },
+              ],
+            }
+          : section,
+      ),
+    );
   };
 
-  const handleRemoveQuiz = (id: string) => {
+  const handleRemoveQuiz = (sectionId: string, id: string) => {
     const confirm = window.confirm(
       "Are you sure you want to remove this quiz?",
     );
     if (!confirm) return;
-    setQuizzes((prev) => prev.filter((quiz) => quiz.id !== id));
+    setQuizSection((prev) =>
+      prev.map((section) =>
+        section.sectionId === sectionId
+          ? {
+              ...section,
+              quizArray: section.quizArray.filter((quiz) => quiz.id !== id),
+            }
+          : section,
+      ),
+    );
   };
 
-  const updateQuiz = (id: string, updates: Partial<Quiz>) => {
-    setQuizzes((prev) =>
-      prev.map((quiz) => (quiz.id === id ? { ...quiz, ...updates } : quiz)),
+  const updateQuiz = (
+    sectionId: string,
+    id: string,
+    updates: Partial<Quiz>,
+  ) => {
+    setQuizSection((prev) =>
+      prev.map((section) =>
+        section.sectionId === sectionId
+          ? {
+              ...section,
+              quizArray: section.quizArray.map((quiz) =>
+                quiz.id === id ? { ...quiz, ...updates } : quiz,
+              ),
+            }
+          : section,
+      ),
     );
   };
 
@@ -108,22 +145,13 @@ export const CourseProvider = ({
         const allSections = await getAllCourseSections(courseId);
 
         if (allSections) {
-          const allQuizzes = allSections.flatMap(
-            (section: Section) => section.quiz_data || [],
-          );
-          if (allQuizzes.length > 0) {
-            setQuizzes(allQuizzes);
-          } else {
-            setQuizzes([
-              {
-                id: getUUID(),
-                question: "",
-                questionType: "mcq",
-                options: ["", "", "", ""],
-                answer: "",
-              },
-            ]);
-          }
+          const quizSection = allSections.map((section: Section) => {
+            return {
+              sectionId: section.id,
+              quizArray: section.quiz_data || [],
+            };
+          });
+          setQuizSection(quizSection);
 
           const sectionsWithLessons = await Promise.all(
             allSections.map(async (section: any) => {
@@ -152,6 +180,10 @@ export const CourseProvider = ({
       const newSection = await addNewSection(courseId);
       if (newSection) {
         setSections((prev) => [...prev, { ...newSection, lessons: [] }]);
+        setQuizSection((prev) => [
+          ...prev,
+          { sectionId: newSection.id, quizArray: [] },
+        ]);
         toast.success("Section added");
       }
     } catch (error: unknown) {
@@ -208,6 +240,9 @@ export const CourseProvider = ({
         const response = await deleteSection(sectionId);
         if (response.success) {
           setSections((prev) => prev.filter((s) => s.id !== sectionId));
+          setQuizSection((prev) =>
+            prev.filter((s) => s.sectionId !== sectionId),
+          );
           toast.success("Section deleted successfully", { id: toastId });
         }
       } catch (error: unknown) {
@@ -324,10 +359,10 @@ export const CourseProvider = ({
         handleUpdateLesson,
         handleDeleteLesson,
 
-        quizzes,
         addQuiz,
         handleRemoveQuiz,
         updateQuiz,
+        quizSection,
       }}
     >
       {children}

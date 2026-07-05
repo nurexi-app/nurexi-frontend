@@ -39,14 +39,8 @@ const validateQuiz = (quiz: any) => {
 };
 
 const Quiz = () => {
-  const {
-    sections,
-    addQuiz,
-    quizzes,
-    handleUpdateSection,
-    isLoading,
-    courseId,
-  } = useCourse();
+  const { sections, addQuiz, handleUpdateSection, isLoading, quizSection } =
+    useCourse();
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(
     null,
   );
@@ -55,7 +49,6 @@ const Quiz = () => {
     Record<number, string[]>
   >({});
 
-  // Set first section as selected when sections load
   useState(() => {
     if (sections.length > 0 && !selectedSectionId) {
       setSelectedSectionId(sections[0].id);
@@ -63,8 +56,9 @@ const Quiz = () => {
   });
 
   const selectedSection = sections.find((s) => s.id === selectedSectionId);
-  const currentQuizData = selectedSection?.quiz_data as QuizType[];
-  // const currentQuestions = currentQuizData?.questions || [];
+  const currentQuizData = quizSection.find(
+    (s) => s.sectionId === selectedSectionId,
+  )?.quizArray as QuizType[];
 
   const handleSaveQuiz = async () => {
     if (!selectedSectionId) return;
@@ -73,13 +67,15 @@ const Quiz = () => {
     const allErrors: Record<number, string[]> = {};
     let hasErrors = false;
 
-    quizzes.forEach((quiz, index) => {
-      const errors = validateQuiz(quiz);
-      if (errors.length > 0) {
-        allErrors[index] = errors;
-        hasErrors = true;
-      }
-    });
+    if (currentQuizData) {
+      currentQuizData.forEach((quiz, index) => {
+        const errors = validateQuiz(quiz);
+        if (errors.length > 0) {
+          allErrors[index] = errors;
+          hasErrors = true;
+        }
+      });
+    }
 
     setValidationErrors(allErrors);
 
@@ -90,9 +86,9 @@ const Quiz = () => {
 
     setIsSaving(true);
     try {
-      console.log("quiz data: ", quizzes);
+      console.log("quiz data: ", currentQuizData);
       await handleUpdateSection(selectedSectionId, {
-        quiz_data: quizzes,
+        quiz_data: currentQuizData || [],
       });
       toast.success("Quiz saved successfully!");
     } catch (error) {
@@ -182,15 +178,21 @@ const Quiz = () => {
                     quiz={quiz}
                     count={index}
                     validationError={validationErrors[index]}
+                    sectionId={selectedSectionId!}
                   />
                 ))
               )}
 
-              <div className="mt-6 flex justify-end">
-                <Button variant="outline" onClick={addQuiz}>
-                  Add question
-                </Button>
-              </div>
+              {selectedSectionId && (
+                <div className="mt-6 flex justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => addQuiz(selectedSectionId)}
+                  >
+                    Add question
+                  </Button>
+                </div>
+              )}
             </>
           ) : (
             <div className="text-center py-12 text-muted-foreground">

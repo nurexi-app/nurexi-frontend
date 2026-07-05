@@ -17,16 +17,18 @@ const QuizFrom = ({
   quiz,
   count,
   validationError,
+  sectionId,
 }: {
   quiz: Quiz;
   count: number;
   validationError?: string[];
+  sectionId: string;
 }) => {
   const { handleRemoveQuiz, updateQuiz } = useCourse();
   const [questionObject, setQuestionObject] = useState(quiz);
 
   useEffect(() => {
-    updateQuiz(quiz.id, questionObject);
+    updateQuiz(sectionId, quiz.id, questionObject);
   }, [questionObject]);
 
   const handleQuestionObject = (
@@ -95,7 +97,7 @@ const QuizFrom = ({
         size={18}
         className="absolute top-2 right-2 cursor-pointer text-destructive"
         onClick={() => {
-          handleRemoveQuiz(quiz.id);
+          handleRemoveQuiz(sectionId, quiz.id);
         }}
       />
 

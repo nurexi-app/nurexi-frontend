@@ -32,7 +32,7 @@ export default async function ExamSessionPage({ params }: ExamPageProps) {
         session_name,
         year,
         questions_count:questions(count),
-        author: profiles(full_name,avatar_url)
+        author: public_profiles(full_name,avatar_url)
       )
     `,
     )
