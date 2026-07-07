@@ -39,7 +39,7 @@ const EditCourse = ({ course, userId }: { course: any; userId: string }) => {
   const currentSection = searchParams.get("section") || "course-overview";
 
   return (
-    <CourseProvider courseId={course?.id || ""} userId={userId}>
+    <CourseProvider courseData={course} userId={userId}>
       <div className="py-6 px-3 rounded bg-white">
         <div className="grid grid-cols-4 justify-center mb-4">
           {courseUploadTabs.map(({ icon, label, value }, i) => {
@@ -54,8 +54,8 @@ const EditCourse = ({ course, userId }: { course: any; userId: string }) => {
                 }}
                 className={`px-1.25 py-2.5 max-w-50 justify-center flex items-center gap-2 cursor-pointer rounded-xl  transition-colors ${
                   isActive
-                    ? "bg-secondaryLight text-secondaryDark   "
-                    : "bg-transparent text-black/50  hover:bg-secondary/50 hover:text-secondaryDark"
+                    ? "bg-secondaryLight text-secondaryDark border   "
+                    : "bg-transparent text-black/70  hover:bg-secondary/50 hover:text-black"
                 }`}
               >
                 {icon}
@@ -71,7 +71,9 @@ const EditCourse = ({ course, userId }: { course: any; userId: string }) => {
           <CourseOverviewForm course={course} />
         )}
         {currentSection === "course-content" && <CourseSection />}
-        {currentSection === "course-pricing" && <CoursePricing />}
+        {currentSection === "course-pricing" && (
+          <CoursePricing courseData={course} />
+        )}
         {currentSection === "course-quiz" && <Quiz />}
       </div>
     </CourseProvider>

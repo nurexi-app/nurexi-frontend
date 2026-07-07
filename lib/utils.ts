@@ -191,3 +191,129 @@ export function calcDiscountedPrice(
   if (type === "percentage") return price - (price * value) / 100;
   return price - value;
 }
+
+interface PublishValidationResult {
+  ready: boolean;
+  message?: string;
+  details?: {
+    missingTitle?: boolean;
+    missingDescription?: boolean;
+    missingPrice?: boolean;
+    missingSections?: boolean;
+    emptySections?: string[];
+    emptyLessons?: string[];
+    invalidLessons?: string[];
+  };
+}
+
+export function isReadyToPublish(course: any): PublishValidationResult {
+  const details: PublishValidationResult["details"] = {};
+
+  // 1. Check title
+  if (!course.title || course.title.toLowerCase() === "untitled course") {
+    return {
+      ready: false,
+      message: "Please give your course a proper title.",
+      details: { missingTitle: true },
+    };
+  }
+
+  // 2. Check description
+  if (!course.description) {
+    return {
+      ready: false,
+      message: "Please add a course description.",
+      details: { missingDescription: true },
+    };
+  }
+
+  // 3. Check price
+  if (!course.is_free && !course.price) {
+    return {
+      ready: false,
+      message: "Please set a price for your course (or mark it as free).",
+      details: { missingPrice: true },
+    };
+  }
+
+  // 4. Check sections
+  const sections = course.sections || [];
+  if (sections.length === 0) {
+    return {
+      ready: false,
+      message: "Please add at least one section to your course.",
+      details: { missingSections: true },
+    };
+  }
+
+  // 5. Check each section and lesson
+  const emptySections: string[] = [];
+  const emptyLessons: string[] = [];
+  const invalidLessons: string[] = [];
+
+  for (const section of sections) {
+    if (!section.title || section.title.toLowerCase() === "untitled section") {
+      emptySections.push(section.id);
+      continue;
+    }
+
+    const lessons = section.lessons || [];
+    if (lessons.length === 0) {
+      emptySections.push(section.id);
+      continue;
+    }
+
+    for (const lesson of lessons) {
+      if (!lesson.title || lesson.title.toLowerCase() === "untitled lesson") {
+        emptyLessons.push(lesson.id);
+        continue;
+      }
+
+      // Check content based on type
+      if (lesson.content_type === "video" && !lesson.video_url) {
+        invalidLessons.push(lesson.title);
+      } else if (lesson.content_type === "text" && !lesson.text_content) {
+        invalidLessons.push(lesson.title);
+      } else if (lesson.content_type === "pdf" && !lesson.asset.filename) {
+        invalidLessons.push(lesson.title);
+      } else if (lesson.content_type === "image" && !lesson.image_url) {
+        invalidLessons.push(lesson.title);
+      } else if (
+        lesson.content_type === "quiz" &&
+        !lesson.quiz_data?.questions?.length
+      ) {
+        invalidLessons.push(lesson.title);
+      }
+    }
+  }
+
+  // 6. Return detailed messages
+  if (emptySections.length > 0) {
+    return {
+      ready: false,
+      message: `Please complete the following sections: ${emptySections.length} section(s) have no title or lessons.`,
+      details: { emptySections },
+    };
+  }
+
+  if (emptyLessons.length > 0) {
+    return {
+      ready: false,
+      message: `Please complete the following lessons: ${emptyLessons.length} lesson(s) have no title.`,
+      details: { emptyLessons },
+    };
+  }
+
+  if (invalidLessons.length > 0) {
+    return {
+      ready: false,
+      message: `Please add content to these lessons: ${invalidLessons.join(", ")}.`,
+      details: { invalidLessons },
+    };
+  }
+
+  return {
+    ready: true,
+    message: "Your course is ready to publish! 🎉",
+  };
+}

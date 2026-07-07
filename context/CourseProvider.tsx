@@ -14,12 +14,11 @@ import {
   deleteSection,
   getAllCourseSections,
   addLesson,
-  deleteLesson,
   getSectionLessons,
   updateLesson,
   updateSection,
 } from "@/lib/actions/course-action";
-import { Lesson, Section } from "@/lib/types/course";
+import { Course, Lesson, Section } from "@/lib/types/course";
 import { QuestionType, Quiz } from "@/lib/types/questions";
 import { getUUID } from "@/lib/utils";
 
@@ -53,13 +52,15 @@ const CourseContext = createContext<CourseContextType | undefined>(undefined);
 
 export const CourseProvider = ({
   children,
-  courseId,
+  courseData,
   userId,
 }: {
   children: ReactNode;
-  courseId: string;
+  courseData: Course;
   userId: string;
 }) => {
+  const courseId = courseData.id || "";
+
   const [sections, setSections] = useState<Section[]>([]);
   const [errorState, setErrorState] = useState("");
   const [isLoading, setIsLoading] = useState(false);

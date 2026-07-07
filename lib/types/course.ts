@@ -30,6 +30,72 @@ export interface DashboardCourseInterface extends BaseCourse {
   lastAccessed: string | null;
 }
 
+// lib/types/course.ts
+
+export interface Course {
+  id: string;
+  created_at: string;
+  educator_id: string;
+  title: string | null;
+  slug: string | null;
+  description: string | null;
+  what_you_will_learn: string[] | null;
+  requirements: string[] | null;
+  target_audience: string | null;
+  price: number | null; // bigint → number
+  is_free: boolean | null;
+  is_published: boolean | null;
+  cover_image: string | null;
+  status: "draft" | "published" | "archived";
+  published_at: string | null;
+  updated_at: string | null;
+  difficulty_level: "beginner" | "intermediate" | "advanced" | null;
+  expected_duration: string | null;
+  language: string | null;
+
+  // Discount fields (to be added)
+  has_discount?: boolean | null;
+  discount_type?: "percentage" | "fixed" | null;
+  discount_value?: number | null;
+  discount_expiry?: string | null;
+
+  educator?: {
+    id: string;
+    full_name: string;
+    avatar_url?: string;
+  };
+}
+
+// export interface CourseWithSections extends Course {
+//   sections: (CourseSection & {
+//     lessons: CourseLesson[];
+//   })[];
+// }
+
+export interface CourseCreateInput {
+  title: string;
+  slug?: string;
+  description?: string;
+  what_you_will_learn?: string[];
+  requirements?: string[];
+  target_audience?: string;
+  price?: number;
+  is_free?: boolean;
+  cover_image?: string;
+  difficulty_level?: "beginner" | "intermediate" | "advanced";
+  expected_duration?: string;
+  language?: string;
+}
+
+export interface CoursePricingInput {
+  is_free: boolean;
+  price?: number;
+  has_discount?: boolean;
+  discount_type?: "percentage" | "fixed";
+  discount_value?: number;
+  discount_expiry?: string | null;
+}
+
 export interface LessonAsset {
   provider: "cloudinary" | "supabase";
 
