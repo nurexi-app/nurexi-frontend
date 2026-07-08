@@ -24,7 +24,10 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { generateSlug } from "@/lib/utils";
-import { updateCourseOverview } from "@/lib/actions/course-action";
+import {
+  updateCourseOverview,
+  uploadCourseCoverImage,
+} from "@/lib/actions/course-action";
 import {
   Dialog,
   DialogContent,
@@ -33,13 +36,15 @@ import {
 import Image from "next/image";
 import { X } from "@/components/animate-ui/icons/x";
 import { AnimateIcon } from "@/components/animate-ui/icons/icon";
-
+import UploadImage from "@/components/helpers/UploadImage";
 interface CourseOverviewFormProps {
   course: any;
+  userId: string;
 }
 
 export default function CourseOverviewForm({
   course,
+  userId,
 }: CourseOverviewFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -271,10 +276,22 @@ export default function CourseOverviewForm({
           <FieldLabel>Course Image URL</FieldLabel>
 
           <div className="flex gap-4 items-start">
-            <Input
-              {...form.register("image")}
-              placeholder="https://example.com/course-image.jpg"
-              className="flex-1"
+            <UploadImage
+              userId={userId}
+              path={`${userId}/${course.id}`}
+              bucket="course-cover-images"
+              label="Course Cover Image"
+              uploadFn={async (url) => {
+                try {
+                  await uploadCourseCoverImage(course?.id, url);
+                  form.setValue("image", url);
+                  console.log("Uploaded image", url);
+                  return { success: true };
+                } catch (error: any) {
+                  console.log("Error uploading image", error.message);
+                  return { success: false, error: error.message };
+                }
+              }}
             />
 
             {imagePreview && (
@@ -303,17 +320,6 @@ export default function CourseOverviewForm({
               </Dialog>
             )}
           </div>
-
-          {imagePreview && (
-            <div className="relative w-32 h-32 mt-2 rounded-lg overflow-hidden border">
-              <Image
-                src={imagePreview}
-                alt="Course thumbnail"
-                fill
-                className="object-cover"
-              />
-            </div>
-          )}
 
           <p className="text-xs text-muted-foreground">
             Use a public image URL. Recommended size: 1280x720px

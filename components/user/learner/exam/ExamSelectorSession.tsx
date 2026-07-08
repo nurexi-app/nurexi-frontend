@@ -1,4 +1,3 @@
-// app/learner/exam/[examCode]/ExamSessionSelector.tsx
 "use client";
 
 import { useState } from "react";
