@@ -11,11 +11,18 @@ import {
   Trash2,
   GripVertical,
   BookOpen,
+  MoreVertical,
 } from "lucide-react";
 import { useCourse } from "@/context/CourseProvider";
 import { Section } from "@/lib/types/course";
 import { cn, debounce } from "@/lib/utils";
 import ActualLesson from "./Lesson";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const ActualSection = ({ section }: { section: Section }) => {
   const {
@@ -99,7 +106,7 @@ const ActualSection = ({ section }: { section: Section }) => {
               onChange={handleTitleChange}
               onBlur={handleTitleBlur}
               onKeyDown={handleTitleKeyDown}
-              className="h-7 text-sm font-medium px-2 py-0 border-primary"
+              className="h-7 min-w-12 text-sm font-medium px-2 py-0 border-primary"
             />
           ) : (
             <button
@@ -117,7 +124,7 @@ const ActualSection = ({ section }: { section: Section }) => {
           variant="secondary"
           className="gap-1 text-[10px] font-medium shrink-0"
         >
-          <BookOpen className="h-3 w-3" />
+          <BookOpen className="h-3 w-3 hidden md:block" />
           {lessonCount} {lessonCount === 1 ? "lesson" : "lessons"}
         </Badge>
 
@@ -125,7 +132,7 @@ const ActualSection = ({ section }: { section: Section }) => {
         <Button
           variant="outline"
           size="sm"
-          className="gap-1 text-[12px] h-7 px-2 shrink-0"
+          className="gap-1  items-center text-[12px] h-7 px-2 shrink-0 hidden md:flex"
           onClick={() => {
             handleAddLesson(section.id);
             if (!isOpen) setIsOpen(true);
@@ -133,18 +140,59 @@ const ActualSection = ({ section }: { section: Section }) => {
           disabled={isLoading}
         >
           <Plus className="h-3.5 w-3.5" />
-          Add lesson
+          <span>Add lesson</span>
         </Button>
 
         {/* delete section */}
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive shrink-0"
+          className="h-7 w-7 hidden md:block p-0 text-muted-foreground hover:text-destructive shrink-0"
           onClick={() => handleDeleteSection(section.id)}
         >
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger className="md:hidden" asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+            >
+              <MoreVertical className="h-3.5 w-3.5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1 text-[12px] h-7 px-2 shrink-0 md:hidden"
+                onClick={() => {
+                  handleAddLesson(section.id);
+                  if (!isOpen) setIsOpen(true);
+                }}
+                disabled={isLoading}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add lesson
+              </Button>
+
+              {/* delete section */}
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="h-7 text-white md:hidden p-0 hover:text-destructive shrink-0"
+                onClick={() => handleDeleteSection(section.id)}
+              >
+                Delete <Trash2 className="h-3.5 text-white w-3.5" />
+              </Button>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* ── collapsible lessons area ── */}

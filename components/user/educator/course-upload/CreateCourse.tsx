@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { createCourse } from "@/lib/actions/course-action";
+import { PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -22,12 +23,12 @@ const CreateCourse = ({ userId }: { userId: string }) => {
   return (
     <div>
       <Button
-        className="bg-secondary hover:bg-secondary! bodyText font-medium"
+        className="bg-secondary z-50 absolute bottom-5 right-5 hover:bg-secondary! bodyText font-medium"
         onClick={() => {
           handleCreateCourse();
         }}
       >
-        New Course
+        <PlusCircle /> Create Course
       </Button>
     </div>
   );

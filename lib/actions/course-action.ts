@@ -44,6 +44,29 @@ export async function getCourse(courseId: string) {
   return data;
 }
 
+export async function uploadCourseCoverImage(
+  courseId: string,
+  imageUrl: string,
+) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("courses")
+    .update({
+      cover_image: imageUrl,
+    })
+    .eq("id", courseId)
+    .select()
+    .single();
+
+  if (error) {
+    console.log(error.message);
+    throw new Error("Failed to upload course cover image");
+  }
+
+  return data;
+}
+
 export async function getEducatorCourses(educatorId: string) {
   const supabase = await createClient();
 
