@@ -16,8 +16,6 @@ import {
   Trash2,
   Video,
   FileText,
-  ChevronDown,
-  ChevronUp,
   GripVertical,
   Loader2,
 } from "lucide-react";

@@ -1,8 +1,10 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createClient } from "../supabase/server";
 import { LessonAsset } from "../types/course";
 import { courseOverviewType } from "../validators/courseUpload";
+import { isReadyToPublish } from "../utils";
 
 // course uplaod, sections and lessons
 
@@ -37,6 +39,29 @@ export async function getCourse(courseId: string) {
 
   if (error) {
     throw new Error("Failed to fetch course data");
+  }
+
+  return data;
+}
+
+export async function uploadCourseCoverImage(
+  courseId: string,
+  imageUrl: string,
+) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("courses")
+    .update({
+      cover_image: imageUrl,
+    })
+    .eq("id", courseId)
+    .select()
+    .single();
+
+  if (error) {
+    console.log(error.message);
+    throw new Error("Failed to upload course cover image");
   }
 
   return data;
@@ -119,6 +144,43 @@ export async function updateCourseOverview(
   }
 
   return { success: true };
+}
+
+export async function updateCourseData(courseId: string, updates: any) {
+  const supabase = await createClient();
+
+  if (updates.slug) {
+    const { data: existing } = await supabase
+      .from("courses")
+      .select("id")
+      .eq("slug", updates.slug)
+      .neq("id", courseId)
+      .maybeSingle();
+
+    if (existing) {
+      return { error: "Slug already exists. Please choose another." };
+    }
+  }
+
+  const { data, error } = await supabase
+    .from("courses")
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", courseId)
+    .select()
+    .single();
+
+  if (error) {
+    console.log(error);
+    throw new Error(error.message || "Failed to update course data");
+  }
+
+  return {
+    success: true,
+    data: data,
+  };
 }
 
 //  sections
@@ -420,3 +482,85 @@ export async function reorderLessons(sectionId: string, lessonIds: string[]) {
 
   return { success: true };
 }
+
+interface PublishCourseParams {
+  courseId: string;
+  educatorId: string;
+}
+
+export async function publishCourse(courseId: string) {
+  const supabase = await createClient();
+
+  // 1. Get current user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error("Not authenticated");
+  }
+
+  // 2. Get course with all content
+  const { data: course, error } = await supabase
+    .from("courses")
+    .select(
+      `
+      *,
+      sections:course_sections (
+        id,
+        title,
+        lessons:course_lessons (
+          id,
+          title,
+          content_type,
+          video_url,
+          text_content,
+          asset
+        )
+      )
+    `,
+    )
+
+    .eq("id", courseId)
+    .eq("educator_id", user.id)
+    .single();
+  console.log("course from server: ", course);
+  if (error || !course) {
+    console.log("course error: ", error);
+    throw new Error("Course not found or you don't have permission");
+  }
+
+  // 3. Check if already published
+  if (course.status === "published") {
+    throw new Error("Course is already published");
+  }
+
+  // 4. Validate content readiness
+  const isReady = isReadyToPublish(course);
+
+  if (!isReady) {
+    throw new Error(
+      "Course is not ready to publish. Please complete all sections and lessons.",
+    );
+  }
+
+  // 5. Publish the course
+  const { error: updateError } = await supabase
+    .from("courses")
+    .update({
+      status: "published",
+      is_published: true,
+      published_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", courseId);
+
+  if (updateError) {
+    throw new Error("Failed to publish course");
+  }
+
+  revalidatePath(`/educator/courses/${courseId}`);
+
+  return { success: true };
+}
+
+// Helper function to check if course is ready
