@@ -89,13 +89,16 @@ export async function deleteCourse(courseId: string) {
   // Get course first
   const { data: course } = await supabase
     .from("courses")
-    .select("status")
+    .select("status, is_approved")
     .eq("id", courseId)
     .single();
 
   // Only allow deletion of drafts
+  if (course?.is_approved) {
+    throw new Error("Cannot delete approved courses");
+  }
   if (course?.status !== "draft") {
-    throw new Error("Cannot delete published courses. Unpublish first.");
+    throw new Error("Cannot delete published courses");
   }
 
   // Proceed with deletion

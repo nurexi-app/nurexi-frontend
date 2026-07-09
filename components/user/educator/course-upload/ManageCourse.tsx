@@ -10,13 +10,32 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 type FilterType = "all" | "published" | "draft";
 
 const ManageCourse = ({ allCourses }: { allCourses: any[] }) => {
-  const [filter, setFilter] = useState<FilterType>("all");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Read status from URL, default to "all" if missing or invalid
+  const rawStatus = searchParams.get("status");
+  const filter: FilterType =
+    rawStatus === "published" || rawStatus === "draft" ? rawStatus : "all";
+
+  const handleFilterChange = (newStatus: FilterType) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (newStatus === "all") {
+      params.delete("status"); // Keep URL clean for default view
+    } else {
+      params.set("status", newStatus);
+    }
+
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   const filtered = allCourses.filter((c) => {
     if (filter === "all") return true;
@@ -34,12 +53,12 @@ const ManageCourse = ({ allCourses }: { allCourses: any[] }) => {
           </p>
         </div>
 
-        {/* filter pills — more accessible than a dropdown for 3 options */}
+        {/* filter pills — now updating URL params */}
         <div className="flex items-center gap-1.5 bg-muted rounded-xl p-1">
           {(["all", "published", "draft"] as FilterType[]).map((f) => (
             <button
               key={f}
-              onClick={() => setFilter(f)}
+              onClick={() => handleFilterChange(f)}
               className={cn(
                 "px-3 py-1 rounded-lg text-[12px] font-semibold capitalize transition-all",
                 filter === f
@@ -194,6 +213,17 @@ function CourseCard({ course }: { course: any }) {
                     Edit pricing
                   </Link>
                 </DropdownMenuItem>
+
+                {course.is_approved && (
+                  <DropdownMenuItem variant="destructive">
+                    Archive Course
+                  </DropdownMenuItem>
+                )}
+                {!course.is_approved && (
+                  <DropdownMenuItem variant="destructive">
+                    Delete Course
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
