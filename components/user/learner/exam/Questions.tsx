@@ -20,6 +20,7 @@ import { Question } from "@/lib/types/questions";
 import { Progress } from "@/components/animate-ui/components/radix/progress";
 import { ChevronUp, ChevronDown, Grid3x3 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const Questions = ({
   fetchedQuestions,
@@ -48,6 +49,36 @@ const Questions = ({
     const el = document.getElementById(`nav-q-${currentQuestionIndex}`);
     el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [currentQuestionIndex, navigatorOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      if (event.key === "ArrowRight" || event.key.toLocaleLowerCase() === "n") {
+        if (currentQuestionIndex !== questions.length - 1) {
+          dispatch(setNextQuestion());
+        } else {
+          toast.info("You are at the last question");
+        }
+      }
+      if (event.key === "ArrowLeft" || event.key.toLocaleLowerCase() === "p") {
+        dispatch(setPreviousQuestion());
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   return (
     <div className="flex flex-col bg-white rounded-xl mt-4 overflow-hidden">
@@ -178,7 +209,6 @@ const Questions = ({
           </div>
         </button>
 
-        {/* collapsible grid — fixed max height with scroll */}
         <div
           className={cn(
             "overflow-hidden transition-all duration-300 ease-in-out",
