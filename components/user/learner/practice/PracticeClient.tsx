@@ -7,6 +7,7 @@ import { endExam, startPractice } from "@/lib/features/exam/examSlice";
 import { Button } from "@/components/ui/button";
 import Questions from "../exam/Questions";
 import Link from "next/link";
+import Award from "@/components/web/Success";
 
 interface PracticeClientProps {
   questions: Question[];
@@ -46,8 +47,8 @@ const PracticeClient = ({ questions }: PracticeClientProps) => {
   // Show completion screen
   if (status === "completed") {
     return (
-      <div className="container max-w-2xl mx-auto py-12 text-center">
-        <div className="text-6xl mb-4">🎉</div>
+      <div className="container bg-white h-screen w-screen  mx-auto py-12 text-center">
+        <Award />
         <h1 className="text-2xl font-bold mb-2">Practice Complete!</h1>
         <p className="text-muted-foreground mb-4">
           You got {score.correct} out of {score.total} questions correct
