@@ -14,6 +14,7 @@ import { Field, FieldContent, FieldLabel, FieldTitle } from "../ui/field";
 import { Badge } from "../ui/badge";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 export default function QuestionRenderer({ question }: { question: Question }) {
   const dispatch = useDispatch();
@@ -21,9 +22,9 @@ export default function QuestionRenderer({ question }: { question: Question }) {
     (state) => state.exam,
   );
 
-  const selectedAnswer = answers
-    .find((a) => a.questionId === question?.id)
-    ?.selected?.trim();
+  const selectedAnswer = answers.find(
+    (a) => a.questionId === question?.id,
+  )?.selected;
 
   // fix: undefined means not answered, not "has answered"
   const hasAnswered = selectedAnswer !== undefined && selectedAnswer !== "";
@@ -32,6 +33,40 @@ export default function QuestionRenderer({ question }: { question: Question }) {
     if (status === "review") return;
     dispatch(setAnswers({ questionId: question.id, selected: value }));
   };
+  // button controls for answer
+
+  // useEffect(() => {
+  //   const handleKeyDown = (event: KeyboardEvent) => {
+  //     const target = event.target as HTMLElement;
+  //     if (
+  //       target.tagName === "INPUT" ||
+  //       target.tagName === "TEXTAREA" ||
+  //       target.isContentEditable
+  //     ) {
+  //       return;
+  //     }
+
+  //     if (event.key.toLocaleLowerCase() === "a") {
+  //       handleOptionClick(options[0]);
+  //     }
+  //     if (event.key.toLocaleLowerCase() === "b") {
+  //       handleOptionClick(options[1]);
+  //     }
+  //     if (question.question_type === "true_false") return;
+  //     if (event.key.toLocaleLowerCase() === "c") {
+  //       handleOptionClick(options[2]);
+  //     }
+  //     if (event.key.toLocaleLowerCase() === "d") {
+  //       handleOptionClick(options[3]);
+  //     }
+  //   };
+
+  //   window.addEventListener("keydown", handleKeyDown);
+
+  //   return () => {
+  //     window.removeEventListener("keydown", handleKeyDown);
+  //   };
+  // }, []);
 
   function handleOptionClick(option: string) {
     if (status === "review") return;

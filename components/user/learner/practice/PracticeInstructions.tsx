@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CheckCircle2, Clock, BookOpen } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 export default function PracticeInstructions({
   onToggle,
 }: {
@@ -72,7 +73,13 @@ export default function PracticeInstructions({
       </Card>
 
       {/* CTA */}
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-4">
+        <Link
+          href="/learner/exam"
+          className="rounded-md border border-border  py-2 px-4 hover:bg-accent hover:text-white duration-200 transition-all"
+        >
+          Timed Exam
+        </Link>
         <Button onClick={() => onToggle()}>Start Learning</Button>
       </div>
     </div>

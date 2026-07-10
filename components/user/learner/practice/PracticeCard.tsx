@@ -1,9 +1,7 @@
 "use client";
 
-import { useAppDispatch } from "@/hooks/StoreHooks";
-import { setMode } from "@/lib/features/exam/examSlice";
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import PracticeConfigModal from "./PracticeConfigModal";
 
 interface PracticeCardProps {
   id: number;
@@ -20,14 +18,12 @@ const PracticeCard = ({
   description = "Practice questions to strengthen your knowledge",
   image,
 }: PracticeCardProps) => {
-  const dispatch = useAppDispatch();
-
   return (
-    <Link
-      onClick={() => dispatch(setMode("learning"))}
-      href={`/learner/practice/${id}`}
-      className="group block h-44 rounded-2xl overflow-hidden relative focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-    >
+    <PracticeConfigModal id={id} name={name}>
+      <button
+        type="button"
+        className="group block w-full text-left h-44 rounded-2xl overflow-hidden relative focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+      >
       {/* ── background image ── */}
       <div
         className="absolute inset-0 bg-cover bg-center transition-transform duration-500 ease-out group-hover:scale-105"
@@ -79,7 +75,8 @@ const PracticeCard = ({
           </div>
         </div>
       </div>
-    </Link>
+      </button>
+    </PracticeConfigModal>
   );
 };
 
