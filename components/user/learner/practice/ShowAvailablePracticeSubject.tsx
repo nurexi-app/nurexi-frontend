@@ -25,7 +25,7 @@ const ShowAvailablePracticeSubject = ({
     return <PracticeInstructions onToggle={handleToggle} />;
   }
   return (
-    <div className="grid grid-cols-2 mt-4 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid bg-white py-6 px-2 h-full rounded-xl grid-cols-2 mt-4 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {subjectsObject.map((subject, index) => (
         <PracticeCard key={index} {...subject} />
       ))}

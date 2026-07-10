@@ -14,7 +14,6 @@ export async function subscribeToNewsletter(email: string, firstName?: string) {
     );
 
     if (contactError) {
-      console.log("Contact creation error:", contactError);
       return {
         success: false,
         error: "Failed to subscribe. Please try again.",

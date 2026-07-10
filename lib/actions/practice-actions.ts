@@ -211,7 +211,7 @@ export async function GetSubjectsWithCounts(
 export async function GetPracticeQuestions(
   userId: string,
   subjectId: number | string,
-  limit: number = 20,
+  filters: { limit?: number; difficulty?: string } = { limit: 20 },
 ): Promise<Question[]> {
   const supabase = await createClient();
 
@@ -254,7 +254,12 @@ export async function GetPracticeQuestions(
     .eq("subject_id", subjectId)
     .eq("is_active", true);
 
+  if (filters.difficulty && filters.difficulty !== "all") {
+    query = query.eq("difficulty", filters.difficulty);
+  }
+
   // Add limit if not "all" (-1 means all)
+  const limit = filters.limit !== undefined ? filters.limit : 20;
   if (limit !== -1) {
     query = query.limit(limit);
   }
