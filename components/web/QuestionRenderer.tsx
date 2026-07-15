@@ -14,7 +14,7 @@ import { Field, FieldContent, FieldLabel, FieldTitle } from "../ui/field";
 import { Badge } from "../ui/badge";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
+import ExplanationRenderer from "./ExplanationRenderer";
 
 export default function QuestionRenderer({ question }: { question: Question }) {
   const dispatch = useDispatch();
@@ -22,6 +22,7 @@ export default function QuestionRenderer({ question }: { question: Question }) {
     (state) => state.exam,
   );
 
+  console.log("question object :", question);
   const selectedAnswer = answers.find(
     (a) => a.questionId === question?.id,
   )?.selected;
@@ -221,7 +222,7 @@ export default function QuestionRenderer({ question }: { question: Question }) {
             {!isCorrect && (
               <Badge
                 variant="secondary"
-                className="whitespace-normal break-words h-auto py-1 max-w-full text-[12px]"
+                className="whitespace-normal wrap-break-word h-auto py-1 max-w-full text-[12px]"
               >
                 Correct answer: {question.correct_answer}
               </Badge>
@@ -229,14 +230,28 @@ export default function QuestionRenderer({ question }: { question: Question }) {
           </div>
 
           {/* explanation */}
-          {question.explanation && (
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-                Explanation
-              </p>
-              <p className="text-sm text-foreground leading-relaxed">
-                {question.explanation}
-              </p>
+
+          {shouldShowExplanation && (
+            <div
+              className={cn(
+                "rounded-xl border p-4 space-y-3 transition-all duration-200",
+                isCorrect
+                  ? "border-green-200 bg-green-50/60 dark:border-green-800 dark:bg-green-950/30"
+                  : "border-red-200 bg-red-50/60 dark:border-red-800 dark:bg-red-950/30",
+              )}
+            >
+              {/* ── explanation — uses rich if available, falls back to plain ── */}
+              {(question.rich_explanation || question.explanation) && (
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                    Explanation
+                  </p>
+                  <ExplanationRenderer
+                    richExplanation={question.rich_explanation}
+                    plainExplanation={question.explanation}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

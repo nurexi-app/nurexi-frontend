@@ -59,6 +59,7 @@ export default async function ExamPage({ params }: Props) {
     options: q.options,
     correct_answer: q.correct_answer,
     explanation: q.explanation,
+    rich_explanation: q.rich_explanation,
     topics: q.topics || [],
   }));
 

@@ -64,6 +64,7 @@ const Questions = ({
       if (event.key === "ArrowRight" || event.key.toLocaleLowerCase() === "n") {
         if (currentQuestionIndex !== questions.length - 1) {
           dispatch(setNextQuestion());
+          // dispatch
         } else {
           toast.info("You are at the last question");
         }

@@ -23,6 +23,7 @@ export interface Question {
   year_added: number;
   is_active: boolean;
   subject: string;
+  rich_explanation?: any;
 }
 
 export interface Quiz {
