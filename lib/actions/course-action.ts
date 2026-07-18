@@ -112,7 +112,16 @@ export async function updateCourseOverview(
   data: courseOverviewType,
 ) {
   const supabase = await createClient();
+  const { data: currentCourse } = await supabase
+    .from("courses")
+    .select("is_approved")
+    .eq("id", courseId)
+    .single();
 
+  if (currentCourse?.is_approved) {
+    delete (data as any).slug;
+    return { error: "Slug can not be changed once the course is approved." };
+  }
   if (data.slug) {
     const { data: existing } = await supabase
       .from("courses")
@@ -152,6 +161,16 @@ export async function updateCourseOverview(
 export async function updateCourseData(courseId: string, updates: any) {
   const supabase = await createClient();
 
+  const { data: currentCourse } = await supabase
+    .from("courses")
+    .select("is_approved")
+    .eq("id", courseId)
+    .single();
+
+  if (currentCourse?.is_approved) {
+    delete (updates as any).slug;
+    return { error: "Slug can not be changed once the course is approved." };
+  }
   if (updates.slug) {
     const { data: existing } = await supabase
       .from("courses")
