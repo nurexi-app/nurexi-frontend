@@ -18,15 +18,26 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+const MAX_PREVIEW_LESSONS = 3;
+
 export default function CourseSection() {
   const router = useRouter();
   const {
     sections,
     isLoading,
+    handleUpdateSection,
     handleAddSection,
     handleReorderSections,
+    handleUpdateLesson,
     courseId,
   } = useCourse();
+
+  const previewCount = sections.reduce(
+    (acc, s) => acc + (s.lessons?.filter((l) => l.is_preview).length ?? 0),
+    0,
+  );
+  const isMaxed = previewCount >= MAX_PREVIEW_LESSONS;
+  const hasPreviews = previewCount > 0;
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -48,6 +59,17 @@ export default function CourseSection() {
     setIsSaving(true);
 
     try {
+      await Promise.all(
+        sections.map((section) => handleUpdateSection(section.id, section)),
+      );
+
+      const lessonUpdatePromises = sections.flatMap((s) =>
+        (s.lessons || []).map((lesson) =>
+          handleUpdateLesson(lesson.id, courseId, lesson),
+        ),
+      );
+
+      await Promise.all(lessonUpdatePromises);
       await new Promise((resolve) => setTimeout(resolve, 400));
 
       toast.success("Course content saved successfully!");
@@ -77,6 +99,17 @@ export default function CourseSection() {
                   0,
                 )} lessons`
               : "Organize your course into sections and lessons"}
+          </p>
+          <p
+            className={`text-[12px] font-medium transition-colors duration-300 ${
+              isMaxed
+                ? "text-green-500 dark:text-green-400"
+                : hasPreviews
+                  ? "text-indigo-600 dark:text-indigo-400"
+                  : "text-muted-foreground"
+            }`}
+          >
+            {previewCount} of {MAX_PREVIEW_LESSONS} lessons as previews
           </p>
         </div>
 

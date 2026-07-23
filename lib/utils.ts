@@ -317,3 +317,41 @@ export function isReadyToPublish(course: any): PublishValidationResult {
     message: "Your course is ready to publish! 🎉",
   };
 }
+
+interface BuildStreamUrlOptions {
+  cloudName?: string;
+  publicId?: string;
+  streamUrl?: string | null; // Direct URL option (e.g. asset.playback_url or asset.secure_url)
+  format?: "m3u8" | "mp4" | "webm" | "auto";
+  quality?: "auto" | "720p" | "1080p";
+}
+
+export function getCloudinaryStreamUrl({
+  cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  publicId,
+  streamUrl,
+  format = "m3u8",
+  quality,
+}: BuildStreamUrlOptions): string {
+  // 1. If explicit streamUrl (playback_url / secure_url) is provided, use it
+  if (streamUrl) {
+    return streamUrl;
+  }
+
+  // 2. Return empty string if missing required identifiers
+  if (!publicId || !cloudName) {
+    return "";
+  }
+
+  // 3. Clean public_id in case a full path/leading slash was stored
+  const cleanPublicId = publicId
+    .replace(/^https?:\/\/res\.cloudinary\.com\/[^/]+\/video\/upload\//, "")
+    .replace(/^\//, "");
+
+  // 4. Construct transformation string (e.g., q_auto,f_m3u8 or f_m3u8)
+  const transformations = [quality ? `q_${quality}` : null, `f_${format}`]
+    .filter(Boolean)
+    .join(",");
+
+  return `https://res.cloudinary.com/${cloudName}/video/upload/${transformations}/${cleanPublicId}.${format}`;
+}

@@ -59,7 +59,7 @@ const ActualSection = ({ section }: { section: Section }) => {
   const debouncedUpdate = useCallback(
     debounce((newTitle: string) => {
       handleUpdateSection(section.id, { title: newTitle });
-    }, 1000),
+    }, 5000),
     [section.id],
   );
 

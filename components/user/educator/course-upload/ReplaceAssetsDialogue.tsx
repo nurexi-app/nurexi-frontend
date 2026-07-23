@@ -105,13 +105,16 @@ export function ReplaceAssetDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
       <DialogTrigger asChild>
         <Button variant="ghost" className="text-xs">
           Replace Asset
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent
+        className="max-w-md"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <RefreshCw className="h-4 w-4 text-primary" />
@@ -143,6 +146,7 @@ export function ReplaceAssetDialog({
                 type="button"
                 variant={selectedType === "video" ? "default" : "outline"}
                 size="sm"
+                disabled={isSubmitting}
                 className="gap-2 text-xs"
                 onClick={() => setSelectedType("video")}
               >
@@ -153,6 +157,7 @@ export function ReplaceAssetDialog({
                 type="button"
                 variant={selectedType === "pdf" ? "default" : "outline"}
                 size="sm"
+                disabled={isSubmitting}
                 className="gap-2 text-xs"
                 onClick={() => setSelectedType("pdf")}
               >
@@ -181,7 +186,6 @@ export function ReplaceAssetDialog({
                     zIndex: 100000,
                   },
                 }}
-                onOpen={() => onOpenChange(false)}
                 signatureEndpoint="/api/cloudinary/signature"
                 onSuccess={(result: any) => {
                   if (result?.info?.resource_type !== "video") {
