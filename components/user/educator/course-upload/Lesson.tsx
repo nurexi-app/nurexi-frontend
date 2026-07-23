@@ -23,12 +23,11 @@ import {
   ChevronDown,
   ChevronRight,
   MoreVertical,
-  RefreshCw,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useCallback, useEffect, useRef, useState, Suspense } from "react";
 import { Lesson, LessonType } from "@/lib/types/course";
-import { debounce, cn } from "@/lib/utils";
+import { debounce, cn, getCloudinaryStreamUrl } from "@/lib/utils";
 import { useDeleteWithUndo } from "@/hooks/useDeleteWithUndo";
 import { deleteLesson } from "@/lib/actions/course-action";
 import {
@@ -48,7 +47,7 @@ import { ReplaceAssetDialog } from "./ReplaceAssetsDialogue";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
-const MAX_PREVIEW_LESSONS = 2;
+const MAX_PREVIEW_LESSONS = 3;
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -86,8 +85,9 @@ function VideoPreview({
   const [playerOpen, setPlayerOpen] = useState(false);
   if (!asset || asset.type !== "video") return null;
 
-  // ← use stored playback_url directly, no reconstruction needed
-  const streamUrl = asset.playback_url ?? asset.secure_url ?? null;
+  const streamUrl = getCloudinaryStreamUrl({
+    publicId: asset.public_id,
+  });
 
   return (
     <>
@@ -323,11 +323,11 @@ function PreviewToggle({
           id={`preview-${lesson.id}`}
           checked={lesson.is_preview && canBePreview}
           disabled={isDisabled}
-          onChange={(e) =>
+          onChange={(e) => {
             handleUpdateLesson(sectionId, lesson.id, {
               is_preview: e.target.checked,
-            })
-          }
+            });
+          }}
           className="h-4 w-4 rounded border-border accent-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
         />
         <Label
@@ -341,13 +341,6 @@ function PreviewToggle({
         >
           Allow free preview before purchase
         </Label>
-
-        {/* preview usage counter */}
-        {isVideo && hasAsset && (
-          <span className="ml-auto text-[10px] text-muted-foreground shrink-0">
-            {previewCount}/{MAX_PREVIEW_LESSONS} used
-          </span>
-        )}
       </div>
 
       {disabledReason && (
@@ -377,6 +370,7 @@ const ActualLesson = ({
     courseId,
     userId,
     courseData,
+    handleDeleteLesson,
   } = useCourse();
 
   const supabase = createClient();
@@ -385,7 +379,9 @@ const ActualLesson = ({
 
   const { executeDelete, isLoading: isDeleting } = useDeleteWithUndo({
     deleteFn: deleteLesson,
-    onSuccess: () => {},
+    onSuccess: () => {
+      handleDeleteLesson(sectionId, lesson.id);
+    },
     onError: (message) => toast.error(message),
   });
 
@@ -458,7 +454,7 @@ const ActualLesson = ({
     debounce((newTitle: string) => {
       console.log("setting title");
       handleUpdateLesson(sectionId, lesson.id, { title: newTitle });
-    }, 800),
+    }, 5000),
     [sectionId, lesson.id],
   );
 
@@ -482,6 +478,7 @@ const ActualLesson = ({
   };
 
   const hasAsset = !!lesson.asset && Object.keys(lesson.asset).length > 0;
+  const canDelete = isDraft || !hasAsset;
 
   const [replaceDialogOpen, setReplaceDialogOpen] = useState(false);
 
@@ -561,22 +558,21 @@ const ActualLesson = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {isDraft && (
+            {canDelete ? (
               <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
+                className="text-destructive focus:text-destructive text-xs cursor-pointer"
                 onClick={() => executeDelete(lesson.id)}
                 disabled={isDeleting}
               >
                 <Trash2 className="h-3.5 w-3.5 mr-2" />
                 Delete lesson
               </DropdownMenuItem>
-            )}
-            {!isDraft && (
+            ) : (
               <DropdownMenuItem
                 disabled
-                className="text-muted-foreground text-[12px]"
+                className="text-muted-foreground text-[12px] opacity-70"
               >
-                Deletion disabled on published courses
+                Cannot delete published lessons with active media
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
