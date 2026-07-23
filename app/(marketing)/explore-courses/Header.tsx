@@ -4,7 +4,7 @@ export default function SearchHeader() {
   return (
     <div className="grid grid-cols-12 mb-4 items-center  gap-8">
       <div className="col-span-3">
-        <h1 className="hero">Nurexi Top courses</h1>
+        <h1 className="hero">Nurexi Top Courses</h1>
       </div>
 
       <div className="col-span-7">

@@ -1,32 +1,47 @@
 import { Card } from "@/components/ui/card";
-import { CheckCircle } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
+import { BadgeCheck } from "../animate-ui/icons/badge-check";
 
-export default function InstructorCard() {
+export default function InstructorCard({
+  author,
+}: {
+  author: {
+    full_name: string;
+    avatar_url: string;
+    bio: string;
+    professional_title: string;
+    verification: {
+      status: string;
+    }[];
+  };
+}) {
+  const isVerified =
+    author.verification.length > 0 &&
+    author.verification[0].status === "approved";
   return (
     <Card className="p-4 space-y-3">
       <h3 className="font-semibold">About the instructor</h3>
 
       <div className="flex items-center gap-3">
-        <img
-          src="https://i.pravatar.cc/100"
-          className="h-12 w-12 rounded-full"
-        />
+        <Avatar>
+          <AvatarImage src={author.avatar_url} />
+          <AvatarFallback>IN</AvatarFallback>
+        </Avatar>
 
         <div>
-          <p className="flex items-center gap-1 font-medium">
-            Dr. Ifunanya Okeke
-            <CheckCircle className="h-4 w-4 text-primary" />
-          </p>
+          <div className="flex items-center gap-1 font-medium">
+            <p>{author.full_name}</p>
+            {isVerified && (
+              <BadgeCheck animateOnView className="h-4 w-4 text-primary" />
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">
-            Nurse Educator & Pharmacologist
+            {author?.professional_title}
           </p>
         </div>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        Over 10 years of experience preparing nurses for NMCN and international
-        exams.
-      </p>
+      <p className="text-sm text-muted-foreground">{author?.bio}</p>
     </Card>
   );
 }

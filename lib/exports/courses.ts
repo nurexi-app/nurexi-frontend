@@ -3,7 +3,7 @@ import {
   PublicCourseInterface,
 } from "../types/course";
 
-export const dashboardCourses: DashboardCourseInterface[] = [
+export const dashboardCourses: any[] = [
   // {
   //   id: "course_001",
   //   title: "Clinical Pharmacology for Nurses",
@@ -60,14 +60,14 @@ export const dashboardCourses: DashboardCourseInterface[] = [
   // },
 ];
 
-export const publicCourses: PublicCourseInterface[] = [
+export const publicCourses: any[] = [
   {
     id: "public_001",
     title: "NCLEX-Style Medical Surgical Nursing Masterclass",
     description:
       "Over 1,200 NCLEX-style questions with detailed clinical explanations, memory tips, and exam strategies to help you pass confidently.",
     author: {
-      name: "Clinexi Academy",
+      full_name: "Clinexi Academy",
       verified: true,
     },
     rating: 4.8,
@@ -99,6 +99,106 @@ export const publicCourses: PublicCourseInterface[] = [
     level: "Beginner",
     studentsEnrolled: 2100,
     tags: ["ECG", "Cardiology"],
+    isBestSeller: false,
+  },
+  {
+    id: "public_003",
+    title: "Infection Prevention & Control in Healthcare",
+    description:
+      "Learn evidence-based infection control practices, PPE usage, and outbreak prevention strategies for healthcare environments.",
+    author: {
+      name: "Public Health Institute",
+      verified: false,
+    },
+    rating: 4.2,
+    ratingCount: 310,
+    price: 7000,
+    discountPrice: 5000,
+    thumbnail: "/assets/hero3.png",
+    duration: "4h 10m",
+    level: "Beginner",
+    studentsEnrolled: 980,
+    tags: ["IPC", "Public Health"],
+    isBestSeller: false,
+  },
+  {
+    id: "public_003",
+    title: "Infection Prevention & Control in Healthcare",
+    description:
+      "Learn evidence-based infection control practices, PPE usage, and outbreak prevention strategies for healthcare environments.",
+    author: {
+      name: "Public Health Institute",
+      verified: false,
+    },
+    rating: 4.2,
+    ratingCount: 310,
+    price: 7000,
+    discountPrice: 5000,
+    thumbnail: "/assets/hero3.png",
+    duration: "4h 10m",
+    level: "Beginner",
+    studentsEnrolled: 980,
+    tags: ["IPC", "Public Health"],
+    isBestSeller: false,
+  },
+  {
+    id: "public_003",
+    title: "Infection Prevention & Control in Healthcare",
+    description:
+      "Learn evidence-based infection control practices, PPE usage, and outbreak prevention strategies for healthcare environments.",
+    author: {
+      name: "Public Health Institute",
+      verified: false,
+    },
+    rating: 4.2,
+    ratingCount: 310,
+    price: 7000,
+    discountPrice: 5000,
+    thumbnail: "/assets/hero3.png",
+    duration: "4h 10m",
+    level: "Beginner",
+    studentsEnrolled: 980,
+    tags: ["IPC", "Public Health"],
+    isBestSeller: false,
+  },
+  {
+    id: "public_003",
+    title: "Infection Prevention & Control in Healthcare",
+    description:
+      "Learn evidence-based infection control practices, PPE usage, and outbreak prevention strategies for healthcare environments.",
+    author: {
+      name: "Public Health Institute",
+      verified: false,
+    },
+    rating: 4.2,
+    ratingCount: 310,
+    price: 7000,
+    discountPrice: 5000,
+    thumbnail: "/assets/hero3.png",
+    duration: "4h 10m",
+    level: "Beginner",
+    studentsEnrolled: 980,
+    tags: ["IPC", "Public Health"],
+    isBestSeller: false,
+  },
+  {
+    id: "public_003",
+    title: "Infection Prevention & Control in Healthcare",
+    description:
+      "Learn evidence-based infection control practices, PPE usage, and outbreak prevention strategies for healthcare environments.",
+    author: {
+      name: "Public Health Institute",
+      verified: false,
+    },
+    rating: 4.2,
+    ratingCount: 310,
+    price: 7000,
+    discountPrice: 5000,
+    thumbnail: "/assets/hero3.png",
+    duration: "4h 10m",
+    level: "Beginner",
+    studentsEnrolled: 980,
+    tags: ["IPC", "Public Health"],
     isBestSeller: false,
   },
   {

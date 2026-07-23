@@ -31,9 +31,13 @@ const ActualSection = ({ section }: { section: Section }) => {
     updateSectionTitle,
     handleAddLesson,
     isLoading,
+    openSection,
+    courseData,
+    handleOpenSection,
   } = useCourse();
 
-  const [isOpen, setIsOpen] = useState(true);
+  const openedSection = openSection.find((s) => s.sectionId === section.id);
+
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [localTitle, setLocalTitle] = useState(
     section.title || "Untitled section",
@@ -76,7 +80,7 @@ const ActualSection = ({ section }: { section: Section }) => {
     <div
       className={cn(
         "rounded-xl border border-border bg-card shadow-sm overflow-hidden transition-shadow",
-        isOpen && "shadow-md",
+        openedSection?.isOpen && "shadow-md",
       )}
     >
       {/* ── section header ── */}
@@ -86,11 +90,13 @@ const ActualSection = ({ section }: { section: Section }) => {
 
         {/* collapse toggle */}
         <button
-          onClick={() => setIsOpen((prev) => !prev)}
+          onClick={() => handleOpenSection(section.id)}
           className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-muted transition-colors shrink-0"
-          aria-label={isOpen ? "Collapse section" : "Expand section"}
+          aria-label={
+            openedSection?.isOpen ? "Collapse section" : "Expand section"
+          }
         >
-          {isOpen ? (
+          {openedSection?.isOpen ? (
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           ) : (
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -121,7 +127,7 @@ const ActualSection = ({ section }: { section: Section }) => {
 
         {/* lesson count badge */}
         <Badge
-          variant="secondary"
+          variant="ghost"
           className="gap-1 text-[10px] font-medium shrink-0"
         >
           <BookOpen className="h-3 w-3 hidden md:block" />
@@ -135,7 +141,7 @@ const ActualSection = ({ section }: { section: Section }) => {
           className="gap-1  items-center text-[12px] h-7 px-2 shrink-0 hidden md:flex"
           onClick={() => {
             handleAddLesson(section.id);
-            if (!isOpen) setIsOpen(true);
+            if (!openedSection?.isOpen) handleOpenSection(section.id);
           }}
           disabled={isLoading}
         >
@@ -144,14 +150,17 @@ const ActualSection = ({ section }: { section: Section }) => {
         </Button>
 
         {/* delete section */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 w-7 hidden md:block p-0 text-muted-foreground hover:text-destructive shrink-0"
-          onClick={() => handleDeleteSection(section.id)}
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
+
+        {courseData.status === "draft" && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 hidden md:block p-0 text-muted-foreground hover:text-destructive shrink-0"
+            onClick={() => handleDeleteSection(section.id)}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger className="md:hidden" asChild>
@@ -171,7 +180,7 @@ const ActualSection = ({ section }: { section: Section }) => {
                 className="gap-1 text-[12px] h-7 px-2 shrink-0 md:hidden"
                 onClick={() => {
                   handleAddLesson(section.id);
-                  if (!isOpen) setIsOpen(true);
+                  if (!openedSection?.isOpen) handleOpenSection(section.id);
                 }}
                 disabled={isLoading}
               >
@@ -199,18 +208,27 @@ const ActualSection = ({ section }: { section: Section }) => {
       <div
         className={cn(
           "overflow-hidden transition-all duration-300 ease-in-out",
-          isOpen ? "max-h-[9999px] opacity-100" : "max-h-0 opacity-0",
+          openedSection?.isOpen
+            ? "max-h-[9999px] opacity-100"
+            : "max-h-0 opacity-0",
         )}
       >
         <div className="p-4 space-y-3">
           {section.lessons && section.lessons.length > 0 ? (
-            section.lessons.map((lesson) => (
-              <ActualLesson
-                key={lesson.id}
-                lesson={lesson}
-                sectionId={section.id}
-              />
-            ))
+            section.lessons.map((lesson) => {
+              const previewCount = section.lessons.filter(
+                (l) => l.is_preview && l.content_type === "video",
+              ).length;
+
+              return (
+                <ActualLesson
+                  key={lesson.id}
+                  lesson={lesson}
+                  sectionId={section.id}
+                  previewCount={previewCount}
+                />
+              );
+            })
           ) : (
             <button
               onClick={() => handleAddLesson(section.id)}
@@ -222,14 +240,31 @@ const ActualSection = ({ section }: { section: Section }) => {
           )}
         </div>
       </div>
+      {openedSection?.isOpen && (
+        <div className="p-4 ml-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1  items-center text-[12px] h-7 px-2 shrink-0 hidden md:flex"
+            onClick={() => {
+              handleAddLesson(section.id);
+              if (!openedSection?.isOpen) handleOpenSection(section.id);
+            }}
+            disabled={isLoading}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>Add lesson</span>
+          </Button>
+        </div>
+      )}
 
       {/* collapsed summary — show lesson titles when closed */}
-      {!isOpen && lessonCount > 0 && (
+      {!openedSection?.isOpen && lessonCount > 0 && (
         <div className="px-4 py-2 flex items-center gap-1.5 flex-wrap">
           {section.lessons.slice(0, 4).map((lesson, i) => (
             <span
               key={lesson.id}
-              className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full truncate max-w-[140px]"
+              className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full truncate max-w-35"
             >
               {i + 1}. {lesson.title || "Untitled"}
             </span>
