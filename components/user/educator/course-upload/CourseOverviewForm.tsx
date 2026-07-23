@@ -144,10 +144,16 @@ export default function CourseOverviewForm({
                 <FieldLabel>Course URL Slug *</FieldLabel>
                 <Input
                   {...field}
-                  onChange={handleSlugChange}
+                  onChange={course.is_approved ? undefined : handleSlugChange}
                   placeholder="introduction-to-pharmacology"
                   className="h-10"
+                  disabled={course?.is_approved === true}
                 />
+                <p className="text-xs text-muted-foreground">
+                  {course?.is_approved
+                    ? `Locked — nurexi.com/courses/${course.slug}`
+                    : `URL: nurexi.com/courses/${field.value || "your-slug"}`}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   URL: nurexi.com/courses/{field.value || "your-slug"}
                 </p>

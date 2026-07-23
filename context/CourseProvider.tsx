@@ -15,20 +15,30 @@ import {
   getAllCourseSections,
   addLesson,
   getSectionLessons,
-  updateLesson,
   updateSection,
+  reorderSections,
+  reorderLessons,
+  updateLesson,
 } from "@/lib/actions/course-action";
 import { Course, Lesson, Section } from "@/lib/types/course";
 import { QuestionType, Quiz } from "@/lib/types/questions";
 import { getUUID } from "@/lib/utils";
 
 interface CourseContextType {
+  courseData: any;
   sections: Section[];
+  openSection: {
+    sectionId: string;
+    isOpen: boolean;
+  }[];
+  handleOpenSection: (sectionId: string) => void;
+
   isLoading: boolean;
   errorState: string;
   courseId: string;
   userId: string;
 
+  setSections: React.Dispatch<React.SetStateAction<Section[]>>;
   handleAddSection: () => Promise<void>;
   handleDeleteSection: (sectionId: string) => Promise<void>;
   updateSectionTitle: (id: string, newTitle: string) => void;
@@ -40,12 +50,20 @@ interface CourseContextType {
     lessonId: string,
     updates: Partial<Lesson>,
   ) => Promise<void>;
+  handleUpdateLessonLocally: (
+    sectionId: string,
+    lessonId: string,
+    updates: Partial<Lesson>,
+  ) => void;
   handleDeleteLesson: (sectionId: string, lessonId: string) => void;
 
   addQuiz: (sectionId: string) => void;
   handleRemoveQuiz: (sectionId: string, id: string) => void;
   updateQuiz: (sectionId: string, id: string, updates: Partial<Quiz>) => void;
   quizSection: { sectionId: string; quizArray: Quiz[] }[];
+
+  handleReorderSections: (newSection: Section[]) => void;
+  handleReorderLessons: (sectionId: string, newLessons: Lesson[]) => void;
 }
 
 const CourseContext = createContext<CourseContextType | undefined>(undefined);
@@ -62,6 +80,25 @@ export const CourseProvider = ({
   const courseId = courseData.id || "";
 
   const [sections, setSections] = useState<Section[]>([]);
+  const [openSection, setOpenSection] = useState<
+    {
+      sectionId: string;
+      isOpen: boolean;
+    }[]
+  >([]);
+
+  function handleOpenSection(sectionId: string) {
+    setOpenSection((prev) =>
+      prev.map((section) =>
+        section.sectionId === sectionId
+          ? {
+              ...section,
+              isOpen: !section.isOpen,
+            }
+          : section,
+      ),
+    );
+  }
   const [errorState, setErrorState] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -79,6 +116,10 @@ export const CourseProvider = ({
       ],
     },
   ]);
+
+  //
+  // ===================QUIZ===========
+  //
   const addQuiz = (sectionId: string) => {
     console.log("adding quiz to section", sectionId);
     setQuizSection((prev) =>
@@ -153,7 +194,13 @@ export const CourseProvider = ({
             };
           });
           setQuizSection(quizSection);
-
+          const sectionsForIsOpened = allSections.map((section: Section) => {
+            return {
+              sectionId: section.id,
+              isOpen: false,
+            };
+          });
+          setOpenSection(sectionsForIsOpened);
           const sectionsWithLessons = await Promise.all(
             allSections.map(async (section: any) => {
               const lessons = await getSectionLessons(section.id);
@@ -280,6 +327,20 @@ export const CourseProvider = ({
     }
   };
 
+  const handleReorderSections = async (newSection: Section[]) => {
+    try {
+      setSections(newSection);
+
+      await reorderSections(
+        courseId,
+        newSection.map((s) => s.id),
+      );
+    } catch (error: any) {
+      toast.error(error.message || "failed to reorder");
+    }
+  };
+
+  // =================== LESSONS=================== //
   // Add lesson to section
   async function handleAddLesson(sectionId: string) {
     try {
@@ -306,8 +367,9 @@ export const CourseProvider = ({
     updates: Partial<Lesson>,
   ) {
     try {
-      const updatedLesson = await updateLesson(lessonId, updates);
+      const updatedLesson = await updateLesson(lessonId, courseId, updates);
       if (updatedLesson) {
+        console.log("success for lessons update");
         setSections((prev) =>
           prev.map((section) =>
             section.id === sectionId
@@ -328,6 +390,25 @@ export const CourseProvider = ({
     }
   }
 
+  function handleUpdateLessonLocally(
+    sectionId: string,
+    lessonId: string,
+    updates: Partial<Lesson>,
+  ) {
+    setSections((prev) =>
+      prev.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              lessons: section.lessons.map((lesson) =>
+                lesson.id === lessonId ? { ...lesson, ...updates } : lesson,
+              ),
+            }
+          : section,
+      ),
+    );
+  }
+
   // Delete lesson
   function handleDeleteLesson(sectionId: string, lessonId: string) {
     setSections((prev) =>
@@ -341,11 +422,48 @@ export const CourseProvider = ({
       ),
     );
   }
+  const handleReorderLessons = async (
+    sectionId: string,
+    newLessons: Lesson[],
+  ) => {
+    //  Keep a backup of the current state for rollback
+    const previousSections = [...sections];
+
+    try {
+      setSections((prevSections) =>
+        prevSections.map((s) => {
+          if (s.id === sectionId) {
+            return {
+              ...s,
+              lessons: newLessons,
+            };
+          }
+          return s;
+        }),
+      );
+
+      await reorderLessons(
+        sectionId,
+        newLessons.map((lesson) => lesson.id),
+      );
+
+      toast.success("Lessons reordered successfully");
+    } catch (error: any) {
+      setSections(previousSections);
+      toast.error(error.message || "Failed to reorder lessons");
+    }
+  };
 
   return (
     <CourseContext.Provider
       value={{
+        courseData,
+
         sections,
+        setSections,
+        openSection,
+        handleOpenSection,
+
         isLoading,
         errorState,
         courseId,
@@ -355,10 +473,13 @@ export const CourseProvider = ({
         handleDeleteSection,
         handleUpdateSection,
         updateSectionTitle,
+        handleReorderSections,
 
         handleAddLesson,
         handleUpdateLesson,
+        handleUpdateLessonLocally,
         handleDeleteLesson,
+        handleReorderLessons,
 
         addQuiz,
         handleRemoveQuiz,

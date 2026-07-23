@@ -30,12 +30,12 @@ export default function Page() {
         </div>
       ) : (
         <div className="grid mt-4 grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
-          {dashboardCourses.map((course: DashboardCourseInterface) => (
+          {dashboardCourses.map((course: any) => (
             <LearnerCourseCard
               key={course.id}
-              img={course.thumbnail}
+              img={course.cover_image}
               title={course.title}
-              author={course.author.name}
+              author={course.author.full_name}
               verified={course.author.verified}
               progress={course.progress}
             />

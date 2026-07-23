@@ -13,11 +13,23 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { createClient } from "@/lib/supabase/server";
 
-export default function PublicCoursesPage() {
+export default async function PublicCoursesPage() {
+  const supabase = await createClient();
+  const { data: courses, error } = await supabase
+    .from("courses")
+    .select(
+      `id,title,price,discount_value,description,expected_duration,cover_image,discount_expiry,has_discount, discount_type, slug, is_free,difficulty_level, target_audience, author:educator_id(full_name,avatar_url)`,
+    )
+    .eq("is_published", true)
+    .eq("is_approved", true);
+
+  if (error) console.log(error);
+  console.log(courses);
   return (
     <div className="p-4 container mt-18 my-6 ">
-      {publicCourses.length === 0 ? (
+      {!courses ? (
         <div className="flex flex-col items-center py-20 text-center gap-3">
           <Inbox className="text-muted-foreground" size={36} />
           <p className="text-muted-foreground">
@@ -27,22 +39,9 @@ export default function PublicCoursesPage() {
       ) : (
         <>
           <SearchHeader />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3  xl:grid-cols-4 gap-4">
-            {publicCourses.map((course: PublicCourseInterface) => (
-              <PublicCourseCard
-                key={String(course.id)}
-                courseId={course.id}
-                title={course.title}
-                instructor={course.author.name}
-                rating={course.rating}
-                reviews={course.ratingCount}
-                thumbnail={course.thumbnail}
-                price={formatPrice(course.price)}
-                discountPrice={course.discountPrice}
-                verified={course.author.verified}
-                duration={course.duration}
-                studentsEnrolled={course.studentsEnrolled}
-              />
+          <div className="grid grid-cols-2 md:grid-cols-3  xl:grid-cols-4 gap-4">
+            {courses?.map((course: any) => (
+              <PublicCourseCard key={course.id} {...course} />
             ))}
           </div>
 

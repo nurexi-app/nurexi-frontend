@@ -5,22 +5,45 @@ export interface BaseCourse {
   title: string;
   description: string;
   author: {
-    name: string;
-    verified: boolean;
+    full_name: string;
+    avatar_url: string;
   };
-  thumbnail: string;
-  duration: string;
-  level: string;
-  tags: string[];
+  expected_duration?: string;
+  verified?: boolean;
+  cover_image: string;
+  slug: string;
+}
+
+export interface PublicCourse extends BaseCourse {
+  is_free: boolean;
+  price: number;
+  discount_type: string | null;
+  discount_value: number | null;
+  has_discount: boolean;
+  discount_expiry: string | null;
+  difficulty_level: string | null;
+  target_audience: string;
+  language?: string | null;
+  rating?: number;
+  rating_count?: number;
+  what_you_will_learn?: string[];
+  verification: { status: string }[];
+  sections: Section[];
 }
 
 export interface PublicCourseInterface extends BaseCourse {
-  rating: number;
-  ratingCount: number;
   price: number;
-  discountPrice: number;
-  studentsEnrolled: number;
-  isBestSeller: boolean;
+  is_free: boolean;
+  discount_type: string | null;
+  discount_value: number | null;
+  discount_expiry: string | null;
+  difficulty_level: string | null;
+  target_audience: string;
+  language?: string | null;
+  rating?: number;
+  rating_count?: number;
+  studentsEnrolled?: number;
+  isBestSeller?: boolean;
 }
 
 export interface DashboardCourseInterface extends BaseCourse {
@@ -30,8 +53,7 @@ export interface DashboardCourseInterface extends BaseCourse {
   lastAccessed: string | null;
 }
 
-// lib/types/course.ts
-
+// lib/types/course.ts for educator
 export interface Course {
   id: string;
   created_at: string;
@@ -102,6 +124,10 @@ export interface LessonAsset {
   type: "video" | "pdf";
 
   public_id?: string;
+  playback_url?: string;
+  secure_url?: string;
+  width?: number;
+  height?: number;
 
   asset_id?: string;
 
@@ -123,7 +149,7 @@ export interface Lesson {
   content_type: LessonType;
 
   asset?: LessonAsset | null;
-
+  pending_asset: LessonAsset | null;
   is_preview: boolean;
   text_content?: string;
 }

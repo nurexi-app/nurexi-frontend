@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "../supabase/server";
-import { LessonAsset } from "../types/course";
+import { Lesson, LessonAsset } from "../types/course";
 import { courseOverviewType } from "../validators/courseUpload";
 import { isReadyToPublish } from "../utils";
+import { registerOrphanedAsset } from "./helpers/course";
+import { requireCoursePermission } from "./guard-actions";
 
 // course uplaod, sections and lessons
 
@@ -112,7 +114,16 @@ export async function updateCourseOverview(
   data: courseOverviewType,
 ) {
   const supabase = await createClient();
+  const { data: currentCourse } = await supabase
+    .from("courses")
+    .select("is_approved")
+    .eq("id", courseId)
+    .single();
 
+  if (currentCourse?.is_approved) {
+    delete (data as any).slug;
+    return { error: "Slug can not be changed once the course is approved." };
+  }
   if (data.slug) {
     const { data: existing } = await supabase
       .from("courses")
@@ -152,6 +163,16 @@ export async function updateCourseOverview(
 export async function updateCourseData(courseId: string, updates: any) {
   const supabase = await createClient();
 
+  const { data: currentCourse } = await supabase
+    .from("courses")
+    .select("is_approved")
+    .eq("id", courseId)
+    .single();
+
+  if (currentCourse?.is_approved) {
+    delete (updates as any).slug;
+    return { error: "Slug can not be changed once the course is approved." };
+  }
   if (updates.slug) {
     const { data: existing } = await supabase
       .from("courses")
@@ -389,20 +410,50 @@ export async function addLesson(sectionId: string, courseId: string) {
 // Update a lesson
 export async function updateLesson(
   lessonId: string,
-  updates: {
-    title?: string;
-    content_type?: string;
-    text_content?: string;
-    attachments?: any[];
-    quiz_data?: any;
-    duration_minutes?: number;
-    is_preview?: boolean;
-    position?: number;
-    asset?: LessonAsset | null;
-  },
+  courseId: string,
+  updates: Partial<Lesson>,
 ) {
+  // 1. Guard Check — Verify educator owns this course
+  const auth = await requireCoursePermission(courseId);
+  if (!auth.authorized) {
+    throw new Error(auth.error);
+  }
+
   const supabase = await createClient();
 
+  // 2. Orphan Tracking Check — ONLY run if 'asset' key is present in updates
+  if ("asset" in updates) {
+    const { data: currentLesson } = await supabase
+      .from("course_lessons")
+      .select("asset")
+      .eq("id", lessonId)
+      .single();
+
+    const oldAsset = currentLesson?.asset as LessonAsset | null;
+
+    if (oldAsset && Object.keys(oldAsset).length > 0) {
+      const newAsset = updates.asset as LessonAsset | null;
+
+      const isReplaced =
+        newAsset &&
+        ((newAsset.public_id && newAsset.public_id !== oldAsset.public_id) ||
+          (newAsset.filename && newAsset.filename !== oldAsset.filename));
+
+      const isCleared = newAsset === null;
+
+      if (isReplaced || isCleared) {
+        await registerOrphanedAsset(
+          supabase,
+          oldAsset,
+          lessonId,
+          courseId,
+          isReplaced ? "replacement_approved" : "asset_removed",
+        );
+      }
+    }
+  }
+
+  // 3. Save updates to database
   const { data, error } = await supabase
     .from("course_lessons")
     .update({
@@ -413,11 +464,18 @@ export async function updateLesson(
     .select()
     .single();
 
+  // 4. Catch database trigger errors (e.g., maximum 2 preview lessons)
   if (error) {
-    throw new Error("Failed to update lesson");
+    if (error.message.includes("maximum of 2 preview lessons")) {
+      throw new Error(
+        "This course already has 2 preview lessons enabled. Please disable a preview on another lesson first.",
+      );
+    }
+    throw new Error(error.message || "Failed to update lesson");
   }
 
-  return data;
+  revalidatePath(`/educator/courses/${courseId}`);
+  return { success: true, data };
 }
 
 // Delete a lesson
