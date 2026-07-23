@@ -369,7 +369,6 @@ export const CourseProvider = ({
     try {
       const updatedLesson = await updateLesson(lessonId, courseId, updates);
       if (updatedLesson) {
-        console.log("success for lessons update");
         setSections((prev) =>
           prev.map((section) =>
             section.id === sectionId
@@ -385,8 +384,8 @@ export const CourseProvider = ({
           ),
         );
       }
-    } catch (error) {
-      toast.error("Failed to update lesson");
+    } catch (error: any) {
+      toast.error(error.message || "failed to update lesson");
     }
   }
 

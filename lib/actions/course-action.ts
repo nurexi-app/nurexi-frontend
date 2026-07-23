@@ -88,14 +88,12 @@ export async function getEducatorCourses(educatorId: string) {
 export async function deleteCourse(courseId: string) {
   const supabase = await createClient();
 
-  // Get course first
   const { data: course } = await supabase
     .from("courses")
     .select("status, is_approved")
     .eq("id", courseId)
     .single();
 
-  // Only allow deletion of drafts
   if (course?.is_approved) {
     throw new Error("Cannot delete approved courses");
   }
@@ -464,11 +462,11 @@ export async function updateLesson(
     .select()
     .single();
 
-  // 4. Catch database trigger errors (e.g., maximum 2 preview lessons)
+  // 4. Catch database trigger errors (e.g., maximum 3 preview lessons)
   if (error) {
-    if (error.message.includes("maximum of 2 preview lessons")) {
+    if (error.message.includes("maximum of 3 preview lessons")) {
       throw new Error(
-        "This course already has 2 preview lessons enabled. Please disable a preview on another lesson first.",
+        "This course already has 3 preview lessons enabled. Please disable a preview on another lesson first.",
       );
     }
     throw new Error(error.message || "Failed to update lesson");
@@ -482,18 +480,36 @@ export async function updateLesson(
 export async function deleteLesson(lessonId: string) {
   const supabase = await createClient();
 
-  // First, get the lesson to know its section and position
+  // 1. Fetch lesson details (including course_id & asset for orphan tracking)
   const { data: lesson, error: fetchError } = await supabase
     .from("course_lessons")
-    .select("section_id, position")
+    .select("course_id, section_id, position, asset")
     .eq("id", lessonId)
     .single();
 
-  if (fetchError) {
+  if (fetchError || !lesson) {
     throw new Error("Lesson not found");
   }
 
-  // Delete the lesson
+  // 2. Auth Guard — Verify educator owns this course
+  const auth = await requireCoursePermission(lesson.course_id);
+  if (!auth.authorized) {
+    throw new Error(auth.error);
+  }
+
+  // 3. Orphan Tracking — If the lesson has an asset, queue it for background cleanup
+  const asset = lesson.asset as LessonAsset | null;
+  if (asset && Object.keys(asset).length > 0) {
+    await registerOrphanedAsset(
+      supabase,
+      asset,
+      lessonId,
+      lesson.course_id,
+      "lesson_deleted",
+    );
+  }
+
+  // 4. Delete the lesson
   const { error: deleteError } = await supabase
     .from("course_lessons")
     .delete()
@@ -503,7 +519,7 @@ export async function deleteLesson(lessonId: string) {
     throw new Error("Failed to delete lesson");
   }
 
-  // Reorder remaining lessons in the same section
+  // 5. Reorder remaining lessons in the same section
   const { data: remainingLessons } = await supabase
     .from("course_lessons")
     .select("id, position")
@@ -519,6 +535,7 @@ export async function deleteLesson(lessonId: string) {
     }
   }
 
+  revalidatePath(`/educator/courses/${lesson.course_id}`);
   return { success: true };
 }
 
