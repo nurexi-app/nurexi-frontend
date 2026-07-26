@@ -12,7 +12,8 @@ export default async function CoursePage({
   const { slug } = await params;
   console.log("slug", slug);
   const supabase = await createClient();
-  console.log("starting supabase fetch");
+  const isEnrolled = false;
+
   const { data, error } = await supabase
     .from("courses")
     .select(
@@ -26,9 +27,9 @@ export default async function CoursePage({
         id,
         title,
         content_type,
-        duration_seconds,
         is_preview,
-        position
+        position,
+        asset
       )
     )
       `,
@@ -37,13 +38,29 @@ export default async function CoursePage({
     .eq("is_approved", true)
     .eq("slug", slug)
     .single();
-  if (error) console.log("supabase error: ", error);
-  if (!data) {
-    notFound();
-  }
-  console.log("data", data);
 
-  const course = data as any;
+  if (error) console.log("supabase error: ", error);
+  if (!data) notFound();
+
+  // 🔒 SECURITY SCRUB: Remove assets for locked lessons before sending to the client
+  const sanitizedSections = data.course_sections?.map((section: any) => ({
+    ...section,
+    course_lessons: section.course_lessons?.map((lesson: any) => {
+      // If the user is NOT enrolled AND the lesson is NOT a preview, strip the asset
+      if (!isEnrolled && !lesson.is_preview) {
+        const { asset, ...lessonWithoutAsset } = lesson; // Destructure to remove 'asset'
+        return lessonWithoutAsset;
+      }
+      // Otherwise, they are allowed to see the asset (preview or enrolled)
+      return lesson;
+    }),
+  }));
+
+  const course = {
+    ...data,
+    course_sections: sanitizedSections,
+  } as any;
+  console.log("sanitize course", course);
   return (
     <main className="mx-auto flex container mt-16 px-4 py-6">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">

@@ -157,7 +157,7 @@ export interface Lesson {
 export interface Section {
   id: string;
   title: string;
-  position?: number;
+  position: number;
   quiz_data: Quiz[] | null;
   lessons: Lesson[];
 }
