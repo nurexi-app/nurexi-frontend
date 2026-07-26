@@ -7,6 +7,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import StoreProvider from "@/context/StoreProvider";
 import LogRocketProvider from "@/context/LogRocketProvider";
+import QueryProvider from "@/context/query-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,7 +49,9 @@ export default function RootLayout({
               },
             }}
           />
-          <StoreProvider>{children}</StoreProvider>
+          <QueryProvider>
+            <StoreProvider>{children}</StoreProvider>
+          </QueryProvider>
         </body>
       </LogRocketProvider>
     </html>
