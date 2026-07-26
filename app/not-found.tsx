@@ -9,7 +9,7 @@ export default function NotFound() {
       <h2 className="mt-4 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
         Page not found
       </h2>
-      <p className="mt-4 text-muted-foreground max-w-[600px]">
+      <p className="mt-4 text-muted-foreground max-w-150">
         Sorry, we couldn't find the page you're looking for. It might have been
         moved, deleted, or never existed.
       </p>

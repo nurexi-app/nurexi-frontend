@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -13,19 +16,9 @@ import {
   Clock,
   Eye,
 } from "lucide-react";
-import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
-
-// ─── types ────────────────────────────────────────────────────────────────────
-
-interface Lesson {
-  id: string;
-  title: string;
-  content_type: "video" | "pdf" | "text";
-  duration_seconds: number | null;
-  is_preview: boolean;
-  position: number;
-}
+import { Button } from "../ui/button";
+import { PreviewModal, Lesson } from "./PreviewModal";
 
 interface Section {
   id: string;
@@ -40,7 +33,7 @@ interface CourseContentAccordionProps {
   isEnrolled?: boolean;
 }
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDuration(seconds: number | null): string {
   if (!seconds) return "";
@@ -66,14 +59,16 @@ function ContentTypeIcon({ type }: { type: Lesson["content_type"] }) {
   return <BookOpen className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />;
 }
 
-// ─── lesson row ───────────────────────────────────────────────────────────────
+// ─── Lesson Row ───────────────────────────────────────────────────────────────
 
 function LessonRow({
   lesson,
   isEnrolled,
+  onPreviewClick,
 }: {
   lesson: Lesson;
   isEnrolled: boolean;
+  onPreviewClick: (lesson: Lesson) => void;
 }) {
   const accessible = isEnrolled || lesson.is_preview;
 
@@ -90,13 +85,15 @@ function LessonRow({
 
       <div className="flex items-center gap-2 shrink-0">
         {lesson.is_preview && !isEnrolled && (
-          <Badge
+          <Button
+            type="button"
             variant="outline"
-            className="text-[10px] px-1.5 py-0 h-4 border-primary/40 text-primary gap-1"
+            onClick={() => onPreviewClick(lesson)}
+            className="text-[10px] px-2 py-0.5 h-6 border-primary/40 text-primary hover:bg-primary/10 gap-1 font-medium cursor-pointer"
           >
-            <Eye className="h-2.5 w-2.5" />
+            <Eye className="h-3 w-3" />
             Preview
-          </Badge>
+          </Button>
         )}
 
         {lesson.duration_seconds ? (
@@ -114,13 +111,17 @@ function LessonRow({
   );
 }
 
-// ─── main component ───────────────────────────────────────────────────────────
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function CourseContentAccordion({
   sections,
   whatYouWillLearn,
   isEnrolled = false,
 }: CourseContentAccordionProps) {
+  const [activePreviewLesson, setActivePreviewLesson] = useState<Lesson | null>(
+    null,
+  );
+
   const totalLessons = sections.reduce(
     (acc, s) => acc + s.course_lessons.length,
     0,
@@ -130,12 +131,11 @@ export default function CourseContentAccordion({
     0,
   );
 
-  // open all sections by default so the curriculum is visible
   const defaultOpen = sections.map((s) => s.id);
 
   return (
     <div className="space-y-6">
-      {/* ── what you'll learn ── */}
+      {/* What You'll Learn */}
       {whatYouWillLearn && whatYouWillLearn.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold mb-3">What you'll learn</h2>
@@ -150,7 +150,7 @@ export default function CourseContentAccordion({
         </div>
       )}
 
-      {/* ── course content accordion ── */}
+      {/* Course Content Accordion */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold">Course content</h2>
@@ -206,7 +206,7 @@ export default function CourseContentAccordion({
                           {!isEnrolled && previewCount > 0 && (
                             <>
                               <span>·</span>
-                              <span className="text-primary">
+                              <span className="text-primary font-medium">
                                 {previewCount} free
                               </span>
                             </>
@@ -227,6 +227,9 @@ export default function CourseContentAccordion({
                               key={lesson.id}
                               lesson={lesson}
                               isEnrolled={isEnrolled}
+                              onPreviewClick={(selectedLesson) =>
+                                setActivePreviewLesson(selectedLesson)
+                              }
                             />
                           ))}
                         </ul>
@@ -238,6 +241,13 @@ export default function CourseContentAccordion({
           </Accordion>
         )}
       </div>
+
+      {/* Interactive Modal */}
+      <PreviewModal
+        lesson={activePreviewLesson}
+        isOpen={!!activePreviewLesson}
+        onClose={() => setActivePreviewLesson(null)}
+      />
     </div>
   );
 }
