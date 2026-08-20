@@ -8,6 +8,8 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import StoreProvider from "@/context/StoreProvider";
 import LogRocketProvider from "@/context/LogRocketProvider";
 import QueryProvider from "@/context/query-provider";
+import { Viewport } from "next";
+import PWAInstallPrompt from "@/components/web/PWAInstallPrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,6 +23,10 @@ const outfit = Outfit({
 
 export const metadata = rootMetadata;
 
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,6 +34,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.deferredPWAEvent = null;
+              window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                window.deferredPWAEvent = e;
+              });
+            `,
+          }}
+        />
+      </head>
       <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID!} />
       <Analytics />
       <SpeedInsights />
@@ -35,6 +54,7 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${outfit.variable} antialiased`}
         >
+          <PWAInstallPrompt />
           <Toaster
             richColors
             closeButton
