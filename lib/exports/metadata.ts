@@ -8,8 +8,19 @@ export const rootMetadata: Metadata = {
   description:
     "Ace your NMCN exam on your first attempt! Practice with realistic nursing CBT mock exams, real past questions, detailed rationales, and NCLEX prep",
   metadataBase: new URL("https://nurexi.com"),
+  applicationName: "Nurexi",
   alternates: {
     canonical: "/",
+  },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Nurexi",
+    // startUpImage: [],
+  },
+  formatDetection: {
+    telephone: false,
   },
   openGraph: {
     title: "Nurexi: Nigeria's #1 Nursing Exam CBT Prep",
@@ -65,11 +76,6 @@ export const rootMetadata: Metadata = {
   creator: "Ochife Ogechukwu",
   publisher: "Nurexi",
   category: "education",
-  appleWebApp: {
-    title: "Nurexi",
-    statusBarStyle: "black-translucent",
-    capable: true,
-  },
 };
 
 export const dashboardMetadata: Metadata = {
