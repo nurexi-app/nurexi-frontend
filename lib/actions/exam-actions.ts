@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { calculateNewStreak } from "../utils";
+import { calculateNewStreak } from "../streak";
 import { addExamActivity } from "./activity-actions";
 import { uploadLearnerAnalytics } from "./learnerAnalytic-action";
 
