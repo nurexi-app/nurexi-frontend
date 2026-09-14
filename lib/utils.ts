@@ -23,31 +23,6 @@ export const formatTime = (totalSeconds: number) => {
     .join(":");
 };
 
-export function calculateNewStreak(
-  currentStreak: number,
-  lastActivityDate: string | null,
-  today: Date = new Date(),
-): number {
-  if (!lastActivityDate) {
-    return 1;
-  }
-
-  const lastDate = new Date(lastActivityDate);
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  // Check if last exam was yesterday
-  if (lastDate.toDateString() === yesterday.toDateString()) {
-    return currentStreak + 1;
-  }
-
-  if (lastDate.toDateString() === today.toDateString()) {
-    return currentStreak;
-  }
-
-  return 1;
-}
-
 export function handleSearchParamsChange(
   searchParams: URLSearchParams,
   key: string,

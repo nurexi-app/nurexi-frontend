@@ -6,6 +6,7 @@ import { selectPerformanceBySubject } from "@/lib/features/exam/customSelector";
 import { formatTime } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { STREAK_UPDATED_EVENT } from "@/lib/streak";
 import { saveExamResult } from "@/lib/actions/exam-actions";
 
 const Timer = () => {
@@ -51,6 +52,9 @@ const Timer = () => {
           };
 
           const response = await saveExamResult(result);
+          if (response.success) {
+            window.dispatchEvent(new Event(STREAK_UPDATED_EVENT));
+          }
 
           if (response.success && response.streakIncreased) {
             toast.success(`🔥 ${response.newStreak} day streak!`);

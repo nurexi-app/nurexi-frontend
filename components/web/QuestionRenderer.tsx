@@ -22,7 +22,6 @@ export default function QuestionRenderer({ question }: { question: Question }) {
     (state) => state.exam,
   );
 
-  console.log("question object :", question);
   const selectedAnswer = answers.find(
     (a) => a.questionId === question?.id,
   )?.selected;
