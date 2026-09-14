@@ -50,12 +50,7 @@ export default function VerificationForm({
     function setUserData() {
       if (bio && specialization && professional_title && years_of_experience) {
         setProfileSet(true);
-        console.log("user obj :", {
-          bio,
-          specialization,
-          professional_title,
-          years_of_experience,
-        });
+
         setFormData({
           bio: bio || "",
           specialization: specialization || "",

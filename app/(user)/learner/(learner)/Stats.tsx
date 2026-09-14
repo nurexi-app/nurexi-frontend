@@ -1,3 +1,5 @@
+import CurrentStreak from "@/components/web/CurrentStreak";
+import { getCurrentStreak } from "@/lib/streak";
 import { Card, CardDescription } from "@/components/ui/card";
 import {
   CalendarCheck,
@@ -32,7 +34,17 @@ export default function StatsGrid({ stats }: { stats: any }) {
     },
     {
       label: "Current Streak",
-      value: `${stats.current_streak || 0} days 🔥`,
+      value: (
+        <CurrentStreak
+          key={stats.user_id}
+          userId={stats.user_id}
+          initialValue={getCurrentStreak(
+            stats.current_streak || 0,
+            stats.last_activity_date,
+          )}
+          initialLastActivityDate={stats.last_activity_date}
+        />
+      ),
       icon: Flame,
       color: "text-orange-500",
     },

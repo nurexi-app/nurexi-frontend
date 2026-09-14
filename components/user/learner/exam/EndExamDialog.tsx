@@ -16,6 +16,7 @@ import { selectPerformanceBySubject } from "@/lib/features/exam/customSelector";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
+import { STREAK_UPDATED_EVENT } from "@/lib/streak";
 import { saveExamResult } from "@/lib/actions/exam-actions";
 
 const EndExamDialog = ({
@@ -59,6 +60,9 @@ const EndExamDialog = ({
 
     try {
       const response = await saveExamResult(payload);
+      if (response.success) {
+        window.dispatchEvent(new Event(STREAK_UPDATED_EVENT));
+      }
 
       if (response.streakIncreased) {
         toast.success(`🔥 ${response.newStreak} day streak!`, {
