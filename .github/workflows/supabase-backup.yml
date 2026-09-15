@@ -1,0 +1,74 @@
+name: Supabase Production Backup
+
+on:
+  # Allows you to run the backup manually from GitHub
+  workflow_dispatch:
+
+  # Runs automatically every day at midnight UTC
+  schedule:
+    - cron: "0 0 * * *"
+
+# The workflow only needs to read the repository
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    name: Backup Supabase Database
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Create backup directory
+        run: mkdir -p backups
+
+      - name: Backup database roles
+        run: |
+          supabase db dump \
+            --db-url "$SUPABASE_DB_URL" \
+            -f backups/roles.sql \
+            --role-only
+
+      - name: Backup database schema
+        run: |
+          supabase db dump \
+            --db-url "$SUPABASE_DB_URL" \
+            -f backups/schema.sql
+
+      - name: Backup database data
+        run: |
+          supabase db dump \
+            --db-url "$SUPABASE_DB_URL" \
+            -f backups/data.sql \
+            --data-only \
+            --use-copy
+
+      - name: Verify backup files
+        run: |
+          echo "Verifying backup files..."
+
+          test -s backups/roles.sql
+          test -s backups/schema.sql
+          test -s backups/data.sql
+
+          echo "Backup files successfully created:"
+          ls -lh backups/
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-backup-${{ github.run_id }}
+          path: backups/
+          retention-days: 7
+          if-no-files-found: error
