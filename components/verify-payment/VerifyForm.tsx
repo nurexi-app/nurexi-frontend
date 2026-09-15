@@ -5,159 +5,30 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import { toast } from "sonner";
+import { validReference } from "@/lib/payments/contracts";
 
-
-type VerificationStatus =
-  | "idle"
-  | "loading"
-  | "success"
-  | "failed"
-  | "pending"
-  | "not_found";
-
-export default function VerifyForm() {
+export default function VerifyForm({ initialReference = "" }: { initialReference?: string }) {
   const router = useRouter();
-  const [reference, setReference] = useState("");
-  const [status, setStatus] = useState<VerificationStatus>("idle");
-  const [message, setMessage] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!reference.trim()) {
-      toast.error("Please enter a transaction reference");
-      return;
-    }
-
-    setStatus("loading");
-    setMessage("");
-
-    try {
-      const response = await fetch("/api/paystack/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reference }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Verification failed");
-      }
-
-      setStatus(data.status);
-      setMessage(data.message);
-
-      if (data.status === "success") {
-        toast.success("Payment verified! Access granted.");
-        setTimeout(() => {
-          router.push("/learner");
-        }, 2000);
-      } else if (data.status === "pending") {
-        toast.info("Payment still processing");
-      } else {
-        toast.error(data.message || "Verification failed");
-      }
-    } catch (error) {
-      setStatus("failed");
-      setMessage(
-        error instanceof Error ? error.message : "Something went wrong",
-      );
-      toast.error("Failed to verify payment");
-    }
-  };
-
+  const [reference, setReference] = useState(initialReference);
+  const [error, setError] = useState("");
+  const [opening, setOpening] = useState(false);
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (opening) return;
+    if (!validReference(reference.trim())) { setError("Enter a valid transaction reference from your receipt."); return; }
+    setOpening(true);
+    // Recovery and the provider callback use exactly the same reconciliation screen.
+    router.push(`/payment/success?reference=${encodeURIComponent(reference.trim())}`);
+  }
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="reference">Transaction Reference</Label>
-        <Input
-          id="reference"
-          type="text"
-          placeholder="e.g., TX_0000000000000_o1k24"
-          value={reference}
-          onChange={(e) => setReference(e.target.value)}
-          disabled={status === "loading"}
-        />
-        <p className="text-xs text-muted-foreground">
-          Found in your payment confirmation email from Paystack
-        </p>
+        <Label htmlFor="reference">Transaction reference</Label>
+        <Input id="reference" value={reference} onChange={(event) => setReference(event.target.value)} disabled={opening} required aria-describedby="reference-help" aria-invalid={!!error} />
+        <p id="reference-help" className="text-sm text-muted-foreground">Use the reference from your payment receipt or confirmation page.</p>
       </div>
-
-      <Button type="submit" disabled={status === "loading"} className="w-full">
-        {status === "loading" ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Verifying...
-          </>
-        ) : (
-          "Verify Payment"
-        )}
-      </Button>
-
-      {/* Result Messages */}
-      {status !== "idle" && status !== "loading" && (
-        <div
-          className={`p-4 rounded-lg ${
-            status === "success"
-              ? "bg-green-50 border border-green-200"
-              : status === "pending"
-                ? "bg-yellow-50 border border-yellow-200"
-                : "bg-red-50 border border-red-200"
-          }`}
-        >
-          <div className="flex items-start gap-3">
-            {status === "success" && (
-              <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-            )}
-            {status === "pending" && (
-              <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
-            )}
-            {(status === "failed" || status === "not_found") && (
-              <XCircle className="h-5 w-5 text-red-600 mt-0.5" />
-            )}
-
-            <div>
-              <p
-                className={`font-medium ${
-                  status === "success"
-                    ? "text-green-800"
-                    : status === "pending"
-                      ? "text-yellow-800"
-                      : "text-red-800"
-                }`}
-              >
-                {status === "success" && "✓ Payment Verified!"}
-                {status === "pending" && "⏳ Payment Processing"}
-                {status === "failed" && "✗ Payment Failed"}
-                {status === "not_found" && "🔍 Transaction Not Found"}
-              </p>
-              <p
-                className={`text-sm mt-1 ${
-                  status === "success"
-                    ? "text-green-700"
-                    : status === "pending"
-                      ? "text-yellow-700"
-                      : "text-red-700"
-                }`}
-              >
-                {message}
-              </p>
-              {status === "success" && (
-                <Button
-                  variant="link"
-                  className="p-0 h-auto mt-2 text-green-700"
-                  onClick={() => router.push("/learner")}
-                >
-                  Go to your dashboard →
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {error && <p role="alert">{error}</p>}
+      <Button type="submit" disabled={opening} className="w-full">{opening ? "Opening payment…" : "Check payment and access"}</Button>
     </form>
   );
 }
