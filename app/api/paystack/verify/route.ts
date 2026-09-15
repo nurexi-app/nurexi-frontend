@@ -1,130 +1,61 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { resend } from "@/lib/email/resend";
+import { PaymentError, reconcilePayment } from "@/lib/payments/paystack";
+import { validReference, type PaymentResult, type PurchasedSession } from "@/lib/payments/contracts";
 
 export async function POST(req: NextRequest) {
   try {
-    const supabaseServer = await createClient();
-    const {
-      data: { user },
-    } = await supabaseServer.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { reference } = await req.json();
-    const userId = user.id;
-    const userEmail = user.email;
-
-    if (!reference) {
-      return NextResponse.json(
-        { error: "Reference required" },
-        { status: 400 },
-      );
-    }
-
-    // Check if already completed
-    const { data: existing, error: fetchError } = await supabaseAdmin
-      .from("purchases")
-      .select("status, payment_reference")
-      .eq("payment_reference", reference)
-      .eq("user_id", userId);
-
-    if (fetchError) {
-      return NextResponse.json({ error: "Database error" }, { status: 500 });
-    }
-
-    if (existing?.some((p: any) => p.status === "completed")) {
-      return NextResponse.json({
-        status: "success",
-        message: "Access already granted for this transaction.",
-      });
-    }
-
-    // Verify with Paystack
-    const verifyRes = await fetch(
-      `https://api.paystack.co/transaction/verify/${reference}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-        },
-      },
-    );
-
-    const verification = await verifyRes.json();
-
-    if (!verification.status) {
-      return NextResponse.json({
-        status: "not_found",
-        message:
-          "Transaction not found. Please check the reference and try again.",
-      });
-    }
-
-    const paymentStatus = verification.data.status;
-
-    if (paymentStatus === "success") {
-      // Update pending purchases to completed
-      const { error: updateError } = await supabaseAdmin
-        .from("purchases")
-        .update({
-          status: "completed",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("payment_reference", reference)
-        .eq("user_id", userId);
-
-      await resend.emails.send({
-        from: "Nurexi Receipts <receipts@mails.nurexi.com>",
-        to: userEmail!,
-        subject: "Payment Confirmation - Nurexi",
-        html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-            <h2 style="color: #2563eb;">Payment Successful!</h2>
-            <p>Thank you for your purchase.</p>
-            <p>Your payment reference is: <strong style="background-color: #f3f4f6; padding: 4px 8px; border-radius: 4px;">${reference}</strong></p>
-            <a href="${process.env.NEXT_PUBLIC_APP_URL}/verify-payment?reference=${reference}">
-              <p>Verify your payment</p>
-            </a>
-            <p>You can use this reference to manually verify your payment on our platform if needed.</p>
-            <br/>
-            <p>Best regards,<br/><strong>The Nurexi Team</strong></p>
-          </div>
-                        `,
-      });
-
-      if (updateError) {
-        return NextResponse.json(
-          { error: "Failed to update purchase status" },
-          { status: 500 },
-        );
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Please sign in to check your payment." }, { status: 401 });
+    const body = await req.json().catch(() => null);
+    const reference = typeof body?.reference === "string" ? body.reference.trim() : null;
+    if (!validReference(reference)) return NextResponse.json({ error: "Enter a valid payment reference." }, { status: 400 });
+    const { purchases, status } = await reconcilePayment(reference, user.id);
+    const bundleIds = [...new Set(purchases.map((row) => row.bundle_id))];
+    const result: PaymentResult = { status: "pending", message: "Your payment is still awaiting confirmation. Do not pay again while we check it.", bundleIds, sessions: [] };
+    if (status === "pending") {
+      const { data: pending } = await supabase.from("purchases").select("checkout_url")
+        .eq("payment_reference", reference).eq("user_id", user.id).limit(1).maybeSingle();
+      if (pending?.checkout_url) {
+        const url = new URL(pending.checkout_url);
+        if (url.protocol === "https:" && url.hostname === "checkout.paystack.com") result.checkoutUrl = url.toString();
       }
-
-      return NextResponse.json({
-        status: "success",
-        message: "Payment verified! Your bundles are now available.",
-      });
     }
-
-    if (paymentStatus === "pending") {
-      return NextResponse.json({
-        status: "pending",
-        message:
-          "Your payment is still processing. This may take a few minutes.",
-      });
+    if (status === "failed" || status === "refunded") {
+      result.status = status;
+      result.message = status === "failed" ? "This payment was unsuccessful or abandoned. You can return to checkout to try again." : "This payment was reversed. Please contact support if you need help.";
+    } else if (status === "paid") {
+      if (purchases.some((row) => row.expires_at && new Date(row.expires_at).getTime() <= Date.now())) {
+        result.status = "expired";
+        result.message = "This payment was completed, but its access period has expired.";
+      } else {
+        // Use the learner's client so this checks both the access RPC and their RLS visibility.
+        const { data: mappings, error } = await supabase.from("bundle_questions")
+          .select("bundle_id,exam_session_id").in("bundle_id", bundleIds);
+        if (error) throw new PaymentError("Payment received. We could not check access yet. Please check again.");
+        let ready = bundleIds.every((id) => mappings?.some((row) => row.bundle_id === id));
+        const sessions: PurchasedSession[] = [];
+        for (const id of [...new Set((mappings || []).map((row) => row.exam_session_id))]) {
+          if (!Number.isSafeInteger(id)) { ready = false; continue; }
+          const { data: access, error: accessError } = await supabase.rpc("check_exam_access", { p_user_id: user.id, p_exam_session_id: id });
+          const { data: session, error: sessionError } = await supabase.from("exam_session")
+            .select("id,session_name,exam_id").eq("id", id).eq("is_active", true).single();
+          const { data: exam } = session ? await supabase.from("exams").select("code").eq("id", session.exam_id).single() : { data: null };
+          const { count, error: questionsError } = await supabase.from("questions")
+            .select("id", { count: "exact", head: true }).eq("exam_session_id", id).eq("is_active", true);
+          if (accessError || access !== true || sessionError || !exam?.code || questionsError || !count) {
+            ready = false;
+          } else sessions.push({ id, name: session.session_name || "Exam session", examCode: exam.code });
+        }
+        result.status = ready && sessions.length ? "success" : "access_pending";
+        result.message = result.status === "success" ? "Payment confirmed. Your exam sessions are ready." : "Payment received, but we could not confirm access to every session. Please check again or contact support. Do not pay again.";
+        result.sessions = result.status === "success" ? sessions : [];
+      }
     }
-
-    return NextResponse.json({
-      status: "failed",
-      message:
-        "Payment verification failed. Please contact support if you believe this is an error.",
-    });
+    return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    console.error("Bundle verification failed", error instanceof Error ? error.message : "Unknown error");
+    return NextResponse.json({ error: error instanceof PaymentError ? error.message : "We could not check your payment. Please try again before paying again." }, { status: error instanceof PaymentError ? error.statusCode : 503 });
   }
 }

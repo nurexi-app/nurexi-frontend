@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
@@ -12,13 +12,15 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/utils";
 
-const Checkout = ({ userObj }: { userObj: any }) => {
+const Checkout = ({ userObj }: { userObj: { success: boolean; data: { id: string; email?: string } | null } }) => {
   const router = useRouter();
   const { items, discount } = useSelector((state: RootState) => state.cart);
-  const [isLoading, setIsLoading] = useState(false);
+  const requestInFlight = useRef(false);
+  const [checkoutError, setCheckoutError] = useState("");
+  const [paymentReference, setPaymentReference] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [email, setEmail] = useState("");
+  const user = userObj.data;
+  const [email, setEmail] = useState(user?.email || "");
 
   // Calculate totals
   const subtotal = items.reduce(
@@ -28,31 +30,13 @@ const Checkout = ({ userObj }: { userObj: any }) => {
   const total = (subtotal - discount) / 100;
   const grandTotal = total;
 
-  // Check authentication on page load
   useEffect(() => {
-    const checkAuth = async () => {
-      if (!userObj.success || !userObj.data) {
-        document.cookie = "redirectTo=/checkout; path=/; max-age=3600";
-        router.push("/login");
-        return;
-      }
-
-      setUser(userObj.data);
-      setEmail(userObj.data.email || "");
-    };
-
-    checkAuth();
-  }, [router]);
-
-  // Redirect if cart is empty
-  useEffect(() => {
-    if (!isLoading && items.length === 0) {
-      router.push("/cart");
-      toast("Your cart is empty");
-    }
-  }, [isLoading, items.length, router]);
+    if (!user) router.replace(`/login?redirect=${encodeURIComponent("/checkout")}`);
+    else if (items.length === 0) router.replace("/cart");
+  }, [user, items.length, router]);
 
   const handleCheckout = async () => {
+    if (requestInFlight.current) return;
     if (!user) {
       toast.error("Please sign in to continue");
       return;
@@ -63,18 +47,23 @@ const Checkout = ({ userObj }: { userObj: any }) => {
       return;
     }
 
+    requestInFlight.current = true;
     setIsProcessing(true);
+    setCheckoutError("");
+    setPaymentReference("");
 
     try {
       // Step 1: Initialize transaction with your backend
       const response = await fetch("/api/paystack/initialize", {
         method: "POST",
+        signal: AbortSignal.timeout(30000),
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
+          expectedAmount: subtotal - discount,
           items: items.map((item) => ({
             id: item.id,
-            name: item.name,
+            type: item.type,
             quantity: item.quantity,
           })),
         }),
@@ -82,13 +71,18 @@ const Checkout = ({ userObj }: { userObj: any }) => {
 
       const data = await response.json();
 
+      if (data.reference) setPaymentReference(data.reference);
       if (!response.ok) {
         throw new Error(data.error || "Failed to initialize payment");
       }
 
       // Step 2: Redirect to Paystack payment page
-      window.location.href = data.authorization_url;
+      const url = new URL(data.authorization_url);
+      if (url.protocol !== "https:" || url.hostname !== "checkout.paystack.com") throw new Error("Unable to open secure checkout.");
+      window.location.href = url.toString();
     } catch (error) {
+      requestInFlight.current = false;
+      setCheckoutError(error instanceof Error ? error.message : "Unable to open payment. Please check again.");
       toast.error(
         error instanceof Error
           ? error.message
@@ -98,14 +92,6 @@ const Checkout = ({ userObj }: { userObj: any }) => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto mt-10 px-4 py-16 flex justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   if (items.length === 0) {
     return null;
   }
@@ -114,7 +100,7 @@ const Checkout = ({ userObj }: { userObj: any }) => {
     <div className="container mt-18 mx-auto px-4 py-8 ">
       <div className="flex items-center gap-4 mb-6">
         <Link href="/cart">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" aria-label="Back to cart">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
@@ -152,7 +138,7 @@ const Checkout = ({ userObj }: { userObj: any }) => {
               {discount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount</span>
-                  <span>-${formatPrice(discount)}</span>
+                  <span>-{formatPrice(discount / 100)}</span>
                 </div>
               )}
               <div className="border-t pt-2 flex justify-between font-semibold text-lg">
@@ -183,9 +169,13 @@ const Checkout = ({ userObj }: { userObj: any }) => {
               </p>
             </div>
 
+            {checkoutError && <div role="alert" className="space-y-2 text-sm">
+              <p>{checkoutError}</p>
+              {paymentReference && <Link className="underline" href={`/payment/success?reference=${encodeURIComponent(paymentReference)}`}>Check existing payment</Link>}
+            </div>}
             <Button
               onClick={handleCheckout}
-              disabled={isProcessing || !email}
+              disabled={isProcessing || !email || !!paymentReference || !user}
               className="w-full h-12 text-base font-semibold"
             >
               {isProcessing ? (
@@ -199,7 +189,7 @@ const Checkout = ({ userObj }: { userObj: any }) => {
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">
-              You will be redirected to Paystack's secure payment page
+              You will be redirected to Paystack’s secure payment page
             </p>
           </div>
         </div>

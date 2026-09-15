@@ -1,238 +1,661 @@
-# Nursing CBT Platform - Database Schema
+-- ═════════════════════════════════════════════════════════════════════════════
+-- NUREXI — User-facing backend schema
+-- Covers: auth, profiles, exam practice, courses, purchases, progress
+-- Excludes: admin-only tables (manage.nurexi.com), internal tooling
+-- ═════════════════════════════════════════════════════════════════════════════
 
-## 📋 Overview
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 1. PROFILES
+-- Extended user data synced from auth.users
+-- ─────────────────────────────────────────────────────────────────────────────
 
-This document outlines the database structure for a multi-exam nursing CBT platform with support for:
+CREATE TABLE public.profiles (
+id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+created_at timestamptz NOT NULL DEFAULT now(),
+updated_at timestamptz DEFAULT now(),
 
-- Multiple exam types (NMCN, NCLEX, UK CBT)
-- Subject-based learning (Anatomy, Med-Surg, etc.)
-- Year-based exam simulation
-- Bundle monetization (free/paid content)
-- User access control via RLS
+-- identity
+email text,
+full_name text,
+avatar_url text,
+bio text,
+professional_title text,
 
-## 🗂️ Tables
+-- role-based access — array of role strings
+-- e.g. ['learner'] | ['super-educator'] | ['admin']
+roles text[] NOT NULL DEFAULT ARRAY['learner'],
 
-### 1. `profiles`
-
-**Purpose:** Extends Supabase auth.users with app-specific user data
-
-```sql
-CREATE TABLE profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id),
-  full_name TEXT,
-  email TEXT,
-  avatar_url TEXT,
-  roles TEXT[] DEFAULT '{}',
-  onboarding_complete BOOLEAN DEFAULT false,
-  created_at TIMESTAMP DEFAULT NOW()
+CONSTRAINT profiles_pkey PRIMARY KEY (id)
 );
-```
 
-### 2. `subjects`
+-- public read-only projection (used on resource/course pages)
+-- syncs only safe columns — prevents future columns leaking automatically
+CREATE TABLE public.public_profiles (
+id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+full_name text,
+avatar_url text,
+bio text,
+professional_title text,
+CONSTRAINT public_profiles_pkey PRIMARY KEY (id)
+);
 
-**Purpose:** Learning topics/categories (Anatomy, Medical Surgical Nursing, etc.)
-**RLS:** Anyone can view, only admins can modify
-
-### 3. `exams`
-
-**Purpose:** Exam types (NMCN, NCLEX, UK CBT)
-**RLS:** Anyone can view, only admins can modify
-
-### 4. `years`
-
-**Purpose:** Years available per exam (2024, 2023, etc.)
-**RLS:** Anyone can view, only admins can modify
-
-### 5. `questions`
-
-**Purpose:** The actual question content
-**RLS:** Users can only view questions they have access to (via user_access)
-
-### 6. `bundles`
-
-**Purpose:** What users purchase (e.g., "NMCN 2024 Complete")
-**RLS:** Anyone can view, only admins can modify
-
-### 7. `bundle_questions`
-
-**Purpose:** Links bundles to questions (many-to-many)
-**RLS:** Anyone can view, only admins can modify
-
-### 8. `purchases`
-
-**Purpose:** Tracks what users have bought
-**RLS:** Users see own purchases, admins see all
-
-### 9. `user_access`
-
-**Purpose:** Cache table for fast access checking
-**RLS:** Users see own access, system manages via triggers
-
-## 🔗 Relationships
-
-exams ──┬── years ──┐
-│ │
-└── bundles ─┼── bundle_questions ── questions
-│ ↑
-subjects ───────────┴───────────────────────┘
-
-purchases ── bundles
-↑
-user_access ── questions
-
-## 🔐 Row Level Security (RLS)
-
-### Admin Check Function
-
-```sql
-CREATE OR REPLACE FUNCTION is_admin()
-RETURNS BOOLEAN AS $$
+-- trigger keeps public_profiles in sync with profiles
+CREATE OR REPLACE FUNCTION sync_public_profile()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM profiles
-    WHERE id = auth.uid()
-    AND 'admin' = ANY(roles)
-  );
+INSERT INTO public.public_profiles (id, full_name, avatar_url, bio, professional_title)
+VALUES (NEW.id, NEW.full_name, NEW.avatar_url, NEW.bio, NEW.professional_title)
+ON CONFLICT (id) DO UPDATE SET
+full_name = EXCLUDED.full_name,
+avatar_url = EXCLUDED.avatar_url,
+bio = EXCLUDED.bio,
+professional_title = EXCLUDED.professional_title;
+RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-```
 
-### Key RLS Policies
+$$
+;
 
-**Questions Table:**
+CREATE TRIGGER profiles_sync_public
+AFTER INSERT OR UPDATE ON public.profiles
+FOR EACH ROW EXECUTE FUNCTION sync_public_profile();
 
-```sql
-CREATE POLICY "Users can view questions they have access to" ON questions
-  FOR SELECT USING (
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.public_profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "users_read_own_profile"        ON public.profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "users_update_own_profile"      ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "public_profiles_readable_by_all" ON public.public_profiles FOR SELECT USING (true);
+
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 2. EXAM PRACTICE
+-- subjects → exam_sessions → questions → user_answers
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE public.subjects (
+  id          serial      PRIMARY KEY,
+  name        text        NOT NULL,
+  description text,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.exam_session (
+  id                uuid        NOT NULL DEFAULT gen_random_uuid(),
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  session_name      text,
+  exam_reference    text,
+  year              text,
+  is_active         boolean     DEFAULT false,
+  created_by        uuid        REFERENCES public.profiles(id) ON DELETE SET NULL,
+  CONSTRAINT exam_session_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE public.questions (
+  id                  bigint      GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  created_at          timestamptz NOT NULL DEFAULT now(),
+  updated_at          timestamptz          DEFAULT now(),
+  question_text       text        NOT NULL,
+  question_type       text        NOT NULL DEFAULT 'mcq',
+  -- mcq | true_false | short_answer
+  options             jsonb,                -- array of option strings for mcq
+  correct_answer      text,
+  explanation         text,                 -- plain text (legacy)
+  rich_explanation    jsonb,                -- tiptap JSON (new — preferred)
+  difficulty          text        DEFAULT 'medium',
+  topics              text[],
+  is_active           boolean     DEFAULT true,
+  created_by          uuid        REFERENCES public.profiles(id) ON DELETE SET NULL,
+  exam_session_id     uuid        REFERENCES public.exam_session(id) ON DELETE SET NULL,
+  subject_id          integer     REFERENCES public.subjects(id) ON DELETE SET NULL
+);
+
+-- exam attempts by users
+CREATE TABLE public.exams (
+  id            uuid        NOT NULL DEFAULT gen_random_uuid(),
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  user_id       uuid        REFERENCES public.profiles(id) ON DELETE CASCADE,
+  session_id    uuid        REFERENCES public.exam_session(id) ON DELETE SET NULL,
+  score         numeric(5,2),
+  total_questions integer,
+  time_taken    integer,  -- seconds
+  mode          text      DEFAULT 'exam',  -- 'exam' | 'learning'
+  completed_at  timestamptz,
+  CONSTRAINT exams_pkey PRIMARY KEY (id)
+);
+
+-- individual question answers within an exam attempt
+CREATE TABLE public.user_answers (
+  id              uuid        NOT NULL DEFAULT gen_random_uuid(),
+  exam_id         uuid        NOT NULL REFERENCES public.exams(id) ON DELETE CASCADE,
+  question_id     bigint      REFERENCES public.questions(id) ON DELETE SET NULL,
+  selected_answer text,
+  is_correct      boolean,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT user_answers_pkey PRIMARY KEY (id)
+);
+
+ALTER TABLE public.questions    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.exam_session ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.exams        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_answers ENABLE ROW LEVEL SECURITY;
+
+-- active questions readable by all authenticated users
+CREATE POLICY "active_questions_readable"
+  ON public.questions FOR SELECT
+  USING (is_active = true AND auth.role() = 'authenticated');
+
+-- active sessions readable by all authenticated users
+CREATE POLICY "active_sessions_readable"
+  ON public.exam_session FOR SELECT
+  USING (is_active = true AND auth.role() = 'authenticated');
+
+-- users manage their own exams and answers
+CREATE POLICY "users_manage_own_exams"
+  ON public.exams FOR ALL USING (auth.uid() = user_id);
+
+CREATE POLICY "users_manage_own_answers"
+  ON public.user_answers FOR ALL
+  USING (
+    auth.uid() = (SELECT user_id FROM public.exams WHERE id = exam_id)
+  );
+
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 3. BUNDLES
+-- grouping of exam sessions sold together
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE public.bundles (
+  id          uuid        NOT NULL DEFAULT gen_random_uuid(),
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  name        text        NOT NULL,
+  description text,
+  price       bigint      NOT NULL DEFAULT 0,
+  is_active   boolean     DEFAULT false,
+  created_by  uuid        REFERENCES public.profiles(id) ON DELETE SET NULL,
+  CONSTRAINT bundles_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE public.bundle_questions (
+  id          uuid        NOT NULL DEFAULT gen_random_uuid(),
+  bundle_id   uuid        NOT NULL REFERENCES public.bundles(id) ON DELETE CASCADE,
+  session_id  uuid        REFERENCES public.exam_session(id) ON DELETE SET NULL,
+  CONSTRAINT bundle_questions_pkey PRIMARY KEY (id)
+);
+
+ALTER TABLE public.bundles          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.bundle_questions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "active_bundles_readable"
+  ON public.bundles FOR SELECT USING (is_active = true);
+
+CREATE POLICY "bundle_questions_readable"
+  ON public.bundle_questions FOR SELECT USING (true);
+
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 4. COURSES
+-- full video/text course product
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE public.courses (
+  id                uuid        NOT NULL DEFAULT gen_random_uuid(),
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz          DEFAULT now(),
+  educator_id       uuid        REFERENCES public.profiles(id),
+
+  -- content
+  title             text        DEFAULT 'untitled course',
+  slug              text        UNIQUE,
+  description       text,
+  what_you_will_learn text[],
+  requirements      text[],
+  target_audience   text,
+  cover_image       text        DEFAULT '',
+  expected_duration text,
+  difficulty_level  text        DEFAULT 'beginner',
+  language          text        DEFAULT 'english',
+
+  -- pricing
+  price             bigint      CHECK (price >= 500),
+  is_free           boolean     DEFAULT false,
+  has_discount      boolean     DEFAULT false,
+  discount_type     text        CHECK (discount_type IN ('percentage', 'fixed')),
+  discount_value    integer,
+  discount_expiry   timestamptz,
+
+  -- workflow
+  status            text        DEFAULT 'draft',
+  -- draft | published | archived
+  is_published      boolean     DEFAULT false,
+  is_approved       boolean     DEFAULT false,
+  published_at      timestamptz,
+
+  CONSTRAINT courses_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE public.course_sections (
+  id          uuid        NOT NULL DEFAULT gen_random_uuid(),
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz,
+  course_id   uuid        REFERENCES public.courses(id) ON DELETE CASCADE,
+  title       text        DEFAULT 'Section title',
+  position    smallint    DEFAULT 0,
+  quiz_data   jsonb,
+  CONSTRAINT course_sections_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE public.course_lessons (
+  id                          uuid        NOT NULL DEFAULT gen_random_uuid(),
+  created_at                  timestamptz NOT NULL DEFAULT now(),
+  updated_at                  timestamptz,
+  course_id                   uuid        REFERENCES public.courses(id) ON DELETE CASCADE,
+  section_id                  uuid        REFERENCES public.course_sections(id) ON DELETE CASCADE,
+  title                       text        DEFAULT 'Lesson title',
+  content_type                text        DEFAULT 'video',
+  -- video | pdf | text
+  text_content                text,
+  duration_minutes            integer     DEFAULT 0,
+  duration_seconds            integer,
+  is_preview                  boolean     DEFAULT false,
+  position                    smallint    DEFAULT 0,
+
+  -- asset JSONB — provider-agnostic
+  -- shape: { provider, type, public_id, playback_url, secure_url,
+  --          thumbnail_url, duration_seconds, width, height,
+  --          filename, bucket_name }
+  asset                       jsonb       DEFAULT '{}',
+
+  -- pending replacement — video only, requires admin approval
+  pending_asset               jsonb,
+  pending_asset_requested_at  timestamptz,
+  pending_asset_note          text,
+
+  CONSTRAINT course_lessons_pkey PRIMARY KEY (id)
+);
+
+ALTER TABLE public.courses         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.course_sections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.course_lessons  ENABLE ROW LEVEL SECURITY;
+
+-- published + approved courses visible to everyone
+CREATE POLICY "published_courses_readable"
+  ON public.courses FOR SELECT
+  USING (is_published = true AND is_approved = true);
+
+-- sections and lessons of accessible courses
+CREATE POLICY "course_sections_readable"
+  ON public.course_sections FOR SELECT
+  USING (
     EXISTS (
-      SELECT 1 FROM user_access ua
-      WHERE ua.user_id = auth.uid()
-      AND ua.question_id = questions.id
+      SELECT 1 FROM public.courses
+      WHERE id = course_id
+        AND is_published = true
+        AND is_approved = true
     )
   );
-```
 
-**Purchases Table:**
+CREATE POLICY "course_lessons_readable"
+  ON public.course_lessons FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.courses
+      WHERE id = course_id
+        AND is_published = true
+        AND is_approved = true
+    )
+  );
 
-```sql
-CREATE POLICY "Users can view own purchases" ON purchases
-  FOR SELECT USING (auth.uid() = user_id);
-```
 
-## ⚡ Automatic Access Triggers
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 5. PURCHASES
+-- unified purchase records for courses and bundles
+-- ─────────────────────────────────────────────────────────────────────────────
 
-### Grant Access on Purchase
+CREATE TABLE public.course_purchases (
+  id                  uuid           NOT NULL DEFAULT gen_random_uuid(),
+  created_at          timestamptz    DEFAULT now(),
+  updated_at          timestamptz    DEFAULT now(),
+  purchased_at        timestamptz    DEFAULT now(),
+  expires_at          timestamptz,   -- null = lifetime access
 
-```sql
-CREATE TRIGGER after_purchase_insert
-  AFTER INSERT ON purchases
-  FOR EACH ROW
-  EXECUTE FUNCTION grant_purchase_access();
-```
+  user_id             uuid           REFERENCES public.profiles(id) ON DELETE SET NULL,
+  course_id           uuid           REFERENCES public.courses(id) ON DELETE RESTRICT,
+  educator_id         uuid           REFERENCES public.profiles(id) ON DELETE SET NULL,
 
-### Grant Access on Free Bundle
+  -- financials
+  amount_paid         numeric(10,2)  NOT NULL,
+  platform_fee        numeric(10,2)  NOT NULL,
+  educator_earnings   numeric(10,2)  NOT NULL,
 
-```sql
-CREATE TRIGGER after_bundle_update
-  AFTER UPDATE OF is_free ON bundles
-  FOR EACH ROW
-  WHEN (NEW.is_free = true)
-  EXECUTE FUNCTION grant_free_bundle_access();
-```
+  -- payment
+  payment_reference   text,
+  status              text           DEFAULT 'pending',
+  -- pending | completed | failed | refunded
 
-## 📊 Indexing Strategy
-
-```sql
--- For fast lookups
-CREATE INDEX idx_questions_subject ON questions(subject_id);
-CREATE INDEX idx_questions_year ON questions(year_id);
-CREATE INDEX idx_questions_topics ON questions USING GIN(topics);
-CREATE INDEX idx_bundle_questions_bundle ON bundle_questions(bundle_id);
-CREATE INDEX idx_bundle_questions_question ON bundle_questions(question_id);
-CREATE INDEX idx_purchases_user ON purchases(user_id);
-CREATE INDEX idx_user_access_user ON user_access(user_id, question_id);
-```
-
-## 🎯 How Users Get Access
-
-| Scenario                | How Access is Granted                            |
-| ----------------------- | ------------------------------------------------ |
-| User purchases bundle   | Trigger adds all bundle questions to user_access |
-| Admin makes bundle free | Trigger adds all bundle questions to ALL users   |
-| Free bundle exists      | Everyone automatically has access                |
-
-## 🔄 Sample Queries
-
-### Get all questions for a subject (learning mode)
-
-```sql
-SELECT q.* FROM questions q
-WHERE q.subject_id = 1
-AND EXISTS (
-  SELECT 1 FROM user_access ua
-  WHERE ua.user_id = auth.uid()
-  AND ua.question_id = q.id
+  CONSTRAINT course_purchases_pkey PRIMARY KEY (id)
 );
-```
 
-### Get all questions for an exam year (exam mode)
+CREATE INDEX idx_course_purchases_user      ON public.course_purchases (user_id);
+CREATE INDEX idx_course_purchases_course    ON public.course_purchases (course_id);
+CREATE INDEX idx_course_purchases_educator  ON public.course_purchases (educator_id);
+CREATE INDEX idx_course_purchases_status    ON public.course_purchases (status);
 
-```sql
-SELECT q.* FROM questions q
-JOIN years y ON q.year_id = y.id
-WHERE y.exam_id = 1 AND y.year_value = 2024
-AND EXISTS (
-  SELECT 1 FROM user_access ua
-  WHERE ua.user_id = auth.uid()
-  AND ua.question_id = q.id
+ALTER TABLE public.course_purchases ENABLE ROW LEVEL SECURITY;
+
+-- users can see their own purchases
+CREATE POLICY "users_read_own_purchases"
+  ON public.course_purchases FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- educators can see purchases of their own courses
+CREATE POLICY "educators_read_own_course_purchases"
+  ON public.course_purchases FOR SELECT
+  USING (auth.uid() = educator_id);
+
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 6. LESSON PROGRESS
+-- tracks which lessons a student has completed
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE public.lesson_progress (
+  id                    uuid        NOT NULL DEFAULT gen_random_uuid(),
+  created_at            timestamptz NOT NULL DEFAULT now(),
+  updated_at            timestamptz          DEFAULT now(),
+
+  user_id               uuid        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  course_id             uuid        NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
+  lesson_id             uuid        NOT NULL REFERENCES public.course_lessons(id) ON DELETE CASCADE,
+
+  completed_at          timestamptz,          -- null = started but not completed
+  last_watched_seconds  integer     DEFAULT 0, -- video resume position
+
+  CONSTRAINT lesson_progress_pkey PRIMARY KEY (id),
+  CONSTRAINT lesson_progress_unique UNIQUE (user_id, lesson_id)
 );
-```
 
-### Check if user has access to a specific question
+CREATE INDEX idx_lesson_progress_user   ON public.lesson_progress (user_id);
+CREATE INDEX idx_lesson_progress_course ON public.lesson_progress (user_id, course_id);
 
-```sql
-SELECT EXISTS (
-  SELECT 1 FROM user_access
-  WHERE user_id = auth.uid()
-  AND question_id = 123
-) as has_access;
-```
+ALTER TABLE public.lesson_progress ENABLE ROW LEVEL SECURITY;
 
-## 🚀 Future Improvements
+CREATE POLICY "users_manage_own_progress"
+  ON public.lesson_progress FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
-- Add `payment_provider` and `payment_reference` to purchases
-- Add `expires_at` for time-limited access
-- Add `question_version` for question updates
-- Create materialized views for analytics
-- Add audit logs for admin actions
 
----
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 7. COURSE REVIEWS
+-- ─────────────────────────────────────────────────────────────────────────────
 
-## 📝 Maintenance Notes
+CREATE TABLE public.course_reviews (
+  id           uuid        NOT NULL DEFAULT gen_random_uuid(),
+  created_at   timestamptz DEFAULT now(),
+  updated_at   timestamptz DEFAULT now(),
 
-- **Never delete from user_access** - Let triggers manage it
-- **When adding questions to a bundle**, existing users won't auto-get access (they'd need to repurchase)
-- **When marking bundle as free**, all users get access automatically
-- **When removing questions from bundle**, users keep access (they already "paid")
+  course_id    uuid        NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
+  user_id      uuid        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  educator_id  uuid        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  rating       integer     NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  review       text,
+  is_approved  boolean     DEFAULT false,
 
-## 👥 User Roles
+  CONSTRAINT course_reviews_pkey PRIMARY KEY (id)
+);
 
-| Role         | Capabilities                                                |
-| ------------ | ----------------------------------------------------------- |
-| **Learner**  | View accessible questions, take exams, purchase bundles     |
-| **Educator** | Create courses (future), view their content stats           |
-| **Admin**    | Full CRUD on all tables, manage bundles, view all purchases |
+CREATE INDEX idx_course_reviews_course   ON public.course_reviews (course_id);
+CREATE INDEX idx_course_reviews_educator ON public.course_reviews (educator_id);
+CREATE INDEX idx_course_reviews_approved ON public.course_reviews (is_approved);
 
-## 🔧 Setup Order
+ALTER TABLE public.course_reviews ENABLE ROW LEVEL SECURITY;
 
-1. Create tables in order (profiles → subjects → exams → years → questions → bundles → bundle_questions → purchases → user_access)
-2. Create admin function
-3. Create RLS policies
-4. Create triggers
-5. Add indexes
-6. Insert sample data
-7. Test with different user roles
+-- only approved reviews visible to public
+CREATE POLICY "approved_reviews_readable"
+  ON public.course_reviews FOR SELECT
+  USING (is_approved = true);
 
-```
+-- users can insert reviews only if they have a completed purchase
+CREATE POLICY "purchasers_can_review"
+  ON public.course_reviews FOR INSERT
+  WITH CHECK (
+    auth.uid() = user_id
+    AND EXISTS (
+      SELECT 1 FROM public.course_purchases
+      WHERE user_id = auth.uid()
+        AND course_id = course_reviews.course_id
+        AND status = 'completed'
+    )
+  );
 
-```
+-- users can update/delete their own reviews
+CREATE POLICY "users_manage_own_reviews"
+  ON public.course_reviews FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "users_delete_own_reviews"
+  ON public.course_reviews FOR DELETE USING (auth.uid() = user_id);
+
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 8. RESOURCE CENTRE
+-- free public articles / micro-posts from contributors
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE public.resources (
+  id              bigint      GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  updated_at      timestamptz NOT NULL DEFAULT now(),
+  published_at    timestamptz,
+
+  title           text        NOT NULL DEFAULT '',
+  slug            text        NOT NULL UNIQUE,
+  excerpt         text        NOT NULL DEFAULT '',
+  content         jsonb,               -- tiptap JSON
+  cover_image_url text,
+
+  category        text        NOT NULL DEFAULT 'study'
+                  CHECK (category IN ('study','clinical','career','professional','community')),
+  resource_type   text        NOT NULL DEFAULT 'article'
+                  CHECK (resource_type IN ('article','micro','video','guide')),
+  status          text        NOT NULL DEFAULT 'draft'
+                  CHECK (status IN ('draft','pending_review','published')),
+
+  created_by      uuid        REFERENCES public.profiles(id) ON DELETE SET NULL,
+  subject_id      integer     REFERENCES public.subjects(id) ON DELETE SET NULL,
+
+  -- contributor social links: [{ label, url, icon }]
+  creator_links   jsonb       NOT NULL DEFAULT '[]'
+);
+
+ALTER TABLE public.resources ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "public_read_published_resources"
+  ON public.resources FOR SELECT
+  USING (status = 'published');
+
+CREATE POLICY "contributor_read_own_resources"
+  ON public.resources FOR SELECT
+  USING (auth.uid() = created_by);
+
+CREATE POLICY "contributor_insert_own_resources"
+  ON public.resources FOR INSERT
+  WITH CHECK (auth.uid() = created_by);
+
+CREATE POLICY "contributor_update_own_resources"
+  ON public.resources FOR UPDATE
+  USING (auth.uid() = created_by)
+  WITH CHECK (
+    auth.uid() = created_by
+    AND status IN ('draft', 'pending_review')
+  );
+
+CREATE POLICY "contributor_delete_own_draft_resources"
+  ON public.resources FOR DELETE
+  USING (auth.uid() = created_by AND status IN ('draft', 'pending_review'));
+
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 9. ORPHANED ASSETS
+-- async queue for files on external storage pending deletion
+-- processed by cleanup-orphaned-assets Edge Function (daily cron)
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE public.orphaned_assets (
+  id                    uuid        NOT NULL DEFAULT gen_random_uuid(),
+  created_at            timestamptz NOT NULL DEFAULT now(),
+
+  -- free text — no constraint so any future provider works
+  -- expected: cloudinary | supabase | bunny
+  provider              text        NOT NULL,
+  asset_identifier      text        NOT NULL,
+
+  resource_type         text        DEFAULT 'video',  -- cloudinary only
+  bucket_name           text,                          -- supabase only
+
+  -- audit
+  lesson_id             uuid,
+  course_id             uuid,
+  reason                text,
+  -- asset_removed | lesson_deleted | replacement_approved
+
+  -- lifecycle
+  orphaned_at           timestamptz NOT NULL DEFAULT now(),
+  scheduled_delete_at   timestamptz NOT NULL DEFAULT (now() + interval '30 days'),
+  deleted_at            timestamptz,
+  delete_error          text,
+
+  CONSTRAINT orphaned_assets_pkey PRIMARY KEY (id)
+);
+
+CREATE INDEX orphaned_assets_cleanup_idx
+  ON public.orphaned_assets (scheduled_delete_at) WHERE deleted_at IS NULL;
+
+ALTER TABLE public.orphaned_assets ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "service_role_manages_orphaned_assets"
+  ON public.orphaned_assets FOR ALL
+  USING (auth.role() = 'service_role');
+
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 10. SLUG GENERATION HELPERS
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- generic slug generator (used for resources)
+CREATE OR REPLACE FUNCTION generate_slug(title TEXT)
+RETURNS TEXT LANGUAGE plpgsql AS
+$$
+
+DECLARE
+base_slug TEXT;
+final_slug TEXT;
+counter INT := 0;
+BEGIN
+base_slug := regexp_replace(
+regexp_replace(lower(trim(title)), '[^a-z0-9]+', '-', 'g'),
+'^-+|-+$', '', 'g'
+);
+final_slug := base_slug;
+WHILE EXISTS (SELECT 1 FROM public.resources WHERE slug = final_slug) LOOP
+counter := counter + 1;
+final_slug := base_slug || '-' || counter;
+END LOOP;
+RETURN final_slug;
+END;
+
+$$
+;
+
+-- course-specific slug generator (checks courses table)
+CREATE OR REPLACE FUNCTION generate_course_slug(title TEXT)
+RETURNS TEXT LANGUAGE plpgsql AS
+$$
+
+DECLARE
+base_slug TEXT;
+final_slug TEXT;
+counter INT := 0;
+BEGIN
+base_slug := regexp_replace(
+regexp_replace(lower(trim(title)), '[^a-z0-9]+', '-', 'g'),
+'^-+|-+$', '', 'g'
+);
+final_slug := base_slug;
+WHILE EXISTS (SELECT 1 FROM public.courses WHERE slug = final_slug) LOOP
+counter := counter + 1;
+final_slug := base_slug || '-' || counter;
+END LOOP;
+RETURN final_slug;
+END;
+
+$$
+;
+
+-- auto-slug trigger for resources
+CREATE OR REPLACE FUNCTION auto_resource_slug()
+RETURNS TRIGGER LANGUAGE plpgsql AS
+$$
+
+BEGIN
+IF NEW.slug IS NULL OR NEW.slug = '' THEN
+NEW.slug := generate_slug(NEW.title);
+END IF;
+RETURN NEW;
+END;
+
+$$
+;
+
+CREATE TRIGGER resources_auto_slug
+BEFORE INSERT ON public.resources
+FOR EACH ROW EXECUTE FUNCTION auto_resource_slug();
+
+-- updated_at triggers
+CREATE OR REPLACE FUNCTION touch_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS
+$$
+
+BEGIN
+NEW.updated_at := now();
+RETURN NEW;
+END;
+
+$$
+;
+
+CREATE TRIGGER courses_updated_at
+BEFORE UPDATE ON public.courses
+FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
+
+CREATE TRIGGER resources_updated_at
+BEFORE UPDATE ON public.resources
+FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
+
+CREATE TRIGGER lesson_progress_updated_at
+BEFORE UPDATE ON public.lesson_progress
+FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
+
+-- auto set published_at on resources
+CREATE OR REPLACE FUNCTION set_resource_published_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS
+$$
+
+BEGIN
+IF NEW.status = 'published' AND OLD.status <> 'published' THEN
+NEW.published_at := now();
+END IF;
+IF NEW.status <> 'published' THEN
+NEW.published_at := NULL;
+END IF;
+RETURN NEW;
+END;
+
+$$
+;
+
+CREATE TRIGGER resources_published_at
+BEFORE UPDATE ON public.resources
+FOR EACH ROW EXECUTE FUNCTION set_resource_published_at();
+$$
