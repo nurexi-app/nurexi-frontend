@@ -61,7 +61,7 @@ export async function SignUp(payload: {
 export async function Login(payload: {
   email: string;
   password: string;
-  //   rememberMe: boolean;
+  returnTo?: string;
 }) {
   const supabase = await createClient();
 
@@ -85,7 +85,7 @@ export async function Login(payload: {
   return {
     success: true,
     data: {
-      redirect: redirectTo || "/learner",
+      redirect: safeReturnTo(payload.returnTo) || safeReturnTo(redirectTo) || "/learner",
     },
   };
 }
@@ -141,7 +141,7 @@ export async function AuthenticateWithGoogle(next: string) {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/${next}`,
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent(safeReturnTo(`/${next}`) || "/learner")}`,
       queryParams: {
         access_type: "offline",
         prompt: "consent",
@@ -154,12 +154,12 @@ export async function AuthenticateWithGoogle(next: string) {
   }
 }
 
-export async function AuthenticateWithX() {
+export async function AuthenticateWithX(returnTo?: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "x",
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/welcome`,
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent(safeReturnTo(returnTo) || "/welcome")}`,
     },
   });
 
@@ -253,4 +253,9 @@ export async function DeleteAccountAction(password: string) {
 
   revalidatePath("/", "layout");
   redirect("/login");
+}
+
+function safeReturnTo(value?: string) {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || /[\\\x00-\x1f]/.test(value)) return null;
+  return value;
 }

@@ -31,7 +31,7 @@ import {
 
 type loginFormValues = z.infer<typeof loginSchema>;
 
-export function LoginForm() {
+export function LoginForm({ returnTo }: { returnTo?: string }) {
   const form = useForm<loginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -48,7 +48,7 @@ export function LoginForm() {
 
   function onSubmit(data: loginFormValues) {
     startTransition(async () => {
-      const response = await Login(data);
+      const response = await Login({ ...data, returnTo });
       if (!response.success) {
         toast.error("Error", {
           description: <p className="bodyText">{response.error}</p>,
@@ -58,7 +58,7 @@ export function LoginForm() {
       toast.success("success", {
         description: <p className="bodyText">Welcome back</p>,
       });
-      router.push(response.data?.redirect!!);
+      router.push(response.data?.redirect || "/learner");
     });
   }
 
@@ -172,7 +172,7 @@ export function LoginForm() {
             <Button
               variant="outline"
               type="button"
-              onClick={async () => await AuthenticateWithGoogle("learner")}
+              onClick={async () => await AuthenticateWithGoogle(returnTo?.slice(1) || "learner")}
             >
               <FcGoogle className="mr-2 h-4 w-4" />
               <span className="hidden md:inline-block">
@@ -184,7 +184,7 @@ export function LoginForm() {
             <Button
               variant="outline"
               type="button"
-              onClick={async () => await AuthenticateWithX()}
+              onClick={async () => await AuthenticateWithX(returnTo)}
             >
               <FaXTwitter className="mr-2 h-4 w-4" />X
             </Button>
