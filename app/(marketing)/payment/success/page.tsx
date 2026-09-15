@@ -1,4 +1,3 @@
-import ExamPersistGate from "@/context/PersistGate";
 import { Suspense } from "react";
 import BrandLoader from "@/components/web/BrandLoader";
 import PaymentSuccessContent from "./PaymentSuccessContent";
@@ -8,7 +7,7 @@ const Page = () => {
     <Suspense
       fallback={<BrandLoader message="Verifying your transaction..." />}
     >
-      <ExamPersistGate><PaymentSuccessContent /></ExamPersistGate>
+      <PaymentSuccessContent />
     </Suspense>
   );
 };

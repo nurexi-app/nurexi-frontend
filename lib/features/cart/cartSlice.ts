@@ -36,12 +36,6 @@ const cartSlice = createSlice({
       state.items = state.items.filter((i) => i.id !== action.payload);
     },
 
-    removePurchasedBundles: (state, action: PayloadAction<string[]>) => {
-      state.items = state.items.filter((item) => item.type !== "bundle" || !action.payload.includes(item.id));
-      state.couponCode = null;
-      state.discount = 0;
-    },
-
     // Clear entire cart
     clearCart: (state) => {
       state.items = [];
@@ -60,7 +54,7 @@ const cartSlice = createSlice({
   },
 });
 
-export const { addToCart, removeFromCart, removePurchasedBundles, clearCart, applyCoupon } =
+export const { addToCart, removeFromCart, clearCart, applyCoupon } =
   cartSlice.actions;
 
 export default cartSlice.reducer;

@@ -9,10 +9,7 @@ import loginImg from "@/public/assets/auth.jpg";
 export const metadata: Metadata = {
   title: "Login",
 };
-export default async function Register({ searchParams }: {
-  searchParams: Promise<{ redirect?: string }>;
-}) {
-  const { redirect: returnTo } = await searchParams;
+export default function Register() {
   return (
     <main className="flex h-screen max-h-screen lg:gap-4 overflow-hidden ">
       <section className="basis-1/2 hidden md:block w-full relative h-full">
@@ -31,7 +28,7 @@ export default async function Register({ searchParams }: {
           <Logo />
           <p className="bodyText text-center">Welcome back</p>
         </div>
-        <LoginForm returnTo={returnTo} />
+        <LoginForm />
 
         <div className="text-center flex mt-4 justify-center items-center gap-1 ">
           <p className="bodyText">Don`t have an account?</p>

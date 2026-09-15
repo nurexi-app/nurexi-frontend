@@ -4,109 +4,246 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
-import { useAppDispatch } from "@/hooks/StoreHooks";
-import { removePurchasedBundles } from "@/lib/features/cart/cartSlice";
-import { setExamSession, setExamDuration, startExam } from "@/lib/features/exam/examSlice";
-import type { PaymentResult, PurchasedSession } from "@/lib/payments/contracts";
+import { Loader2, CheckCircle, AlertCircle, WifiOff } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { clearCart } from "@/lib/features/cart/cartSlice";
+import { createClient } from "@/lib/supabase/client";
+
+type PaymentStatus =
+  | "loading"
+  | "success"
+  | "processing"
+  | "network_error"
+  | "not_found"
+  | "timeout";
 
 export default function PaymentSuccessContent() {
   const router = useRouter();
-  const reference = useSearchParams().get("reference")?.trim() || "";
-  const dispatch = useAppDispatch();
-  const [result, setResult] = useState<PaymentResult | null>(null);
-  const [error, setError] = useState("");
-  const [needsLogin, setNeedsLogin] = useState(false);
-  const [checking, setChecking] = useState(true);
-  const [retry, setRetry] = useState(0);
-  const [starting, setStarting] = useState<number | null>(null);
+  const searchParams = useSearchParams();
+  const supabase = createClient();
+  const dispatch = useDispatch();
+
+  const reference = searchParams.get("reference");
+
+  const [status, setStatus] = useState<PaymentStatus>("loading");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [attempts, setAttempts] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    let cancelled = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const controller = new AbortController();
-    let attempts = 0;
-    async function check() {
-      if (!reference) {
-        setError("The payment reference is missing. Enter it from your receipt to check your payment.");
-        setChecking(false);
-        return;
-      }
-      setChecking(true);
-      setError("");
-      setNeedsLogin(false);
-      try {
-        const response = await fetch("/api/paystack/verify", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reference }),
-          signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]),
-        });
-        const data = await response.json();
-        if (cancelled) return;
-        if (response.status === 401) setNeedsLogin(true);
-        if (!response.ok) throw new Error(data.error || "Unable to check payment. Please try again.");
-        const payment = data as PaymentResult;
-        setResult(payment);
-        if (["success", "access_pending"].includes(payment.status)) {
-          dispatch(removePurchasedBundles(payment.bundleIds));
-        }
-        if ((payment.status === "pending" || payment.status === "access_pending") && ++attempts < 6) {
-          timer = setTimeout(check, 4000);
-        }
-      } catch (cause) {
-        if (!cancelled) setError(cause instanceof Error && cause.name !== "TimeoutError" ? cause.message : "The connection timed out. Check again before paying again.");
-      } finally { if (!cancelled) setChecking(false); }
+    if (!reference) {
+      router.push("/cart");
+      return;
     }
-    void check();
-    return () => { cancelled = true; controller.abort(); clearTimeout(timer); };
-  }, [reference, retry, dispatch]);
 
-  function handleStart(session: PurchasedSession) {
-    if (starting !== null) return;
-    setStarting(session.id);
-    dispatch(setExamSession(session.id));
-    dispatch(setExamDuration(90 * 60));
-    dispatch(startExam(session.examCode.toLowerCase()));
-    router.push(`/learner/exam/${encodeURIComponent(session.examCode)}/${session.id}`);
+    const verifyPayment = async () => {
+      try {
+        // Get current user
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) {
+          // Network error vs auth error
+          if (
+            userError.message.includes("fetch failed") ||
+            userError.message.includes("network")
+          ) {
+            setStatus("network_error");
+            setErrorMessage(
+              "Unable to connect. Please check your internet connection.",
+            );
+          } else {
+            setStatus("not_found");
+            setErrorMessage("Please login to verify your payment.");
+            setTimeout(
+              () =>
+                router.push(
+                  `/login?redirect=/payment/success?reference=${reference}`,
+                ),
+              3000,
+            );
+          }
+          return;
+        }
+
+        if (!user) {
+          setStatus("not_found");
+          setErrorMessage("Please login to verify your payment.");
+          setTimeout(
+            () =>
+              router.push(
+                `/login?redirect=/payment/success?reference=${reference}`,
+              ),
+            3000,
+          );
+          return;
+        }
+
+        // Check purchase status
+        const { data: purchases, error: purchaseError } = await supabase
+          .from("purchases")
+          .select("status")
+          .eq("payment_reference", reference)
+          .eq("user_id", user.id);
+
+        if (purchaseError) {
+          // Network error during purchase check
+          if (
+            purchaseError.message.includes("fetch failed") ||
+            purchaseError.message.includes("network")
+          ) {
+            setStatus("network_error");
+            setErrorMessage("Connection issue. Retrying...");
+            // Auto retry after 3 seconds
+            setTimeout(() => {
+              if (retryCount < 3) {
+                setRetryCount((prev) => prev + 1);
+              } else {
+                setStatus("processing");
+                setErrorMessage(
+                  "We're having trouble confirming your payment. You will receive an email confirmation.",
+                );
+              }
+            }, 3000);
+          } else {
+            setStatus("processing");
+            setErrorMessage(
+              "Your payment is being processed. You will receive an email confirmation shortly.",
+            );
+          }
+          return;
+        }
+
+        const hasCompleted = purchases?.some((p) => p.status === "completed");
+        const hasPending = purchases?.some((p) => p.status === "pending");
+
+        if (hasCompleted) {
+          // Success! Clear cart and show success
+          dispatch(clearCart());
+          setStatus("success");
+        } else if (hasPending) {
+          // Still pending - webhook hasn't processed yet
+          if (attempts < 10) {
+            setTimeout(() => {
+              setAttempts((prev) => prev + 1);
+            }, 2000);
+          } else {
+            setStatus("processing");
+            setErrorMessage(
+              "Your payment is still being processed. You will receive an email confirmation shortly.",
+            );
+          }
+        } else {
+          // No purchase found with this reference
+          setStatus("not_found");
+          setErrorMessage(
+            "We couldn't find a purchase with this reference. Please contact support.",
+          );
+        }
+      } catch (err) {
+        // Unexpected error
+        setStatus("processing");
+        setErrorMessage(
+          "Something went wrong. You will receive an email confirmation if payment was successful.",
+        );
+      }
+    };
+
+    verifyPayment();
+  }, [reference, supabase, router, attempts, retryCount, dispatch]);
+
+  // Loading state
+  if (status === "loading") {
+    return (
+      <div className="container mx-auto px-4 py-16 flex flex-col items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <h1 className="text-xl font-semibold mb-2">
+          Verifying your payment...
+        </h1>
+        <p className="text-muted-foreground">
+          Please wait, this may take a few seconds.
+        </p>
+      </div>
+    );
   }
 
-  const success = result?.status === "success" && !error;
-  const title = error ? "Payment needs checking" : success ? "Your exam sessions are ready"
-    : result?.status === "access_pending" ? "Payment received — checking access"
-    : result?.status === "failed" ? "Payment unsuccessful"
-    : result?.status === "refunded" ? "Payment reversed"
-    : result?.status === "expired" ? "Access has expired"
-    : "Checking your payment";
-  const recoveryUrl = `/verify-payment?reference=${encodeURIComponent(reference)}`;
-  const loginUrl = `/login?redirect=${encodeURIComponent(`/payment/success?reference=${encodeURIComponent(reference)}`)}`;
-
-  return (
-    <section className="mx-auto max-w-2xl px-4 py-16 mt-10 space-y-6">
-      <div role="status" aria-live="polite" aria-atomic="true" className="text-center space-y-3">
-        {success ? <CheckCircle aria-hidden="true" className="mx-auto h-12 w-12 text-green-700" />
-          : checking ? <Loader2 aria-hidden="true" className="mx-auto h-12 w-12 animate-spin" />
-          : <AlertCircle aria-hidden="true" className="mx-auto h-12 w-12 text-amber-700" />}
-        <h1 className="text-2xl font-semibold">{title}</h1>
-        <p>{error || result?.message || "Please wait while we confirm your payment and access."}</p>
-      </div>
-      {reference && <p className="text-sm text-muted-foreground break-all text-center">Reference: {reference}</p>}
-      {success && result.sessions.map((session) => (
-        <div key={session.id} className="rounded-xl border p-5 space-y-3">
-          <h2 className="text-lg font-semibold">{session.name}</h2>
-          <p className="text-sm text-muted-foreground">Ready to use · 90-minute mock exam</p>
-          <Button className="w-full min-h-12 whitespace-normal" disabled={starting !== null} onClick={() => handleStart(session)}>
-            {starting === session.id ? "Opening exam…" : `Start Exam — ${session.name}`}
-          </Button>
+  // Network error state
+  if (status === "network_error") {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <WifiOff className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+        <h1 className="text-2xl font-bold mb-2">Connection Issue</h1>
+        <p className="text-muted-foreground mb-4">{errorMessage}</p>
+        <div className="flex gap-4 justify-center">
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+          <Link href="/learner/exam">
+            <Button variant="outline">Check My Learning</Button>
+          </Link>
         </div>
-      ))}
-      {!success && <div className="flex flex-col sm:flex-row gap-3 justify-center">
-        {needsLogin ? <Button asChild><Link href={loginUrl}>Sign in to confirm access</Link></Button>
-          : reference && <Button disabled={checking} onClick={() => setRetry((value) => value + 1)}>{checking ? "Checking…" : "Check payment again"}</Button>}
-        <Button asChild variant="outline"><Link href={recoveryUrl}>Enter payment reference</Link></Button>
-        {result?.status === "failed" && <Button asChild variant="outline"><Link href="/checkout">Return to checkout</Link></Button>}
-        {result?.status === "pending" && result.checkoutUrl && <Button asChild variant="outline"><a href={result.checkoutUrl}>Continue existing payment</a></Button>}
-      </div>}
-      <p className="text-center text-sm"><a className="underline" href={`mailto:legal@mails.nurexi.com?subject=${encodeURIComponent(`Bundle payment help: ${reference}`)}`}>Contact support about this payment</a></p>
-    </section>
+      </div>
+    );
+  }
+
+  // Not found / auth error
+  if (status === "not_found") {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <AlertCircle className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+        <h1 className="text-2xl font-bold mb-2">Verification Issue</h1>
+        <p className="text-muted-foreground mb-6">{errorMessage}</p>
+        <div className="flex gap-4 justify-center">
+          <Link href="/learner/exam">
+            <Button>Go to My Learning</Button>
+          </Link>
+          <Link href="/explore">
+            <Button variant="outline">Continue Exploring</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Processing state (payment confirmed but still pending in DB)
+  if (status === "processing") {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <Loader2 className="h-16 w-16 text-primary animate-spin mx-auto mb-4" />
+        <h1 className="text-2xl font-bold mb-2">Payment Processing</h1>
+        <p className="text-muted-foreground mb-4">{errorMessage}</p>
+        <p className="text-sm text-muted-foreground mb-6">
+          Reference: {reference}
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Button onClick={() => window.location.reload()}>Check Again</Button>
+          <Link href="/verify-payment">
+            <Button variant="outline">Verify payment manually</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Success state
+  return (
+    <div className="container mx-auto px-4 py-16 text-center">
+      <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+      <h1 className="text-2xl font-bold mb-2">Payment Successful!</h1>
+      <p className="text-muted-foreground mb-6">
+        Your order has been confirmed. Your bundles are now available in your
+        learning dashboard.
+      </p>
+      <div className="flex gap-4 justify-center">
+        <Link href="/learner/exam">
+          <Button size="lg">Go to Dashboard</Button>
+        </Link>
+        <Link href="/explore">
+          <Button size="lg" variant="outline">
+            Continue Exploring
+          </Button>
+        </Link>
+      </div>
+    </div>
   );
 }
