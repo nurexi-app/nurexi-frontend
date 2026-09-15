@@ -13,10 +13,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function VerifyPaymentPage({ searchParams }: {
-  searchParams: Promise<{ reference?: string }>;
-}) {
-  const { reference = "" } = await searchParams;
+export default async function VerifyPaymentPage() {
   const supabase = await createClient();
 
   const {
@@ -24,7 +21,7 @@ export default async function VerifyPaymentPage({ searchParams }: {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/login?redirect=${encodeURIComponent(`/verify-payment?reference=${encodeURIComponent(reference)}`)}`);
+    redirect(`/login?redirect=/verify-payment`);
   }
 
   return (
@@ -36,7 +33,7 @@ export default async function VerifyPaymentPage({ searchParams }: {
           your payment.
         </p>
 
-        <VerifyForm initialReference={reference} />
+        <VerifyForm />
       </div>
     </div>
   );

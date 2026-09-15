@@ -31,7 +31,7 @@ import {
 
 type loginFormValues = z.infer<typeof loginSchema>;
 
-export function LoginForm({ returnTo }: { returnTo?: string }) {
+export function LoginForm() {
   const form = useForm<loginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -48,7 +48,7 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
 
   function onSubmit(data: loginFormValues) {
     startTransition(async () => {
-      const response = await Login({ ...data, returnTo });
+      const response = await Login(data);
       if (!response.success) {
         toast.error("Error", {
           description: <p className="bodyText">{response.error}</p>,
@@ -58,7 +58,7 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
       toast.success("success", {
         description: <p className="bodyText">Welcome back</p>,
       });
-      router.push(response.data?.redirect || "/learner");
+      router.push(response.data?.redirect!!);
     });
   }
 
@@ -172,7 +172,7 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
             <Button
               variant="outline"
               type="button"
-              onClick={async () => await AuthenticateWithGoogle(returnTo?.slice(1) || "learner")}
+              onClick={async () => await AuthenticateWithGoogle("learner")}
             >
               <FcGoogle className="mr-2 h-4 w-4" />
               <span className="hidden md:inline-block">
@@ -184,7 +184,7 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
             <Button
               variant="outline"
               type="button"
-              onClick={async () => await AuthenticateWithX(returnTo)}
+              onClick={async () => await AuthenticateWithX()}
             >
               <FaXTwitter className="mr-2 h-4 w-4" />X
             </Button>
