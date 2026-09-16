@@ -22,6 +22,8 @@ export interface Purchase {
 export interface VerifiedTransaction {
   reference: string;
   amount: number;
+  requested_amount?: number | null;
+  fees?: number | null;
   currency: string;
   status: string;
   metadata?: { user_id?: string };
@@ -30,6 +32,19 @@ export interface VerifiedTransaction {
 
 export function validReference(value: unknown): value is string {
   return typeof value === "string" && /^[a-zA-Z0-9._=-]{1,200}$/.test(value);
+}
+
+// These fields must come from the authenticated server-to-server verification response.
+// Never calculate the provider fee ourselves or accept arbitrary overpayments.
+export function matchesOrderAmount(total: number, transaction: VerifiedTransaction) {
+  const { amount, requested_amount: requested, fees } = transaction;
+  if (!Number.isSafeInteger(amount) || amount <= 0) return false;
+  if (requested != null && (!Number.isSafeInteger(requested) || requested !== total)) {
+    return false;
+  }
+  if (amount === total) return true; // Merchant absorbs fees (including legacy responses).
+  return amount > total && typeof fees === "number" &&
+    Number.isSafeInteger(fees) && fees > 0 && amount - fees === total;
 }
 
 export function validateTransaction(rows: Purchase[], transaction: VerifiedTransaction, reference: string) {
@@ -43,7 +58,7 @@ export function validateTransaction(rows: Purchase[], transaction: VerifiedTrans
       new Set(rows.map((row) => row.bundle_id)).size !== rows.length ||
       amounts.some((amount) => !Number.isSafeInteger(amount) || amount <= 0) ||
       !Number.isSafeInteger(total) || transaction.reference !== reference ||
-      transaction.amount !== total || transaction.currency !== "NGN" ||
+      !matchesOrderAmount(total, transaction) || transaction.currency !== "NGN" ||
       (transaction.metadata?.user_id && transaction.metadata.user_id !== owner)) {
     throw new Error("Payment does not match the recorded purchase. Please contact support.");
   }
