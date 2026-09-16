@@ -36,7 +36,18 @@ export async function reconcilePayment(reference: string, userId?: string) {
   const transaction = await paystackRequest(`transaction/verify/${encodeURIComponent(reference)}`) as VerifiedTransaction;
   let amount: number;
   try { amount = validateTransaction(rows, transaction, reference); }
-  catch { throw new PaymentError("Payment details do not match this purchase. Please contact support.", 409); }
+  catch {
+    // Log financial comparison fields only, never customer/card data or credentials.
+    console.error("Bundle payment mismatch", {
+      reference,
+      expectedAmount: rows.reduce((sum, row) => sum + Number(row.amount_paid), 0),
+      chargedAmount: transaction.amount,
+      requestedAmount: transaction.requested_amount,
+      fees: transaction.fees,
+      currency: transaction.currency,
+    });
+    throw new PaymentError("Payment details do not match this purchase. Please contact support.", 409);
+  }
   const state = classifyProviderStatus(transaction.status);
   if (state !== "pending") {
     // One database transaction locks and updates every item; concurrent webhook/callback
@@ -63,11 +74,17 @@ export async function reconcilePayment(reference: string, userId?: string) {
     try {
       const url = new URL("/payment/success", process.env.NEXT_PUBLIC_APP_URL);
       url.searchParams.set("reference", reference);
+      const customerFee = transaction.amount - amount;
+      const paymentSummary = [
+        `Bundle price: NGN ${(amount / 100).toFixed(2)}`,
+        ...(customerFee > 0 ? [`Processing fee: NGN ${(customerFee / 100).toFixed(2)}`] : []),
+        `Total paid: NGN ${(transaction.amount / 100).toFixed(2)}`,
+      ].join("\n");
       const result = await resend.emails.send({
         from: "Nurexi Receipts <receipts@mails.nurexi.com>",
         to: transaction.customer.email,
         subject: "Your Nurexi bundle payment is confirmed",
-        text: `Your payment of NGN ${(amount / 100).toFixed(2)} is confirmed.\nReference: ${reference}\nView your purchased exam sessions: ${url.toString()}`,
+        text: `Your bundle payment is confirmed.\n${paymentSummary}\nReference: ${reference}\nView your purchased exam sessions: ${url.toString()}`,
       }, { idempotencyKey: `bundle-receipt/${reference}` });
       if (result.error) console.error("Bundle receipt delivery failed", result.error.name);
     } catch { console.error("Bundle receipt delivery failed"); }
