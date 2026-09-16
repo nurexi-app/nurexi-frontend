@@ -23,11 +23,12 @@ const transaction = (overrides = {}) => ({ reference, amount: 500000, currency: 
 
 function harness(initialRows, provider = transaction(), options = {}) {
   let rows = structuredClone(initialRows);
-  const calls = { writes: 0, emails: 0, provider: 0 };
+  const calls = { writes: 0, emails: 0, provider: 0, rpcAmount: null, receipt: null };
   const admin = {
     from() { return { select() { return { async eq() { return { data: structuredClone(rows), error: null }; } }; } }; },
     async rpc(_name, args) {
       calls.writes++;
+      calls.rpcAmount = args.p_amount;
       if (options.writeError) return { error: new Error("Database unavailable") };
       rows = rows.map((item) => ({ ...item, status: item.status === "refunded" ? "refunded" : args.p_status === "failed" && item.status === "completed" ? "completed" : args.p_status }));
       return { error: null };
@@ -35,7 +36,7 @@ function harness(initialRows, provider = transaction(), options = {}) {
   };
   const service = load("lib/payments/paystack.ts", {
     "@/lib/supabase/admin": { supabaseAdmin: admin },
-    "@/lib/email/resend": { resend: { emails: { async send() { calls.emails++; if (options.emailError) throw new Error("Email offline"); return {}; } } } },
+    "@/lib/email/resend": { resend: { emails: { async send(message) { calls.receipt = message; calls.emails++; if (options.emailError) throw new Error("Email offline"); return {}; } } } },
     "./contracts": contracts,
   });
   const previousFetch = global.fetch;
@@ -179,4 +180,54 @@ test("Confirmation removes only the purchased bundle items", () => {
   };
   const next = cart.default(state, cart.removePurchasedBundles(["bought"]));
   assert.deepEqual(next.items.map((item) => `${item.type}:${item.id}`), ["bundle:later", "course:bought"]);
+});
+
+
+test("Buyer-paid fee completes a 100-naira order charged at 101.53 naira", async () => {
+  const h = harness([row({ amount_paid: 10000 })], transaction({
+    amount: 10153, requested_amount: 10000, fees: 153,
+    customer: { email: "buyer@example.test" },
+  }));
+  try {
+    assert.equal((await h.module.reconcilePayment(reference, "learner")).status, "paid");
+    assert.equal(h.calls.rpcAmount, 10000); // SQL still reconciles the original order price.
+    assert.equal(h.rows()[0].amount_paid, 10000);
+    assert.equal(h.calls.emails, 1);
+    assert.match(h.calls.receipt.text, /Bundle price: NGN 100.00/);
+    assert.match(h.calls.receipt.text, /Processing fee: NGN 1.53/);
+    assert.match(h.calls.receipt.text, /Total paid: NGN 101.53/);
+    await h.module.reconcilePayment(reference, "learner");
+    assert.equal(h.calls.emails, 1);
+  } finally { h.restore(); }
+});
+
+test("Merchant-paid fee continues to accept the exact bundle amount", async () => {
+  const h = harness([row({ amount_paid: 10000 })], transaction({ amount: 10000, requested_amount: 10000, fees: 150 }));
+  try { assert.equal((await h.module.reconcilePayment(reference)).status, "paid"); }
+  finally { h.restore(); }
+});
+
+test("Legacy response without requested_amount requires an exact verified net amount", () => {
+  for (const requested_amount of [undefined, null]) {
+    assert.equal(contracts.validateTransaction([row({ amount_paid: 10000 })], transaction({ amount: 10153, fees: 153, requested_amount }), reference), 10000);
+  }
+});
+
+for (const [name, values] of [
+  ["unexplained overpayment", { amount: 10153 }],
+  ["incorrect fee", { amount: 10153, requested_amount: 10000, fees: 152 }],
+  ["different requested amount", { amount: 10153, requested_amount: 9000, fees: 153 }],
+  ["underpayment", { amount: 9999, requested_amount: 10000, fees: 153 }],
+  ["fractional kobo fee", { amount: 10153, fees: 153.5 }],
+  ["negative fee", { amount: 10153, fees: -153 }],
+  ["untyped fee", { amount: 10153, fees: "153" }],
+  ["conflicting request on exact payment", { amount: 10000, requested_amount: 9000 }],
+]) test(`Fee handling rejects ${name} without granting access`, async () => {
+  const h = harness([row({ amount_paid: 10000 })], transaction(values));
+  try {
+    await assert.rejects(h.module.reconcilePayment(reference));
+    assert.equal(h.calls.writes, 0);
+    assert.equal(h.calls.emails, 0);
+    assert.equal(h.rows()[0].status, "pending");
+  } finally { h.restore(); }
 });
