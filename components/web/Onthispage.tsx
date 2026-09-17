@@ -54,7 +54,7 @@ export default function OnThisPage({ headings }: OnThisPageProps) {
   return (
     <nav className="sticky top-24">
       <div className="flex items-center gap-2 mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-        <List className="h-3.5 w-3.5" />
+        <List className="size-3.5" />
         On this page
       </div>
 

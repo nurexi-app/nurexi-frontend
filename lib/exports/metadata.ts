@@ -1,51 +1,50 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
+
+const siteDescription =
+  "Prepare for nursing exams with focused CBT practice, clear rationales, exam prep bundles, and free nursing resources from Nurexi.";
 
 export const rootMetadata: Metadata = {
+  metadataBase: new URL("https://nurexi.com"),
   title: {
-    default: "Nurexi: Nigeria's #1 Nursing Exam CBT Prep",
+    default: "Nurexi | Nursing Exam Preparation and CBT Practice",
     template: "%s | Nurexi",
   },
-  description:
-    "Ace your NMCN exam on your first attempt! Practice with realistic nursing CBT mock exams, real past questions, detailed rationales, and NCLEX prep",
-  metadataBase: new URL("https://nurexi.com"),
+  description: siteDescription,
   applicationName: "Nurexi",
-  alternates: {
-    canonical: "/",
-  },
+  alternates: { canonical: "/" },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Nurexi",
-    // startUpImage: [],
   },
-  formatDetection: {
-    telephone: false,
-  },
+  formatDetection: { telephone: false },
   openGraph: {
-    title: "Nurexi: Nigeria's #1 Nursing Exam CBT Prep",
-    description:
-      "Ace your NMCN exam on your first attempt! Practice with realistic nursing CBT mock exams, real past questions, detailed rationales, and NCLEX prep",
-    url: "https://nurexi.com",
+    title: "Nurexi | Nursing Exam Preparation and CBT Practice",
+    description: siteDescription,
+    url: "/",
     siteName: "Nurexi",
     locale: "en_NG",
     type: "website",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "A nursing learner preparing with Nurexi",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Nurexi | NMCN CBT Practice & Nursing Exam Prep",
-    description:
-      "Master your nursing council exams with Nurexi. Timed CBT simulations, verified past questions, and deep rationales for Nigerian nursing students.",
-    images: ["/og.png"],
+    title: "Nurexi | Nursing Exam Preparation and CBT Practice",
+    description: siteDescription,
+    images: ["/twitter-image.png"],
     creator: "@nurexiForNurses",
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.png",
-    apple: "/apple-touch-icon.png",
-  },
-  verification: {
-    google: "your-google-verification-code",
+    icon: "/icons/icon-192x192.png",
+    apple: "/icons/icon-192x192.png",
   },
   robots: {
     index: true,
@@ -59,21 +58,16 @@ export const rootMetadata: Metadata = {
     },
   },
   keywords: [
-    "NMCN exam preparation",
-    "nursing past questions Nigeria",
-    "online NMCN CBT practice",
-    "nursing council exam app",
-    "NCLEX preparation Nigeria",
+    "nursing exam preparation",
+    "NMCN CBT practice",
+    "nursing practice questions",
     "nursing mock exams",
     "nursing students Nigeria",
-    "basic nursing qualifying exam",
-    "midwifery council past questions",
-    "medical surgical nursing questions",
+    "NCLEX practice",
+    "nursing study resources",
   ],
-  authors: [
-    { name: "Ochife Ogechukwu", url: "https://buildwithochife.vercel.app" },
-  ],
-  creator: "Ochife Ogechukwu",
+  authors: [{ name: "Nurexi", url: "https://nurexi.com" }],
+  creator: "Nurexi",
   publisher: "Nurexi",
   category: "education",
 };
@@ -81,5 +75,5 @@ export const rootMetadata: Metadata = {
 export const dashboardMetadata: Metadata = {
   title: "Learner Dashboard",
   description:
-    "Track your nursing exam progress, analyze performance stats, and master high-yield topics. Monitor your study streak and NMCN CBT test readiness.",
+    "Track your nursing exam progress, review performance, and continue your Nurexi preparation.",
 };

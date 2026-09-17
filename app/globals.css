@@ -62,25 +62,25 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --background: #fbfcfa;
+  --foreground: #153c3b;
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --card-foreground: #153c3b;
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(78.07% 0.117 166.71);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(73.55% 0.126 239.54);
+  --popover-foreground: #153c3b;
+  --primary: #153c3b;
+  --primary-foreground: #ffffff;
+  --secondary: #eaf3ed;
   --secondaryDarkActive: oklch(0.39 0.05 237.4);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(73.48% 0.12596 239.842);
-  --accent-foreground: oklch(0.984 0.003 247.858);
+  --secondary-foreground: #153c3b;
+  --muted: #f1eee6;
+  --muted-foreground: #526765;
+  --accent: #27877b;
+  --accent-foreground: #ffffff;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --border: #cfdbd5;
+  --input: #cfdbd5;
+  --ring: #27877b;
   --chart-1: oklch(73.55% 0.126 239.54);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -97,37 +97,37 @@
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(78.07% 0.117 166.71);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
+  --background: #0f2928;
+  --foreground: #f5faf7;
+  --card: #153c3b;
+  --card-foreground: #f5faf7;
+  --popover: #153c3b;
+  --popover-foreground: #f5faf7;
+  --primary: #94d8c5;
+  --primary-foreground: #0f2928;
+  --secondary: #234946;
+  --secondary-foreground: #f5faf7;
+  --muted: #1c3b39;
+  --muted-foreground: #b6cbc5;
+  --accent: #56b5a5;
+  --accent-foreground: #0f2928;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --border: #315956;
+  --input: #315956;
+  --ring: #94d8c5;
+  --chart-1: #94d8c5;
+  --chart-2: #56b5a5;
+  --chart-3: #cfdbd5;
+  --chart-4: #b98576;
+  --chart-5: #f1eee6;
+  --sidebar: #153c3b;
+  --sidebar-foreground: #f5faf7;
+  --sidebar-primary: #94d8c5;
+  --sidebar-primary-foreground: #0f2928;
+  --sidebar-accent: #234946;
+  --sidebar-accent-foreground: #f5faf7;
+  --sidebar-border: #315956;
+  --sidebar-ring: #94d8c5;
 }
 @utility container {
   margin-inline: auto;
@@ -167,6 +167,28 @@
   }
   h4 {
     @apply leading-[130%];
+  }
+}
+
+@layer components {
+  .arrow-link [data-link-arrow] {
+    transition: transform 150ms ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .arrow-link:hover [data-link-arrow="forward"] {
+      transform: translateX(0.25rem);
+    }
+
+    .arrow-link:hover [data-link-arrow="back"] {
+      transform: translateX(-0.25rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .arrow-link [data-link-arrow] {
+      transition: none;
+    }
   }
 }
 
