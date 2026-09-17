@@ -24,7 +24,7 @@ const outfit = Outfit({
 export const metadata = rootMetadata;
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#153c3b",
 };
 
 export default function RootLayout({

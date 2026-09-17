@@ -1,164 +1,104 @@
-"use client";
-import { useRef } from "react";
-import {
-  FaLinkedin,
-  FaXTwitter,
-  FaInstagram,
-  FaFacebook,
-} from "react-icons/fa6";
 import Image from "next/image";
 import Link from "next/link";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { FaLinkedin, FaXTwitter } from "react-icons/fa6";
 
-gsap.registerPlugin(ScrollTrigger);
-
-// --- Keep your existing interfaces ---
-interface SocialLink {
-  url: string;
-  icon: React.ReactNode;
-}
-
-interface FooterColumn {
-  title: string;
-  isSocial?: boolean;
-  links: (string | SocialLink)[];
-}
-
-// --- Keep your existing data ---
-const footerMenu: FooterColumn[] = [
+const footerColumns = [
   {
-    title: "Features",
-    links: ["Verify Payment"],
-  },
-  {
-    title: "About",
-    links: ["Contact", "faq"],
-  },
-  {
-    title: "Legal",
-    links: ["Policies"],
-  },
-  {
-    title: "Social",
-    isSocial: true,
+    title: "Learn",
     links: [
-      {
-        url: "https://www.linkedin.com/in/ogechukwu-ochife-88443a284",
-        icon: <FaLinkedin size={24} />,
-      },
-      { url: "https://x.com/nurexiForNurses", icon: <FaXTwitter size={24} /> },
-      // { url: "#", icon: <FaInstagram size={24} /> },
-      // { url: "#", icon: <FaFacebook size={24} /> },
+      { label: "Exam preparation", href: "/explore" },
+      { label: "Nursing resources", href: "/resources" },
+    ],
+  },
+  {
+    title: "Nurexi",
+    links: [
+      { label: "About Nurexi", href: "/#about" },
+      { label: "FAQ", href: "/faq" },
+      { label: "Contact", href: "/contact" },
+    ],
+  },
+  {
+    title: "Support",
+    links: [
+      { label: "Verify payment", href: "/verify-payment" },
+      { label: "Policies", href: "/policies" },
     ],
   },
 ];
 
+const socialLinks = [
+  {
+    label: "Nurexi on LinkedIn",
+    href: "https://www.linkedin.com/in/ogechukwu-ochife-88443a284",
+    icon: FaLinkedin,
+  },
+  {
+    label: "Nurexi on X",
+    href: "https://x.com/nurexiForNurses",
+    icon: FaXTwitter,
+  },
+];
+
 export default function Footer() {
-  const footerRef = useRef<HTMLElement>(null);
-
-  useGSAP(
-    () => {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: footerRef.current,
-          start: "top 90%",
-          toggleActions: "restart none none none",
-        },
-      });
-
-      tl.from(".footer-brand", {
-        y: 30,
-        opacity: 0,
-        duration: 0.6,
-        ease: "power2.out",
-      })
-        .from(
-          ".footer-column",
-          {
-            y: 20,
-            opacity: 0,
-            duration: 0.5,
-            stagger: 0.1,
-            ease: "power2.out",
-          },
-          "-=0.3",
-        )
-        .from(
-          ".footer-bottom",
-          {
-            scaleX: 0,
-            transformOrigin: "left",
-            opacity: 0,
-            duration: 0.8,
-          },
-          "-=0.2",
-        );
-    },
-    { scope: footerRef },
-  );
-
   return (
-    <footer ref={footerRef} className="container py-10 overflow-hidden">
-      <section className="flex flex-col md:flex-row justify-between gap-10">
-        <div className="footer-brand md:basis-[40%] space-y-4">
-          <Image src="/Logo.svg" alt="logo" width={31} height={31} />
-          <p className="max-w-xs text-gray-600">
-            Join nurses who <span className="font-semibold">study smarter</span>{" "}
-            and achieve their NMCN goals every day with{" "}
-            <span className="font-semibold">Nurexi</span>.
-          </p>
+    <footer className="bg-primary text-primary-foreground">
+      <div className="mx-auto max-w-[1440px] px-6 py-16 sm:px-10 sm:py-20 lg:px-16 lg:py-24">
+        <div className="grid gap-14 border-b border-primary-foreground/20 pb-16 lg:grid-cols-[1.2fr_1.8fr] lg:gap-24">
+          <div className="max-w-md">
+            <Link href="/" className="inline-flex items-center gap-3 text-2xl font-semibold tracking-tight">
+              <span className="flex size-11 items-center justify-center rounded-xl bg-primary-foreground">
+                <Image src="/Logo.svg" alt="" width={27} height={27} />
+              </span>
+              Nurexi
+            </Link>
+            <p className="mt-6 text-lg leading-relaxed text-primary-foreground/75">
+              Focused nursing education and exam preparation that helps learners understand what to do next.
+            </p>
+            <Link
+              href="/learner"
+              className="mt-8 inline-flex min-h-12 items-center justify-center rounded-full bg-primary-foreground px-6 font-semibold text-primary transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+            >
+              Explore Nurexi
+            </Link>
+          </div>
+
+          <nav className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3" aria-label="Footer navigation">
+            {footerColumns.map((column) => (
+              <div key={column.title}>
+                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-primary-foreground/55">{column.title}</h2>
+                <ul className="mt-5 space-y-3">
+                  {column.links.map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href} className="text-sm text-primary-foreground/80 transition-colors hover:text-primary-foreground">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
         </div>
 
-        <div className="md:basis-[50%] flex flex-wrap justify-between gap-8">
-          {footerMenu.map((column, index) => (
-            <div key={index} className="footer-column space-y-4">
-              <h3 className="font-bold text-gray-900">{column.title}</h3>
-              <ul
-                className={
-                  column.isSocial
-                    ? "flex flex-col items-center gap-4"
-                    : "space-y-2"
-                }
+        <div className="flex flex-col gap-6 pt-8 text-sm text-primary-foreground/60 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} Nurexi. All rights reserved.</p>
+          <div className="flex items-center gap-2">
+            {socialLinks.map(({ label, href, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={label}
+                className="inline-flex size-11 items-center justify-center rounded-full border border-primary-foreground/20 text-primary-foreground/75 transition-colors hover:bg-primary-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground"
               >
-                {column.links.map((link, idx) => {
-                  if (column.isSocial && typeof link !== "string") {
-                    return (
-                      <li key={idx}>
-                        <Link
-                          href={link.url}
-                          target="_blank"
-                          className="text-gray-600 hover:text-black transition-transform hover:scale-110 block"
-                        >
-                          <span>{link.icon}</span>
-                        </Link>
-                      </li>
-                    );
-                  }
-                  if (typeof link === "string") {
-                    return (
-                      <li key={idx}>
-                        <Link
-                          href={`/${link.toLowerCase().replace(/\s+/g, "-")}`}
-                          className="text-grey hover:text-black transition-colors"
-                        >
-                          {link}
-                        </Link>
-                      </li>
-                    );
-                  }
-                  return null;
-                })}
-              </ul>
-            </div>
-          ))}
+                <Icon aria-hidden="true" className="size-4" />
+              </Link>
+            ))}
+          </div>
         </div>
-      </section>
-
-      <section className="footer-bottom border-t mt-10 pt-6 text-sm text-gray-400">
-        <p>© {new Date().getFullYear()} Nurexi. All rights reserved.</p>
-      </section>
+      </div>
     </footer>
   );
 }

@@ -7,6 +7,8 @@ import CheckoutSkeleton from "./CheckoutSkeleton";
 
 export const metadata: Metadata = {
   title: "Checkout",
+  description: "Complete your Nurexi exam preparation purchase securely.",
+  robots: { index: false, follow: false },
 };
 export default async function Page() {
   const supabase = await createClient();

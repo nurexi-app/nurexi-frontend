@@ -1,16 +1,43 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { JsonLd } from "@/components/seo/JsonLd";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import HelporQuestions from "@/components/_sections/HelporQuestions";
+} from "@/components/animate-ui/components/radix/accordion";
+
+const description =
+  "Find clear answers about Nurexi nursing exam preparation, practice questions, exam bundles, educator accounts, payments, and learner support.";
 
 export const metadata: Metadata = {
-  title: "Frequently Asked Questions | Nurexi",
-  description:
-    "Find answers to the most commonly asked questions about Nurexi for both learners and educators.",
+  title: "Frequently Asked Questions",
+  description,
+  alternates: { canonical: "/faq" },
+  openGraph: {
+    title: "Frequently Asked Questions | Nurexi",
+    description,
+    url: "/faq",
+    siteName: "Nurexi",
+    locale: "en_NG",
+    type: "website",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Nurexi nursing exam preparation",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Frequently Asked Questions | Nurexi",
+    description,
+    images: ["/twitter-image.png"],
+  },
 };
 
 const faqs = [
@@ -100,49 +127,85 @@ const faqs = [
   },
 ];
 
+const faqStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.flatMap((group) =>
+    group.questions.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  ),
+};
+
 export default function FAQPage() {
   return (
-    <main className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="container px-4 sm:px-6 mx-auto mt-32 mb-12 text-center">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-medium mb-4 text-gray-800">
-          Frequently Asked Questions
-        </h1>
-        <p className="text-sm sm:text-base text-gray-500 leading-relaxed max-w-2xl mx-auto">
-          Everything you need to know about Nurexi. Can't find the answer
-          you're looking for? Reach out to our support team.
-        </p>
+    <>
+      <JsonLd data={faqStructuredData} />
+      <main className="min-h-screen bg-background text-foreground">
+      <section className="mx-auto max-w-[1440px] px-6 pb-16 pt-20 sm:px-10 sm:pb-20 sm:pt-28 lg:px-16 lg:pt-32">
+        <div className="max-w-[850px]">
+          <p className="mb-7 text-xs font-bold uppercase tracking-[0.23em] text-accent">Helpful answers</p>
+          <h1 className="text-[clamp(3.2rem,6vw,6.5rem)] font-semibold leading-[1.02] tracking-[-0.06em]">
+            Questions, answered clearly.
+          </h1>
+          <p className="mt-8 max-w-[650px] text-lg leading-relaxed text-muted-foreground sm:text-xl">
+            Find what you need to know about learning, exam preparation, educator accounts, and support.
+          </p>
+        </div>
+        <nav aria-label="FAQ topics" className="mt-12 flex flex-wrap gap-2">
+          {faqs.map((group, index) => (
+            <a
+              key={group.category}
+              href={`#topic-${index}`}
+              className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-5 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {group.category}
+            </a>
+          ))}
+        </nav>
       </section>
 
-      <section className="container mx-auto px-4 pb-24 max-w-3xl">
-        <div className="space-y-12">
-          {faqs.map((faqGroup, index) => (
-            <div key={index}>
-              <h3 className="text-xl font-medium text-black/80 mb-5 mt-3 border-b border-primary/15 pb-2">
-                {faqGroup.category}
-              </h3>
-              <Accordion type="single" collapsible className="w-full">
-                {faqGroup.questions.map((faq, i) => (
-                  <AccordionItem 
-                    key={i} 
-                    value={`item-${index}-${i}`} 
-                    className="border-b border-primary/15"
-                  >
-                    <AccordionTrigger className="text-left font-medium text-black/80 hover:no-underline hover:text-primary transition-colors py-4">
-                      {faq.q}
-                    </AccordionTrigger>
-                    <AccordionContent className="bodyText text-grey leading-relaxed pb-4">
-                      {faq.a}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
-          ))}
+      <section className="border-t border-border bg-secondary/45">
+        <div className="mx-auto max-w-[1440px] px-6 py-16 sm:px-10 sm:py-20 lg:px-16 lg:py-24">
+          <div className="max-w-[980px] space-y-16 lg:space-y-20">
+            {faqs.map((group, index) => (
+              <section key={group.category} id={`topic-${index}`} className="scroll-mt-24 lg:grid lg:grid-cols-[0.38fr_0.62fr] lg:gap-12">
+                <h2 className="mb-7 text-2xl font-semibold tracking-tight lg:mb-0">{group.category}</h2>
+                <Accordion type="single" collapsible className="border-t border-border">
+                  {group.questions.map((faq, questionIndex) => (
+                    <AccordionItem key={faq.q} value={`question-${index}-${questionIndex}`} className="border-border">
+                      <AccordionTrigger className="py-6 text-left text-base font-semibold leading-snug text-foreground hover:text-accent hover:no-underline sm:text-lg">
+                        {faq.q}
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-6 text-base leading-relaxed text-muted-foreground">
+                        {faq.a}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </section>
+            ))}
+          </div>
         </div>
       </section>
 
-      <HelporQuestions />
-    </main>
+      <section className="bg-primary text-primary-foreground">
+        <div className="mx-auto grid max-w-[1440px] gap-8 px-6 py-20 sm:px-10 sm:py-24 lg:grid-cols-[1fr_auto] lg:items-center lg:px-16">
+          <div className="max-w-[650px]">
+            <p className="mb-5 text-xs font-bold uppercase tracking-[0.23em] text-primary-foreground/70">Still need help?</p>
+            <h2 className="text-[clamp(2.4rem,4vw,4rem)] font-semibold leading-[1.1] tracking-[-0.05em]">We&apos;re here to help you find an answer.</h2>
+          </div>
+          <Link href="/contact" className="arrow-link inline-flex min-h-12 w-fit items-center justify-center gap-2 rounded-full bg-primary-foreground px-6 font-semibold text-primary transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary">
+            Contact Nurexi <ArrowRight aria-hidden="true" data-link-arrow="forward" className="size-4" />
+          </Link>
+        </div>
+      </section>
+      </main>
+    </>
   );
 }
