@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,23 +13,31 @@ export default function VerifyForm({ initialReference = "" }: { initialReference
   const [reference, setReference] = useState(initialReference);
   const [error, setError] = useState("");
   const [opening, setOpening] = useState(false);
+
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (opening) return;
-    if (!validReference(reference.trim())) { setError("Enter a valid transaction reference from your receipt."); return; }
+    const value = reference.trim();
+    if (!validReference(value)) {
+      setError("Enter a valid transaction reference from your receipt.");
+      return;
+    }
+    setError("");
     setOpening(true);
-    // Recovery and the provider callback use exactly the same reconciliation screen.
-    router.push(`/payment/success?reference=${encodeURIComponent(reference.trim())}`);
+    router.push(`/payment/success?reference=${encodeURIComponent(value)}`);
   }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="reference">Transaction reference</Label>
-        <Input id="reference" value={reference} onChange={(event) => setReference(event.target.value)} disabled={opening} required aria-describedby="reference-help" aria-invalid={!!error} />
-        <p id="reference-help" className="text-sm text-muted-foreground">Use the reference from your payment receipt or confirmation page.</p>
+        <Input id="reference" value={reference} onChange={(event) => setReference(event.target.value)} disabled={opening} required autoComplete="off" aria-describedby="reference-help reference-error" aria-invalid={!!error} className="h-12 rounded-xl" />
+        <p id="reference-help" className="text-sm leading-relaxed text-muted-foreground">You can find it on the Paystack confirmation page or payment receipt.</p>
+        {error && <p id="reference-error" role="alert" className="text-sm text-destructive">{error}</p>}
       </div>
-      {error && <p role="alert">{error}</p>}
-      <Button type="submit" disabled={opening} className="w-full">{opening ? "Opening payment…" : "Check payment and access"}</Button>
+      <Button type="submit" disabled={opening} className="h-12 w-full rounded-full">
+        {opening ? <><Loader2 aria-hidden="true" className="animate-spin" /> Opening payment…</> : <>Check payment <ArrowRight aria-hidden="true" /></>}
+      </Button>
     </form>
   );
 }

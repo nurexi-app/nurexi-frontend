@@ -19,19 +19,19 @@ const SECTIONS: Section[] = [
     id: "privacy",
     title: "Privacy Policy",
     icon: Shield,
-    lastUpdated: "May 2026",
+    lastUpdated: "September 2026",
   },
   {
     id: "terms",
     title: "Terms of Service",
     icon: FileText,
-    lastUpdated: "May 2026",
+    lastUpdated: "September 2026",
   },
   {
     id: "cookies",
     title: "Cookie Policy",
     icon: Cookie,
-    lastUpdated: "May 2026",
+    lastUpdated: "September 2026",
   },
 ];
 
@@ -54,10 +54,10 @@ function LegalNav({ activeId }: { activeId: string }) {
               : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
           )}
         >
-          <Icon className="h-3.5 w-3.5 shrink-0" />
+          <Icon className="size-3.5 shrink-0" />
           {title}
           {activeId === id && (
-            <ChevronRight className="h-3 w-3 ml-auto text-primary" />
+            <ChevronRight className="ml-auto size-3 text-accent" />
           )}
         </a>
       ))}
@@ -83,14 +83,8 @@ function PolicySection({
   return (
     <section id={id} className="scroll-mt-24">
       <div className="flex items-center gap-3 mb-2">
-        <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
-          style={{ background: "oklch(78.07% 0.117 166.71 / 0.1)" }}
-        >
-          <Icon
-            className="h-4 w-4"
-            style={{ color: "oklch(55% 0.117 166.71)" }}
-          />
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-accent">
+          <Icon className="size-5" />
         </div>
         <div>
           <h2 className="text-xl font-bold text-foreground tracking-tight">
@@ -102,10 +96,7 @@ function PolicySection({
         </div>
       </div>
 
-      <div
-        className="mt-5 rounded-2xl border border-border/60 bg-card p-6 md:p-8 space-y-5"
-        style={{ boxShadow: "0 1px 8px rgba(0,0,0,0.04)" }}
-      >
+      <div className="mt-6 space-y-5 border-t border-border pt-7">
         {children}
       </div>
     </section>
@@ -139,10 +130,7 @@ function UL({ children }: { children: React.ReactNode }) {
 function LI({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-start gap-2">
-      <span
-        className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
-        style={{ background: "oklch(78.07% 0.117 166.71)" }}
-      />
+      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
       <span>{children}</span>
     </li>
   );
@@ -150,9 +138,7 @@ function LI({ children }: { children: React.ReactNode }) {
 
 function Highlight({ children }: { children: React.ReactNode }) {
   return (
-    <span className="font-medium" style={{ color: "oklch(50% 0.117 166.71)" }}>
-      {children}
-    </span>
+    <span className="font-semibold text-foreground">{children}</span>
   );
 }
 
@@ -186,14 +172,8 @@ export default function LegalPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* ── hero banner ── */}
-      <div
-        className="border-b border-border/50"
-        style={{
-          background:
-            "linear-gradient(to bottom, oklch(78.07% 0.117 166.71 / 0.06) 0%, transparent 100%)",
-        }}
-      >
-        <div className="container max-w-5xl py-14 md:py-20">
+      <header className="border-b border-border bg-secondary/35">
+        <div className="mx-auto max-w-300 px-6 py-20 sm:px-10 sm:py-24 lg:px-16 lg:py-28">
           <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-4">
             <Link
               href="/"
@@ -204,38 +184,36 @@ export default function LegalPage() {
             <ChevronRight className="h-3 w-3" />
             <span className="text-foreground">Legal</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-3">
-            Legal &amp; Policies
-          </h1>
-          <p className="text-base text-muted-foreground max-w-xl leading-relaxed">
+          <p className="mt-8 text-xs font-bold uppercase tracking-[0.23em] text-accent">Nurexi policies</p>
+          <h1 className="mt-5 text-[clamp(3rem,5.5vw,5.8rem)] font-semibold leading-[1.03] tracking-[-0.06em]">Privacy and terms, in plain view.</h1>
+          <p className="mt-7 max-w-2xl text-lg leading-relaxed text-muted-foreground">
             We believe in being transparent about how Nurexi works, what data we
             collect, and your rights as a user. Read through our policies below.
           </p>
         </div>
-      </div>
+      </header>
 
-      {/* ── body ── */}
-      <div className="container max-w-5xl py-12">
+      <div className="mx-auto max-w-300 px-6 py-16 sm:px-10 sm:py-20 lg:px-16 lg:py-24">
         <div className="flex gap-12">
           {/* sidebar nav — hidden on mobile */}
-          <aside className="hidden lg:block w-52 shrink-0">
+          <aside className="hidden w-56 shrink-0 lg:block">
             <LegalNav activeId={activeId} />
           </aside>
 
           {/* content */}
-          <div className="flex-1 min-w-0 space-y-16">
+          <div className="min-w-0 flex-1 space-y-20">
             {/* ── PRIVACY POLICY ── */}
             <PolicySection
               id="privacy"
               title="Privacy Policy"
               icon={Shield}
-              lastUpdated="May 2026"
+              lastUpdated="September 2026"
             >
               <P>
-                Nurexi ("we", "us", or "our") is committed to protecting your
+                Nurexi (“we”, “us”, or “our”) is committed to protecting your
                 personal information. This Privacy Policy explains how we
                 collect, use, and safeguard your data when you use our platform.
-                By using Nurexi, you agree to the practices described here.
+                This notice describes the processing associated with the platform.
               </P>
 
               <H3>1. Information We Collect</H3>
@@ -276,7 +254,7 @@ export default function LegalPage() {
                   To monitor platform performance and fix errors via Sentry.
                 </LI>
                 <LI>
-                  To improve the platform using anonymised analytics data.
+                  To understand usage and improve the platform using analytics and diagnostic data.
                 </LI>
                 <LI>
                   To send you important account-related emails (e.g. purchase
@@ -301,11 +279,13 @@ export default function LegalPage() {
                 </LI>
                 <LI>
                   <Highlight>Google Analytics &amp; Vercel Analytics</Highlight>{" "}
-                  — anonymised usage analytics.
+                  — product usage and performance analytics.
                 </LI>
                 <LI>
-                  <Highlight>Sentry</Highlight> — error tracking and performance
-                  monitoring.
+                  <Highlight>Sentry</Highlight> — error tracking and performance monitoring.
+                </LI>
+                <LI>
+                  <Highlight>LogRocket</Highlight> — product diagnostics and session-level troubleshooting.
                 </LI>
                 <LI>
                   <Highlight>Resend</Highlight> — transactional email delivery.
@@ -314,29 +294,26 @@ export default function LegalPage() {
 
               <H3>4. Data Retention</H3>
               <P>
-                We retain your personal data for as long as your account is
-                active. If you delete your account, your personal data is
-                permanently removed from our systems within 30 days, except
-                where we are required by law to retain certain records.
+                We retain personal data only for as long as it is needed for the purposes described here, to provide your account, resolve disputes, prevent fraud, and meet legal obligations. Account deletion requests are processed subject to necessary transaction records, security records, and backup retention.
               </P>
 
-              <H3>5. Your Rights (NDPR)</H3>
+              <H3>5. Your rights under the Nigeria Data Protection Act</H3>
               <P>
-                Under Nigeria's National Data Protection Regulation (NDPR), you
-                have the right to:
+                Under Nigeria’s Data Protection Act 2023 and other applicable data protection rules, you may have the right to:
               </P>
               <UL>
                 <LI>Access the personal data we hold about you.</LI>
                 <LI>Request correction of inaccurate data.</LI>
                 <LI>Request deletion of your account and associated data.</LI>
                 <LI>Object to certain processing of your data.</LI>
+                <LI>Withdraw consent where processing relies on consent.</LI>
+                <LI>Request restriction or portability where applicable.</LI>
               </UL>
               <P>
                 To exercise any of these rights, contact us at{" "}
                 <a
                   href="mailto:legal@mails.nurexi.com"
-                  className="underline"
-                  style={{ color: "oklch(55% 0.117 166.71)" }}
+                  className="font-medium text-accent underline underline-offset-4"
                 >
                   legal@mails.nurexi.com
                 </a>
@@ -357,8 +334,7 @@ export default function LegalPage() {
                 For any privacy-related questions, email us at{" "}
                 <a
                   href="mailto:legal@mails.nurexi.com"
-                  className="underline"
-                  style={{ color: "oklch(55% 0.117 166.71)" }}
+                  className="font-medium text-accent underline underline-offset-4"
                 >
                   legal@mails.nurexi.com
                 </a>
@@ -371,7 +347,7 @@ export default function LegalPage() {
               id="terms"
               title="Terms of Service"
               icon={FileText}
-              lastUpdated="May 2026"
+              lastUpdated="September 2026"
             >
               <P>
                 These Terms of Service govern your use of Nurexi. By creating an
@@ -413,7 +389,7 @@ export default function LegalPage() {
                   outside the platform.
                 </LI>
                 <LI>
-                  Nurexi's branding, design, and software are owned by Nurexi
+                  Nurexi’s branding, design, and software are owned by Nurexi
                   and may not be reused.
                 </LI>
               </UL>
@@ -449,7 +425,7 @@ export default function LegalPage() {
                 <LI>
                   Use the platform to cheat in real professional examinations.
                 </LI>
-                <LI>Attempt to access other users' accounts or data.</LI>
+                <LI>Attempt to access other users’ accounts or data.</LI>
                 <LI>Scrape, copy, or automate requests to the platform.</LI>
                 <LI>Upload or share false, harmful, or misleading content.</LI>
               </UL>
@@ -488,8 +464,7 @@ export default function LegalPage() {
                 Questions about these terms? Email{" "}
                 <a
                   href="mailto:legal@mails.nurexi.com"
-                  className="underline"
-                  style={{ color: "oklch(55% 0.117 166.71)" }}
+                  className="font-medium text-accent underline underline-offset-4"
                 >
                   legal@mails.nurexi.com
                 </a>
@@ -502,12 +477,10 @@ export default function LegalPage() {
               id="cookies"
               title="Cookie Policy"
               icon={Cookie}
-              lastUpdated="May 2026"
+              lastUpdated="September 2026"
             >
               <P>
-                This Cookie Policy explains how Nurexi uses cookies and similar
-                technologies. By using our platform, you consent to the use of
-                cookies as described here.
+                This Cookie Policy explains how Nurexi uses cookies, local storage, and similar technologies. Strictly necessary storage supports authentication and core features. Other technologies may support analytics, diagnostics, and service improvement.
               </P>
 
               <H3>1. What Are Cookies</H3>
@@ -527,44 +500,32 @@ export default function LegalPage() {
                     purpose:
                       "Keep you logged in between sessions. These are strictly necessary — the platform cannot function without them.",
                     type: "Strictly necessary",
-                    color: "oklch(78.07% 0.117 166.71 / 0.1)",
-                    textColor: "oklch(42% 0.117 166.71)",
                   },
                   {
                     name: "Analytics cookies",
                     provider: "Google Analytics, Vercel Analytics",
                     purpose:
-                      "Collect anonymised data about how users navigate Nurexi so we can improve the experience. No personally identifiable information is shared.",
+                      "Measure how visitors navigate Nurexi so we can understand and improve the experience.",
                     type: "Analytics",
-                    color: "oklch(78% 0.15 240 / 0.08)",
-                    textColor: "oklch(42% 0.15 240)",
                   },
                   {
-                    name: "Error monitoring",
-                    provider: "Sentry",
+                    name: "Diagnostics and error monitoring",
+                    provider: "Sentry, LogRocket",
                     purpose:
-                      "Track application errors and performance issues. Data is anonymised and used only for debugging.",
+                      "Help investigate application errors, performance problems, and user-reported issues.",
                     type: "Functional",
-                    color: "oklch(78% 0.15 30 / 0.08)",
-                    textColor: "oklch(42% 0.15 30)",
                   },
                 ].map((cookie) => (
                   <div
                     key={cookie.name}
-                    className="rounded-xl border border-border/50 p-4"
-                    style={{ background: cookie.color }}
+                    className="rounded-2xl border border-border bg-secondary/40 p-4"
                   >
                     <div className="flex items-start justify-between gap-2 mb-1.5">
                       <span className="text-[13px] font-semibold text-foreground">
                         {cookie.name}
                       </span>
                       <span
-                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-                        style={{
-                          background: cookie.color,
-                          color: cookie.textColor,
-                          border: `1px solid ${cookie.textColor}30`,
-                        }}
+                        className="shrink-0 rounded-full bg-card px-2 py-0.5 text-[10px] font-semibold text-accent"
                       >
                         {cookie.type}
                       </span>
@@ -633,8 +594,7 @@ export default function LegalPage() {
                   href="https://tools.google.com/dlpage/gaoptout"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline"
-                  style={{ color: "oklch(55% 0.117 166.71)" }}
+                  className="font-medium text-accent underline underline-offset-4"
                 >
                   Google Analytics Opt-out Browser Add-on
                 </a>
@@ -653,8 +613,7 @@ export default function LegalPage() {
                 Questions about cookies? Email{" "}
                 <a
                   href="mailto:legal@mails.nurexi.com"
-                  className="underline"
-                  style={{ color: "oklch(55% 0.117 166.71)" }}
+                  className="font-medium text-accent underline underline-offset-4"
                 >
                   legal@mails.nurexi.com
                 </a>

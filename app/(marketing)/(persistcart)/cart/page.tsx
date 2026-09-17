@@ -1,26 +1,16 @@
-import { Metadata } from "next";
-import Cart from "./Cart";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import Cart from "./Cart";
 
 export const metadata: Metadata = {
-  title: "cart",
+  title: "Your cart | Nurexi",
+  description: "Review your selected Nurexi exam preparation bundles before checkout.",
+  robots: { index: false, follow: false },
 };
+
 export default async function CartPage() {
-  let userObj;
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
-  if (error) {
-    if (error) {
-      userObj = {
-        success: false,
-        message: error.message,
-      };
-    }
-  }
-  userObj = {
-    success: true,
-    data: data?.user,
-  };
 
-  return <Cart userObj={userObj} />;
+  return <Cart userObj={{ success: !error && !!data.user, data: data.user ?? null }} />;
 }

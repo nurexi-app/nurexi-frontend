@@ -1,28 +1,25 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { createClient as createPublicClient } from "@/lib/supabase/client";
-import { Badge } from "@/components/ui/badge";
 import {
+  ArrowLeft,
   ArrowRight,
   Clock,
   Globe,
   Instagram,
-  Twitter,
-  Youtube,
   Linkedin,
   Link as LinkIcon,
-  ArrowLeft,
+  Twitter,
+  Youtube,
 } from "lucide-react";
-import { extractHeadings } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/server";
+import { createClient as createPublicClient } from "@/lib/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ResourceCoverImage } from "@/components/marketing/ResourceCoverImage";
 import OnThisPage from "@/components/web/Onthispage";
 import ResourceContent from "@/components/web/ResourceContent";
+import { extractHeadings } from "@/lib/utils";
 import nursingBlog from "@/public/assets/nursingblog.jpg";
-import Image from "next/image";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-// ─── types matching your live schema ──────────────────────────────────────────
 
 interface CreatorLink {
   label: string;
@@ -34,21 +31,19 @@ interface ResourceDetail {
   id: number;
   title: string;
   slug: string;
-  excerpt: string;
-  content: any;
+  excerpt: string | null;
+  content: unknown;
   cover_image_url: string | null;
   category: string;
   resource_type: string;
   published_at: string | null;
-  creator_links: CreatorLink[];
+  creator_links: CreatorLink[] | null;
   created_by: string | null;
-  subject_id: number | null;
-  // joined fields from profiles
   author_name?: string | null;
   author_avatar?: string | null;
 }
 
-const LINK_ICONS: Record<string, React.ElementType> = {
+const linkIcons: Record<string, React.ElementType> = {
   globe: Globe,
   instagram: Instagram,
   twitter: Twitter,
@@ -57,26 +52,23 @@ const LINK_ICONS: Record<string, React.ElementType> = {
   link: LinkIcon,
 };
 
-const CATEGORY_LABELS: Record<string, string> = {
-  study: "Study Resources",
-  clinical: "Clinical Resources",
-  career: "Career Resources",
-  professional: "Professional Development",
-  community: "Community Resources",
+const categoryLabels: Record<string, string> = {
+  study: "Study",
+  clinical: "Clinical",
+  career: "Career",
+  professional: "Professional development",
+  community: "Community",
 };
 
-const TYPE_LABELS: Record<string, string> = {
+const typeLabels: Record<string, string> = {
   article: "Article",
-  micro: "Quick Read",
+  micro: "Quick read",
   video: "Video",
   guide: "Guide",
 };
 
-// ─── data fetch helper — joins profiles manually
-
 async function getResource(slug: string) {
   const supabase = await createClient();
-
   const { data: resource, error } = await supabase
     .from("resources")
     .select("*")
@@ -86,9 +78,8 @@ async function getResource(slug: string) {
 
   if (!resource || error) return null;
 
-  // fetch author separately
-  let author_name: string | null = null;
-  let author_avatar: string | null = null;
+  let authorName: string | null = null;
+  let authorAvatar: string | null = null;
 
   if (resource.created_by) {
     const { data: profile } = await supabase
@@ -97,14 +88,16 @@ async function getResource(slug: string) {
       .eq("id", resource.created_by)
       .single();
 
-    author_name = profile?.full_name ?? null;
-    author_avatar = profile?.avatar_url ?? null;
+    authorName = profile?.full_name ?? null;
+    authorAvatar = profile?.avatar_url ?? null;
   }
 
-  return { ...resource, author_name, author_avatar } as ResourceDetail;
+  return {
+    ...resource,
+    author_name: authorName,
+    author_avatar: authorAvatar,
+  } as ResourceDetail;
 }
-
-// ─── metadata ──────────────────────────────────────────────────────────────────
 
 export async function generateMetadata({
   params,
@@ -113,38 +106,26 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const resource = await getResource(slug);
-  if (!resource) return { title: "Resource Not Found " };
+  if (!resource) return { title: "Resource not found | Nurexi" };
 
-  const coverImage = resource.cover_image_url || nursingBlog;
+  const coverImage = resource.cover_image_url || nursingBlog.src;
+
   return {
     metadataBase: new URL("https://nurexi.com"),
-
-    title: `${resource.title}`,
+    title: resource.title,
     description: resource.excerpt || resource.title,
-
     openGraph: {
       title: resource.title,
       description: resource.excerpt || resource.title,
       url: `https://nurexi.com/resources/${resource.slug}`,
       type: "article",
-
-      images: coverImage
-        ? [
-            {
-              url: typeof coverImage === "string" ? coverImage : coverImage.src,
-            },
-          ]
-        : [],
+      images: [{ url: coverImage }],
     },
-
     twitter: {
       card: "summary_large_image",
       title: resource.title,
       description: resource.excerpt || resource.title,
-
-      images: coverImage
-        ? [typeof coverImage === "string" ? coverImage : coverImage.src]
-        : [],
+      images: [coverImage],
     },
   };
 }
@@ -158,29 +139,35 @@ export async function generateStaticParams() {
     .order("published_at", { ascending: false })
     .limit(50);
 
-  return (data ?? []).map((r) => ({ slug: r.slug }));
+  return (data ?? []).map((resource) => ({ slug: resource.slug }));
 }
 
-// ─── creator link button ──────────────────────────────────────────────────────
+function initials(name: string | null | undefined) {
+  if (!name) return "N";
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
 
 function CreatorLinkButton({ link }: { link: CreatorLink }) {
-  const Icon = LINK_ICONS[link.icon] ?? LinkIcon;
+  const Icon = linkIcons[link.icon] ?? LinkIcon;
+
   return (
     <a
       href={link.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-card hover:bg-muted/50 hover:border-primary/40 transition-all duration-150 no-underline group"
+      className="group inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <Icon className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-      <span className="text-[12px] font-medium text-foreground">
-        {link.label}
-      </span>
+      <Icon aria-hidden="true" className="size-4 text-muted-foreground transition-colors group-hover:text-accent" />
+      {link.label}
     </a>
   );
 }
-
-// ─── page ─────────────────────────────────────────────────────────────────────
 
 export default async function ResourcePage({
   params,
@@ -188,13 +175,12 @@ export default async function ResourcePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const r = await getResource(slug);
-  if (!r) notFound();
+  const resource = await getResource(slug);
+  if (!resource) notFound();
 
-  const headings = extractHeadings(r.content);
-
-  const formattedDate = r.published_at
-    ? new Date(r.published_at).toLocaleDateString("en-GB", {
+  const headings = extractHeadings(resource.content);
+  const publishedDate = resource.published_at
+    ? new Date(resource.published_at).toLocaleDateString("en-GB", {
         day: "numeric",
         month: "long",
         year: "numeric",
@@ -202,152 +188,90 @@ export default async function ResourcePage({
     : null;
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="container mt-8 md:mt-10 py-10">
-        {r.cover_image_url && (
-          <div className="h-64 md:h-80 mb-4 rounded-xl overflow-hidden relative">
-            <Image
-              src={r.cover_image_url || nursingBlog}
-              alt={r.title}
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="w-full h-full object-center object-cover"
-            />
+    <main className="min-h-screen bg-background text-foreground">
+      <header className="mx-auto max-w-300 px-6 pb-12 pt-14 sm:px-10 sm:pb-16 sm:pt-20 lg:px-16 lg:pt-24">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Link href="/resources" className="transition-colors hover:text-accent">Resources</Link>
+          <ArrowRight aria-hidden="true" className="size-3.5" />
+          <span className="max-w-56 truncate text-foreground sm:max-w-md">{resource.title}</span>
+        </nav>
+
+        <div className="mt-12 max-w-235">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent">
+            {categoryLabels[resource.category] ?? resource.category} · {typeLabels[resource.resource_type] ?? resource.resource_type}
+          </p>
+          <h1 className="mt-6 text-[clamp(2.8rem,5.7vw,5.8rem)] font-semibold leading-[1.03] tracking-[-0.06em]">
+            {resource.title}
+          </h1>
+          {resource.excerpt && (
+            <p className="mt-7 max-w-195 text-lg leading-relaxed text-muted-foreground sm:text-xl">{resource.excerpt}</p>
+          )}
+
+          <div className="mt-9 flex items-center gap-4 border-t border-border pt-7">
+            <Avatar className="size-12">
+              <AvatarImage src={resource.author_avatar || undefined} alt="" />
+              <AvatarFallback className="bg-secondary font-semibold text-foreground shadow-none">{initials(resource.author_name)}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-semibold">{resource.author_name ?? "Nurexi"}</p>
+              {publishedDate && (
+                <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Clock aria-hidden="true" className="size-3.5" /> {publishedDate}
+                </p>
+              )}
+            </div>
           </div>
-        )}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-10">
-          {/* ── main article column ── */}
-          <article>
-            {/* breadcrumb */}
-            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-6">
-              <Link
-                href="/"
-                className="hover:text-foreground transition-colors no-underline"
-              >
-                Home
-              </Link>
-              <ArrowRight className="h-3 w-3" />
-              <Link
-                href="/resources"
-                className="hover:text-foreground transition-colors no-underline"
-              >
-                Resources
-              </Link>
-              <ArrowRight className="h-3 w-3" />
-              <span className="text-foreground truncate max-w-[200px]">
-                {r.title}
-              </span>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-328 px-6 sm:px-10 lg:px-16">
+        <ResourceCoverImage
+          src={resource.cover_image_url}
+          alt={resource.title}
+          sizes="(max-width: 1312px) 100vw, 1184px"
+          priority
+          className="aspect-16/9 rounded-3xl sm:rounded-4xl"
+        />
+      </div>
+
+      <div className="mx-auto grid max-w-300 gap-12 px-6 py-16 sm:px-10 sm:py-20 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-20 lg:px-16 lg:py-24">
+        <article className="min-w-0 max-w-190">
+          {headings.length >= 2 && (
+            <div className="mb-10 rounded-2xl border border-border bg-secondary/50 p-5 lg:hidden">
+              <OnThisPage headings={headings} />
             </div>
+          )}
 
-            {/* badges */}
-            <div className="flex items-center gap-2 flex-wrap mb-4">
-              <Badge
-                variant="secondary"
-                className="text-[11px] font-semibold rounded-full"
-              >
-                {CATEGORY_LABELS[r.category] ?? r.category}
-              </Badge>
-              <Badge variant="outline" className="text-[11px] rounded-full">
-                {TYPE_LABELS[r.resource_type] ?? r.resource_type}
-              </Badge>
-            </div>
+          <ResourceContent content={resource.content} />
 
-            {/* title */}
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight leading-tight mb-4">
-              {r.title}
-            </h1>
-
-            {/* excerpt */}
-            {r.excerpt && (
-              <p className="text-base text-muted-foreground leading-relaxed mb-6 border-l-2 border-primary/40 pl-4">
-                {r.excerpt}
-              </p>
-            )}
-
-            {/* author + date */}
-            <div className="flex items-center gap-3 mb-8 pb-8 border-b border-border">
-              <Avatar className="size-10">
-                <AvatarImage src={r?.author_avatar || ""} />
-                <AvatarFallback className="uppercase">
-                  {r.author_name?.[0]?.toUpperCase() ?? "N"}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-[13px] font-semibold text-foreground">
-                  {r.author_name ?? "Nurexi"}
-                </p>
-                {formattedDate && (
-                  <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    {formattedDate}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ── mobile-only "on this page" — shown above content on small screens ── */}
-            {headings.length >= 2 && (
-              <div className="lg:hidden mb-8 rounded-xl border border-border bg-muted/20 p-4">
-                <OnThisPage headings={headings} />
-              </div>
-            )}
-
-            {/* main content */}
-            <div className="mb-12">
-              <ResourceContent content={r.content} />
-            </div>
-
-            {/* creator links */}
-            {r.creator_links && r.creator_links.length > 0 && (
-              <div
-                className="rounded-2xl border border-border p-6 mb-10"
-                style={{
-                  background:
-                    "linear-gradient(135deg, oklch(78.07% 0.117 166.71 / 0.06) 0%, transparent 100%)",
-                }}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <Avatar className="size-10">
-                    <AvatarImage src={r?.author_avatar || ""} />
-                    <AvatarFallback className="uppercase">
-                      {r.author_name?.[0]?.toUpperCase() ?? "N"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-[13px] font-semibold text-foreground">
-                      {r.author_name ?? "Nurexi"}
-                    </p>
-                    <p className="text-[12px] text-muted-foreground">
-                      Resource contributor
-                    </p>
-                  </div>
-                </div>
-
-                <p className="text-[12px] text-muted-foreground mb-3 font-medium uppercase tracking-wide">
-                  Connect with the contributor
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {r.creator_links.map((link, i) => (
-                    <CreatorLinkButton key={i} link={link} />
-                  ))}
+          {resource.creator_links && resource.creator_links.length > 0 && (
+            <section className="mt-16 border-t border-border pt-10" aria-labelledby="contributor-heading">
+              <div className="flex items-center gap-4">
+                <Avatar className="size-12">
+                  <AvatarImage src={resource.author_avatar || undefined} alt="" />
+                  <AvatarFallback className="bg-secondary font-semibold text-foreground shadow-none">{initials(resource.author_name)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <h2 id="contributor-heading" className="text-lg font-semibold">{resource.author_name ?? "Nurexi"}</h2>
+                  <p className="text-sm text-muted-foreground">Resource contributor</p>
                 </div>
               </div>
-            )}
+              <div className="mt-6 flex flex-wrap gap-2">
+                {resource.creator_links.map((link) => <CreatorLinkButton key={`${link.label}-${link.url}`} link={link} />)}
+              </div>
+            </section>
+          )}
 
-            <Link
-              href="/resources"
-              className="inline-flex items-center gap-2 text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors no-underline"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Back to all resources
-            </Link>
-          </article>
+          <Link href="/resources" className="arrow-link mt-16 inline-flex min-h-11 items-center gap-2 border-b border-primary font-semibold text-foreground transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <ArrowLeft aria-hidden="true" data-link-arrow="back" className="size-4" /> Back to all resources
+          </Link>
+        </article>
 
-          {/* ── desktop sidebar — "on this page" ── */}
-          <aside className="hidden lg:block">
+        {headings.length >= 2 && (
+          <aside className="hidden lg:block" aria-label="Article contents">
             <OnThisPage headings={headings} />
           </aside>
-        </div>
+        )}
       </div>
     </main>
   );
